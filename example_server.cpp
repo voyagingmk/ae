@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 extern "C" {
     #include "ae.h"
@@ -12,6 +14,30 @@ static aeEventLoop *loop;
 
 static int Conv = 0x11223344;
 static int Interval = 20;
+
+class UDPServer { 
+    sockaddr_in servaddr;
+    int sockfd;
+public:
+    UDPServer(int port) {
+        sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+        bzero(&servaddr, sizeof(servaddr));
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+        servaddr.sin_port = htons(port);
+        bind(sockfd, (sockaddr*)&servaddr, sizeof(servaddr));
+
+    }
+};
+
+
+class UDPClient { 
+    sockaddr_in cliaddr;
+public:
+    void Bind() {
+      //  bind(sockfd, (SA*)&cliaddr, sizeof(cliaddr));
+    }
+};
 
 class KCPObject {
     ikcpcb * m_kcp;
@@ -29,8 +55,15 @@ public:
     const ikcpcb * kcp() {
         return m_kcp;
     }
-    static int kcp_output(const char *buf, int len, ikcpcb *kcp, void * kcpObject) {
-        
+    static int kcp_output(const char *buf, int len, ikcpcb *kcp, void * user) {
+        KCPObject* obj = (KCPObject*)user;
+        assert(obj);
+        obj->send_udp_package(buf, len);
+        return len;
+    }
+    void send_udp_package(const char *buf, int len)
+    {     
+       // ptr->send_udp_packet(std::string(buf, len), udp_remote_endpoint_);
     }
 };
 
@@ -42,6 +75,7 @@ int main (int argc, char **argv) {
         printf("Error: %s\n", c->errstr);
         return 1;
     }*/
+    UDPServer server(9999);
     KCPObject kcpObject(Conv, Interval);
 
     loop = aeCreateEventLoop(64);
