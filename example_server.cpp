@@ -10,22 +10,27 @@ extern "C" {
 
 static aeEventLoop *loop;
 
-static int conv = 0x11223344;
-static int interval = 20;
-
-static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user) {
-    
-}
+static int Conv = 0x11223344;
+static int Interval = 20;
 
 class KCPObject {
-    ikcpcb *kcp;
+    ikcpcb * m_kcp;
 public:
-    KCPObject() {
-        kcp = ikcp_create(conv, this);
+    KCPObject(int conv, int interval) {
+        m_kcp = ikcp_create(conv, this);
+        m_kcp->output = KCPObject::kcp_output;
+        ikcp_wndsize(m_kcp, 128, 128);
+	    ikcp_nodelay(m_kcp, 0, interval, 0, 0);
     }
     ~KCPObject() {
-        ikcp_release(kcp);
-        kcp = NULL;
+        ikcp_release(m_kcp);
+        m_kcp = NULL;
+    }
+    const ikcpcb * kcp() {
+        return m_kcp;
+    }
+    static int kcp_output(const char *buf, int len, ikcpcb *kcp, void * kcpObject) {
+        
     }
 };
 
@@ -37,10 +42,7 @@ int main (int argc, char **argv) {
         printf("Error: %s\n", c->errstr);
         return 1;
     }*/
-    ikcpcb *kcp = ikcp_create(conv, (void*)0);
-    kcp->output = kcp_output;
-    ikcp_wndsize(kcp, 128, 128);
-	ikcp_nodelay(kcp, 0, interval, 0, 0);
+    KCPObject kcpObject(Conv, Interval);
 
     loop = aeCreateEventLoop(64);
     /*
