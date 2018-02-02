@@ -1,2 +1,4 @@
 *.o
 test
+example_client
+example_server

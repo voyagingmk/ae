@@ -2,21 +2,27 @@
 all: example_client example_server
 
 example_client : example_client.o ae.o zmalloc.o ikcp.o
-	cc -o example_client example_client.o ae.o zmalloc.o ikcp.o
+	g++ $^ -o example_client
 
 example_server : example_server.o ae.o zmalloc.o ikcp.o
-	cc -o example_server example_server.o ae.o zmalloc.o ikcp.o
+	g++ $^ -o example_server
 
-example_client.o : example_client.c
-	cc -c example_client.c
+example_client.o : example_client.cpp
+	g++ -c example_client.cpp
 
-example_server.o : example_server.c
-	cc -c example_server.c
+example_server.o : example_server.cpp
+	g++ -c example_server.cpp
+
+ae.o : ae.c ae.h
+	g++ -x c -c ae.c
 
 zmalloc.o : zmalloc.c zmalloc.h
-	cc -c zmalloc.c
+	g++ -x c -c zmalloc.c
 
 ikcp.o : ikcp.c ikcp.h
-	cc -c ikcp.c
+	g++ -x c -c ikcp.c
+	
+.PHONY: clean
 
-clean : rm example_client example_server example_client.o example_server.o ae.o zmalloc.o ikcp.o
+clean : 
+	rm -f *.o

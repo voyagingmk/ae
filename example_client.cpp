@@ -3,8 +3,10 @@
 #include <string.h>
 #include <signal.h>
 
-#include "ae.h"
-#include "ikcp.h"
+extern "C" {
+    #include "ae.h"
+    #include "ikcp.h"
+}
 
 static aeEventLoop *loop;
 /*
