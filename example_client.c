@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+
 #include "ae.h"
+#include "ikcp.h"
 
 static aeEventLoop *loop;
 /*
@@ -50,7 +52,7 @@ int main (int argc, char **argv) {
         printf("Error: %s\n", c->errstr);
         return 1;
     }*/
-
+    ikcpcb *kcp1 = ikcp_create(0x11223344, (void*)0);
     loop = aeCreateEventLoop(64);
     /*
     redisAeAttach(loop, c);
