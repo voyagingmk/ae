@@ -31,7 +31,7 @@ public:
         m_sockaddr.sin_family = AF_INET;
         m_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
         m_sockaddr.sin_port = htons(port);
-        bind(m_sockfd, (struct sockaddr*)&m_sockaddr, sizeof(m_sockaddr));
+        Bind(m_sockfd, (struct sockaddr*)&m_sockaddr, sizeof(m_sockaddr));
     }
 };
 
