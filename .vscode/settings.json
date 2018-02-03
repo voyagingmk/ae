@@ -1,6 +1,7 @@
 {
     "files.exclude": {
         "**/*.o": true,
-        "test": true
+        "example_client": true,
+        "example_server": true
     }
 }
