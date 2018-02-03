@@ -126,7 +126,7 @@
 /* *INDENT-ON* */
 
 /* Define bzero() as a macro if it's not in standard C library. */
-#ifndef	HAVE_BZERO
+#ifndef	bzero
 #define	bzero(ptr,n)		memset(ptr, 0, n)
 /* $$.If bzero$$ */
 /* $$.If memset$$ */
