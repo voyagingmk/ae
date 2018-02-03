@@ -11,6 +11,10 @@ UDPServer::UDPServer(int port) {
     Bind(m_sockfd, (struct sockaddr*)&m_sockaddr, sizeof(m_sockaddr));
 }
 
+UDPServer::~UDPServer() {
+    close(m_sockfd);
+}
+
 UDPClient::UDPClient(const char* host, int port) {
     h = gethostbyname(host);
     if(h == NULL) {
@@ -30,6 +34,15 @@ UDPClient::UDPClient(const char* host, int port) {
     m_sockaddr.sin_port = htons(0);
 
     Bind(m_sockfd, (struct sockaddr*)&m_sockaddr, sizeof(m_sockaddr));
+}
+
+UDPClient::~UDPClient() {
+    close(m_sockfd);
+}
+
+
+void UDPClient::Send(const char * data) {
+    Sendto(m_sockfd, data, strlen(data)+1, 0, (struct sockaddr *) &m_serSockaddr, sizeof(m_serSockaddr));
 }
 
 

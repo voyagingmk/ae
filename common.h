@@ -28,6 +28,7 @@ public:
 class UDPServer: public SocketBase { 
 public:
     UDPServer(int port);
+    ~UDPServer();
 };
 
 
@@ -36,6 +37,8 @@ class UDPClient: public SocketBase {
     struct hostent *h;
 public:
     UDPClient(const char* host, int port);
+    ~UDPClient();
+    void Send(const char * data);
 };
 
 class KCPObject {
