@@ -6,7 +6,8 @@
 #include <netinet/in.h>
 
 extern "C" {
-    #include "unp.h"
+    #include "wrapsock.h"
+    #include "error.h"
     #include "ae.h"
     #include "ikcp.h"
 }
@@ -16,13 +17,13 @@ static aeEventLoop *loop;
 static int Conv = 0x11223344;
 static int Interval = 20;
 
-class Socket { 
+class SocketBase { 
 public:
     sockaddr_in m_sockaddr;
     int m_sockfd;
 };
 
-class UDPServer: public Socket { 
+class UDPServer: public SocketBase { 
 public:
     UDPServer(int port) {
         m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -35,13 +36,13 @@ public:
 };
 
 
-class UDPClient: public Socket { 
+class UDPClient: public SocketBase { 
 public:
 };
 
 class KCPObject {
     ikcpcb * m_kcp;
-    Socket* m_socket;
+    SocketBase* m_socket;
 public:
     KCPObject(int conv, int interval) {
         m_kcp = ikcp_create(conv, this);
@@ -56,12 +57,12 @@ public:
     const ikcpcb * kcp() {
         return m_kcp;
     }
-    void bindSocket(Socket* s) {
+    void bindSocket(SocketBase* s) {
         m_socket = s;
     }
     void send_udp_package(const char *buf, int len)
     {     
-        sendto(m_socket->m_sockfd, buf, len, 0, pcliaddr, len)
+       // sendto(m_socket->m_sockfd, buf, len, 0, pcliaddr, len)
        // ptr->send_udp_packet(std::string(buf, len), udp_remote_endpoint_);
     }
     static int kcp_output(const char *buf, int len, ikcpcb *kcp, void * user) {
