@@ -2,7 +2,7 @@
 
 int main (int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
-    UDPServer server(9999);
+    UDPServer server(Port);
     KCPObject kcpObject(Conv, Interval);
     kcpObject.bindSocket(&server);
 

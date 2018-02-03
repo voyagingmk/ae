@@ -16,6 +16,8 @@ static aeEventLoop *loop;
 
 static int Conv = 0x11223344;
 static int Interval = 20;
+static int Port = 9999;
+
 
 class SocketBase { 
 public:
@@ -30,9 +32,10 @@ public:
 
 
 class UDPClient: public SocketBase { 
+    sockaddr_in m_serSockaddr;
     struct hostent *h;
 public:
-    UDPClient(char *host, int port);
+    UDPClient(const char* host, int port);
 };
 
 class KCPObject {

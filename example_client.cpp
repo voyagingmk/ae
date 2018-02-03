@@ -2,7 +2,9 @@
 
 int main (int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
-    ikcpcb *kcp1 = ikcp_create(0x11223344, (void*)0);
+    UDPClient client("127.0.0.1", Port);
+    KCPObject kcpObject(Conv, Interval);
+    kcpObject.bindSocket(&client);
     loop = aeCreateEventLoop(64);
 
     aeMain(loop);
