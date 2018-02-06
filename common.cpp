@@ -186,6 +186,29 @@ void KCPObject::flush()
     ikcp_flush(m_kcp);
 }
 
+int KCPObject::setmtu(int mtu)
+{
+    int ret = ikcp_setmtu(m_kcp, mtu);
+    if (ret < 0)
+    {
+        printf("[kcp.setmtu] err %d \n", ret);
+        if (ret == -1)
+        {
+            printf("[kcp.setmtu] mtu < 50 || mtu < (int)IKCP_OVERHEAD \n");
+        }
+        if (ret == -2)
+        {
+            printf("[kcp.setmtu] buffer == NULL \n");
+        }
+    }
+    return ret;
+}
+
+int KCPObject::waitsnd()
+{
+    return ikcp_waitsnd(m_kcp);
+}
+
 void KCPObject::sendBySocket(const char *buf, int len)
 {
     //  Sendto(m_socket->m_sockfd, buf, len, 0, pcliaddr, len);

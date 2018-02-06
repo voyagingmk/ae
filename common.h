@@ -78,6 +78,10 @@ public:
 
   void flush();
 
+  int setmtu(int mtu);
+
+  int waitsnd();
+
 private:
   static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user)
   {
