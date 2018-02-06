@@ -148,6 +148,11 @@ int KCPObject::recv(char *buf, int len)
     return ret;
 }
 
+int KCPObject::peeknextsize()
+{
+    return ikcp_peeksize(m_kcp);
+}
+
 void KCPObject::update(IUINT32 current)
 {
     ikcp_update(m_kcp, current);

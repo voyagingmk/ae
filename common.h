@@ -70,6 +70,8 @@ public:
 
   int recv(char *buf, int len);
 
+  int peeknextsize();
+
   void update(IUINT32 current);
 
   IUINT32 check(IUINT32 current);
@@ -81,6 +83,11 @@ public:
   int setmtu(int mtu);
 
   int waitsnd();
+
+  static void setAllocator(void *(*new_malloc)(size_t), void (*new_free)(void *))
+  {
+    ikcp_allocator(new_malloc, new_free);
+  }
 
 private:
   static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user)
