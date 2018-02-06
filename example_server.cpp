@@ -22,10 +22,7 @@ int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
     UDPServer server(Port);
-    /*
-    KCPObject kcpObject(Conv);
-    kcpObject.bindSocket(&server);
-    */
+    KCPObject kcpObject(Conv, &server, &SocketOutput);
     printf("aeGetApiName: %s\n", aeGetApiName());
     loop = aeCreateEventLoop(64);
     aeCreateFileEvent(loop, server.m_sockfd, AE_READABLE,

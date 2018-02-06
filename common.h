@@ -45,16 +45,17 @@ public:
 class KCPObject
 {
   ikcpcb *m_kcp;
-  SocketBase *m_socket;
 
 public:
-  KCPObject(int conv);
+  typedef int (*OutputFunc)(const char *buf, int len,
+                            ikcpcb *kcp, void *user);
+
+public:
+  KCPObject(int conv, void *userdata, OutputFunc outputFunc);
 
   ~KCPObject();
 
   const ikcpcb *kcp();
-
-  void bindSocket(SocketBase *s);
 
   int getSendWin();
 
@@ -70,7 +71,7 @@ public:
 
   int recv(char *buf, int len);
 
-  int peeknextsize();
+  int nextRecvSize();
 
   void update(IUINT32 current);
 
@@ -88,15 +89,12 @@ public:
   {
     ikcp_allocator(new_malloc, new_free);
   }
-
-private:
-  static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user)
-  {
-    KCPObject *obj = (KCPObject *)user;
-    assert(obj);
-    obj->send(buf, len);
-    return len;
-  }
-
-  void sendBySocket(const char *buf, int len);
 };
+
+static int SocketOutput(const char *buf, int len, ikcpcb *kcp, void *user)
+{
+  SocketBase *s = (SocketBase *)user;
+  assert(s);
+  // s->send(buf, len);
+  return len;
+}

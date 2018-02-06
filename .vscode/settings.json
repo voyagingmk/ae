@@ -10,6 +10,9 @@
         "__split_buffer": "cpp",
         "list": "cpp",
         "__bit_reference": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "memory": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp"
     }
 }

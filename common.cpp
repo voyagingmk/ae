@@ -54,10 +54,10 @@ void UDPClient::Send(const char *data)
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 
-KCPObject::KCPObject(int conv)
+KCPObject::KCPObject(int conv, void *userdata, OutputFunc outputFunc)
 {
-    m_kcp = ikcp_create(conv, this);
-    m_kcp->output = KCPObject::kcp_output;
+    m_kcp = ikcp_create(conv, userdata);
+    m_kcp->output = outputFunc;
 }
 
 KCPObject::~KCPObject()
@@ -69,11 +69,6 @@ KCPObject::~KCPObject()
 const ikcpcb *KCPObject::kcp()
 {
     return m_kcp;
-}
-
-void KCPObject::bindSocket(SocketBase *s)
-{
-    m_socket = s;
 }
 
 int KCPObject::getSendWin()
@@ -148,7 +143,7 @@ int KCPObject::recv(char *buf, int len)
     return ret;
 }
 
-int KCPObject::peeknextsize()
+int KCPObject::nextRecvSize()
 {
     return ikcp_peeksize(m_kcp);
 }
@@ -212,10 +207,4 @@ int KCPObject::setmtu(int mtu)
 int KCPObject::waitsnd()
 {
     return ikcp_waitsnd(m_kcp);
-}
-
-void KCPObject::sendBySocket(const char *buf, int len)
-{
-    //  Sendto(m_socket->m_sockfd, buf, len, 0, pcliaddr, len);
-    // ptr->send_udp_packet(std::string(buf, len), udp_remote_endpoint_);
 }
