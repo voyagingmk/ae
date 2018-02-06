@@ -70,6 +70,14 @@ public:
 
   int recv(char *buf, int len);
 
+  void update(IUINT32 current);
+
+  IUINT32 check(IUINT32 current);
+
+  int input(const char *data, long size);
+
+  void flush();
+
 private:
   static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user)
   {
