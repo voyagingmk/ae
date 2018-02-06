@@ -50,6 +50,10 @@ void UDPClient::Send(const char *data)
     Sendto(m_sockfd, data, strlen(data) + 1, 0, (struct sockaddr *)&m_serSockaddr, sizeof(m_serSockaddr));
 }
 
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+
 KCPObject::KCPObject(int conv)
 {
     m_kcp = ikcp_create(conv, this);
@@ -72,17 +76,17 @@ void KCPObject::bindSocket(SocketBase *s)
     m_socket = s;
 }
 
-IUINT32 KCPObject::getSendWin()
+int KCPObject::getSendWin()
 {
     return m_kcp->snd_wnd;
 }
 
-IUINT32 KCPObject::getRecvWin()
+int KCPObject::getRecvWin()
 {
     return m_kcp->rcv_wnd;
 }
 
-void KCPObject::setSendWin(IUINT32 wnd)
+void KCPObject::setSendWin(int wnd)
 {
     if (wnd > 0)
     {
@@ -90,7 +94,7 @@ void KCPObject::setSendWin(IUINT32 wnd)
     }
 }
 
-void KCPObject::setRecvWin(IUINT32 wnd)
+void KCPObject::setRecvWin(int wnd)
 {
     if (wnd > 0)
     {
@@ -98,7 +102,51 @@ void KCPObject::setRecvWin(IUINT32 wnd)
     }
 }
 
-void KCPObject::sendPackage(const char *buf, int len)
+void KCPObject::setNodelay(int nodelay, int interval, int resend, int nc)
+{
+    ikcp_nodelay(m_kcp, nodelay, interval, resend, nc);
+}
+
+int KCPObject::send(const char *buf, int len)
+{
+    int ret = ikcp_send(m_kcp, buf, len);
+    if (ret < 0)
+    {
+        if (ret == -1)
+        {
+            printf("len < 0 \n");
+        }
+        if (ret == -2)
+        {
+            printf("seg == NULL or count > 255 \n");
+        }
+    }
+    return ret;
+}
+
+int KCPObject::recv(char *buf, int len)
+{
+    int ret = ikcp_recv(m_kcp, buf, len);
+    if (ret < 0)
+    {
+        if (ret == -1)
+        {
+            printf("rcv_queue is empty \n");
+        }
+        if (ret == -2)
+        {
+            printf("peeksize < 0 \n");
+        }
+
+        if (ret == -2)
+        {
+            printf("peeksize > len \n");
+        }
+    }
+    return ret;
+}
+
+void KCPObject::sendBySocket(const char *buf, int len)
 {
     //  Sendto(m_socket->m_sockfd, buf, len, 0, pcliaddr, len);
     // ptr->send_udp_packet(std::string(buf, len), udp_remote_endpoint_);

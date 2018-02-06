@@ -19,58 +19,65 @@ static int Port = 9999;
 
 class SocketBase
 {
-  public:
-    sockaddr_in m_sockaddr;
-    int m_sockfd;
+public:
+  sockaddr_in m_sockaddr;
+  int m_sockfd;
 };
 
 class UDPServer : public SocketBase
 {
-  public:
-    UDPServer(int port);
-    ~UDPServer();
+public:
+  UDPServer(int port);
+  ~UDPServer();
 };
 
 class UDPClient : public SocketBase
 {
-    sockaddr_in m_serSockaddr;
-    struct hostent *h;
+  sockaddr_in m_serSockaddr;
+  struct hostent *h;
 
-  public:
-    UDPClient(const char *host, int port);
-    ~UDPClient();
-    void Send(const char *data);
+public:
+  UDPClient(const char *host, int port);
+  ~UDPClient();
+  void Send(const char *data);
 };
 
 class KCPObject
 {
-    ikcpcb *m_kcp;
-    SocketBase *m_socket;
+  ikcpcb *m_kcp;
+  SocketBase *m_socket;
 
-  public:
-    KCPObject(int conv);
+public:
+  KCPObject(int conv);
 
-    ~KCPObject();
+  ~KCPObject();
 
-    const ikcpcb *kcp();
+  const ikcpcb *kcp();
 
-    void bindSocket(SocketBase *s);
+  void bindSocket(SocketBase *s);
 
-    IUINT32 getSendWin();
+  int getSendWin();
 
-    IUINT32 getRecvWin();
+  int getRecvWin();
 
-    void setSendWin(IUINT32 wnd);
+  void setSendWin(int wnd);
 
-    void setRecvWin(IUINT32 wnd);
+  void setRecvWin(int wnd);
 
-    void sendPackage(const char *buf, int len);
+  void setNodelay(int nodelay, int interval, int resend, int nc);
 
-    static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user)
-    {
-        KCPObject *obj = (KCPObject *)user;
-        assert(obj);
-        obj->sendPackage(buf, len);
-        return len;
-    }
+  int send(const char *buf, int len);
+
+  int recv(char *buf, int len);
+
+private:
+  static int kcp_output(const char *buf, int len, ikcpcb *kcp, void *user)
+  {
+    KCPObject *obj = (KCPObject *)user;
+    assert(obj);
+    obj->send(buf, len);
+    return len;
+  }
+
+  void sendBySocket(const char *buf, int len);
 };
