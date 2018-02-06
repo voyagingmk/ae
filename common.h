@@ -21,6 +21,7 @@ class SocketBase
 {
 public:
   sockaddr_in m_sockaddr;
+  socklen_t m_socklen;
   int m_sockfd;
 };
 

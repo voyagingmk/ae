@@ -19,25 +19,37 @@ UDPServer::~UDPServer()
 
 UDPClient::UDPClient(const char *host, int port)
 {
-    h = gethostbyname(host);
-    if (h == NULL)
+    char buf[5];
+    sprintf(buf, "%d", port);
+    const char *serv = (char *)&buf;
+
+    int sockfd, n;
+    struct addrinfo hints, *res, *ressave;
+
+    bzero(&hints, sizeof(struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
+        err_quit("udp_client error for %s, %s: %s",
+                 host, serv, gai_strerror(n));
+    ressave = res;
+
+    do
     {
-        printf("unknown host '%s' \n", host);
-        exit(1);
-    }
-    printf("host: '%s'  IP : %s \n", h->h_name,
-           inet_ntoa(*(struct in_addr *)h->h_addr_list[0]));
-    m_serSockaddr.sin_family = h->h_addrtype;
-    memcpy((char *)&m_serSockaddr.sin_addr.s_addr,
-           h->h_addr_list[0], h->h_length);
-    m_serSockaddr.sin_port = htons(port);
-    m_sockfd = Socket(AF_INET, SOCK_DGRAM, 0);
+        sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        if (sockfd >= 0)
+            break; /* success */
+    } while ((res = res->ai_next) != NULL);
 
-    m_sockaddr.sin_family = AF_INET;
-    m_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    m_sockaddr.sin_port = htons(0);
+    if (res == NULL) /* errno set from final socket() */
+        err_sys("udp_client error for %s, %s", host, serv);
 
-    Bind(m_sockfd, (struct sockaddr *)&m_sockaddr, sizeof(m_sockaddr));
+    memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
+    m_socklen = res->ai_addrlen;
+    freeaddrinfo(ressave);
+    m_sockfd = sockfd;
+
+    Bind(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 
 UDPClient::~UDPClient()
