@@ -3,5 +3,9 @@
         "**/*.o": true,
         "example_client": true,
         "example_server": true
+    },
+    "files.associations": {
+        "iterator": "cpp",
+        "vector": "cpp"
     }
 }

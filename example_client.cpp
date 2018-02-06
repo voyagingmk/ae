@@ -1,14 +1,14 @@
 #include "common.h"
 
-int main (int argc, char **argv) {
+int main(int argc, char **argv)
+{
     signal(SIGPIPE, SIG_IGN);
     UDPClient client("127.0.0.1", Port);
     client.Send("hello");
     /*
-    KCPObject kcpObject(Conv, Interval);
+    KCPObject kcpObject(Conv);
     kcpObject.bindSocket(&client);
     loop = aeCreateEventLoop(64);
     aeMain(loop);*/
     return 0;
 }
-

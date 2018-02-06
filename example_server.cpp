@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
     UDPServer server(Port);
     /*
-    KCPObject kcpObject(Conv, Interval);
+    KCPObject kcpObject(Conv);
     kcpObject.bindSocket(&server);
     */
     printf("aeGetApiName: %s\n", aeGetApiName());

@@ -15,7 +15,6 @@ extern "C" {
 static aeEventLoop *loop;
 
 static int Conv = 0x11223344;
-static int Interval = 20;
 static int Port = 9999;
 
 class SocketBase
@@ -49,7 +48,7 @@ class KCPObject
     SocketBase *m_socket;
 
   public:
-    KCPObject(int conv, int interval);
+    KCPObject(int conv);
 
     ~KCPObject();
 

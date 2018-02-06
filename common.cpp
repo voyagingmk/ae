@@ -50,12 +50,10 @@ void UDPClient::Send(const char *data)
     Sendto(m_sockfd, data, strlen(data) + 1, 0, (struct sockaddr *)&m_serSockaddr, sizeof(m_serSockaddr));
 }
 
-KCPObject::KCPObject(int conv, int interval)
+KCPObject::KCPObject(int conv)
 {
     m_kcp = ikcp_create(conv, this);
     m_kcp->output = KCPObject::kcp_output;
-    ikcp_wndsize(m_kcp, 128, 128);
-    ikcp_nodelay(m_kcp, 0, interval, 0, 0);
 }
 
 KCPObject::~KCPObject()
