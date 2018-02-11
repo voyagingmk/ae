@@ -2,7 +2,7 @@
 all: example_client example_server
 
 
-OBJS = ae.o zmalloc.o ikcp.o error.o wrapsock.o common.o
+OBJS = ae.o zmalloc.o ikcp.o error.o wrapsock.o common.o sock_ntop.o
 
 example_client : example_client.o ${OBJS}
 	g++ -g3 -o example_client  example_client.o ${OBJS}
@@ -36,6 +36,9 @@ zmalloc.o : zmalloc.c
 ikcp.o : ikcp.c
 	g++ -g3 -x c -c ikcp.c
 	
+sock_ntop.o : sock_ntop.c
+	g++ -g3 -x c -c sock_ntop.c
+
 .PHONY: clean
 
 clean : 

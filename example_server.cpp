@@ -1,6 +1,6 @@
 #include "common.h"
 
-#define MAX_MSG 100
+#define MAX_MSG 1400
 void CustomFileProc(struct aeEventLoop *eventLoop,
                     int fd, void *clientData, int mask)
 {
