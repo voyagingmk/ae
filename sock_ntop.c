@@ -46,35 +46,6 @@ sock_ntop(const struct sockaddr *sa, socklen_t salen)
 		return (str + 1);
 	}
 #endif
-
-#ifdef AF_UNIX
-	case AF_UNIX:
-	{
-		struct sockaddr_un *unp = (struct sockaddr_un *)sa;
-
-		/* OK to have no pathname bound to the socket: happens on
-			   every connect() unless client calls bind() first. */
-		if (unp->sun_path[0] == 0)
-			strcpy(str, "(no pathname bound)");
-		else
-			snprintf(str, sizeof(str), "%s", unp->sun_path);
-		return (str);
-	}
-#endif
-
-#ifdef HAVE_SOCKADDR_DL_STRUCT
-	case AF_LINK:
-	{
-		struct sockaddr_dl *sdl = (struct sockaddr_dl *)sa;
-
-		if (sdl->sdl_nlen > 0)
-			snprintf(str, sizeof(str), "%*s (index %d)",
-					 sdl->sdl_nlen, &sdl->sdl_data[0], sdl->sdl_index);
-		else
-			snprintf(str, sizeof(str), "AF_LINK, index=%d", sdl->sdl_index);
-		return (str);
-	}
-#endif
 	default:
 		snprintf(str, sizeof(str), "sock_ntop: unknown AF_xxx: %d, len %d",
 				 sa->sa_family, salen);
