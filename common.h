@@ -40,7 +40,7 @@ class UDPClient : public SocketBase
 public:
   UDPClient(const char *host, int port);
   ~UDPClient();
-  void Send(const char *data);
+  void Send(const char *data, size_t len);
 };
 
 class KCPObject

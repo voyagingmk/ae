@@ -4,7 +4,7 @@ int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
     UDPClient client("127.0.0.1", Port);
-    client.Send("hello");
+    client.Send("hello", 6);
     KCPObject kcpObject(Conv, &client, &SocketOutput);
 
     /*

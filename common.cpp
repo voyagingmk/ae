@@ -36,7 +36,7 @@ UDPClient::UDPClient(const char *host, int port)
 
     do
     {
-        sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        sockfd = Socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (sockfd >= 0)
             break; /* success */
     } while ((res = res->ai_next) != NULL);
@@ -57,9 +57,9 @@ UDPClient::~UDPClient()
     close(m_sockfd);
 }
 
-void UDPClient::Send(const char *data)
+void UDPClient::Send(const char *data, size_t len)
 {
-    Sendto(m_sockfd, data, strlen(data) + 1, 0, (struct sockaddr *)&m_serSockaddr, sizeof(m_serSockaddr));
+    Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_serSockaddr, sizeof(m_serSockaddr));
 }
 
 /////////////////////////////////////////////////////////////////
