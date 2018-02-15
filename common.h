@@ -20,7 +20,7 @@ static int Port = 9999;
 class SocketBase
 {
 public:
-  sockaddr_in m_sockaddr;
+  sockaddr_in6 m_sockaddr;
   socklen_t m_socklen;
   int m_sockfd;
 };
