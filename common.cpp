@@ -9,7 +9,7 @@ UDPServer::UDPServer(int port)
     bzero(&m_sockaddr, sizeof(m_sockaddr));
 
     m_sockaddr.sin6_family = AF_INET6;
-    m_sockaddr.sin6_addr = in6addr_any;
+    m_sockaddr.sin6_addr = in6addr_any; // in6addr_loopback
     m_sockaddr.sin6_port = htons(port);
     m_socklen = sizeof(m_sockaddr);
     Bind(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
@@ -32,7 +32,7 @@ UDPClient::UDPClient(const char *host, int port)
     struct addrinfo hints, *res, *ressave;
 
     bzero(&hints, sizeof(struct addrinfo));
-    hints.ai_family = PF_UNSPEC;
+    hints.ai_family = PF_INET6;
     hints.ai_socktype = SOCK_DGRAM;
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
         err_quit("udp_client error for %s, %s: %s",
@@ -57,7 +57,7 @@ UDPClient::UDPClient(const char *host, int port)
     freeaddrinfo(ressave);
     m_sockfd = sockfd;
 
-    // Connect(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
+    Connect(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
     char *str = sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
     printf("connected: %s\n", str);
 }
@@ -69,8 +69,8 @@ UDPClient::~UDPClient()
 
 void UDPClient::Send(const char *data, size_t len)
 {
-    // ::Send(m_sockfd, data, len, 0);
-    Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
+    ::Send(m_sockfd, data, len, 0);
+    // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 
 /////////////////////////////////////////////////////////////////
