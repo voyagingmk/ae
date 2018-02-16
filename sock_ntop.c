@@ -27,9 +27,6 @@ sock_ntop(const struct sockaddr *sa, socklen_t salen)
 		}
 		return (str);
 	}
-		/* end sock_ntop */
-
-#ifdef IPV6
 	case AF_INET6:
 	{
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sa;
@@ -45,7 +42,6 @@ sock_ntop(const struct sockaddr *sa, socklen_t salen)
 		}
 		return (str + 1);
 	}
-#endif
 	default:
 		snprintf(str, sizeof(str), "sock_ntop: unknown AF_xxx: %d, len %d",
 				 sa->sa_family, salen);

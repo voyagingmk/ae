@@ -2,7 +2,7 @@
 
 UDPServer::UDPServer(int port)
 {
-    m_sockfd = Socket(AF_INET6, SOCK_DGRAM, 0);
+    m_sockfd = Socket(PF_INET6, SOCK_DGRAM, 0);
     int on = 1;
     Setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,
                (char *)&on, sizeof(on));
@@ -11,8 +11,10 @@ UDPServer::UDPServer(int port)
     m_sockaddr.sin6_family = AF_INET6;
     m_sockaddr.sin6_addr = in6addr_any;
     m_sockaddr.sin6_port = htons(port);
-
-    Bind(m_sockfd, (struct sockaddr *)&m_sockaddr, sizeof(m_sockaddr));
+    m_socklen = sizeof(m_sockaddr);
+    Bind(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
+    char *str = sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
+    printf("bind: %s\n", str);
 }
 
 UDPServer::~UDPServer()
@@ -30,7 +32,7 @@ UDPClient::UDPClient(const char *host, int port)
     struct addrinfo hints, *res, *ressave;
 
     bzero(&hints, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = PF_UNSPEC;
     hints.ai_socktype = SOCK_DGRAM;
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
         err_quit("udp_client error for %s, %s: %s",
@@ -39,7 +41,7 @@ UDPClient::UDPClient(const char *host, int port)
 
     do
     {
-        if (res->ai_family == AF_INET || res->ai_family == AF_INET6)
+        if (res->ai_family == PF_INET || res->ai_family == PF_INET6)
         {
             sockfd = Socket(res->ai_family, res->ai_socktype, res->ai_protocol);
             if (sockfd >= 0)
@@ -55,7 +57,9 @@ UDPClient::UDPClient(const char *host, int port)
     freeaddrinfo(ressave);
     m_sockfd = sockfd;
 
-    Connect(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
+    // Connect(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
+    char *str = sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
+    printf("connected: %s\n", str);
 }
 
 UDPClient::~UDPClient()
@@ -65,7 +69,8 @@ UDPClient::~UDPClient()
 
 void UDPClient::Send(const char *data, size_t len)
 {
-    ::Send(m_sockfd, data, len, 0);
+    // ::Send(m_sockfd, data, len, 0);
+    Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 
 /////////////////////////////////////////////////////////////////
