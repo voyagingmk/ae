@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <map>
 #include <signal.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+#include <map>
+#include <set>
 
 extern "C" {
 #include "wrapsock.h"

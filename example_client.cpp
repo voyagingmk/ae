@@ -9,9 +9,5 @@ int main(int argc, char **argv)
     client.Send("hello", 6);
     KCPObject kcpObject(9999, &client, &SocketOutput);
 
-    /*
-    loop = aeCreateEventLoop(64);
-    aeMain(loop);
-    */
     return 0;
 }

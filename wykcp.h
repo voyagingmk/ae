@@ -1,3 +1,6 @@
+#ifndef WY_KCP_H
+#define WY_KCP_H
+
 #include "common.h"
 
 namespace wynet
@@ -52,3 +55,5 @@ class KCPObject
     }
 };
 };
+
+#endif
