@@ -2,6 +2,7 @@
 
 UDPServer::UDPServer(int port)
 {
+    /*
     m_sockfd = Socket(PF_INET6, SOCK_DGRAM, 0);
     int on = 1;
     Setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,
@@ -13,8 +14,51 @@ UDPServer::UDPServer(int port)
     m_sockaddr.sin6_port = htons(port);
     m_socklen = sizeof(m_sockaddr);
     Bind(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
-    char *str = sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
+    char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
     printf("bind: %s\n", str);
+    */
+
+    int n;
+    const int on = 1;
+    struct addrinfo hints, *res, *ressave;
+
+    bzero(&hints, sizeof(struct addrinfo));
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_DGRAM;
+
+    const char *host = NULL;
+    char buf[5];
+    sprintf(buf, "%d", port);
+    const char *serv = (char *)&buf;
+
+    if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
+        err_quit("udp_server error for %s, %s: %s",
+                 host, serv, gai_strerror(n));
+    ressave = res;
+
+    do
+    {
+        m_sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        if (m_sockfd < 0)
+            continue; /* error, try next one */
+
+        Setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+        if (bind(m_sockfd, res->ai_addr, res->ai_addrlen) == 0)
+            break; /* success */
+
+        Close(m_sockfd); /* bind error, close and try next one */
+    } while ((res = res->ai_next) != NULL);
+
+    if (res == NULL) /* errno from final socket() or bind() */
+        err_sys("udp_server error for %s, %s", host, serv);
+
+    memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
+    m_socklen = res->ai_addrlen; /* return size of protocol address */
+    freeaddrinfo(ressave);
+
+    char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
+    printf("Server: %s\n", str);
 }
 
 UDPServer::~UDPServer()
@@ -32,8 +76,9 @@ UDPClient::UDPClient(const char *host, int port)
     struct addrinfo hints, *res, *ressave;
 
     bzero(&hints, sizeof(struct addrinfo));
-    hints.ai_family = PF_INET6;
+    hints.ai_family = PF_UNSPEC;
     hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_flags = AI_ALL;
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
         err_quit("udp_client error for %s, %s: %s",
                  host, serv, gai_strerror(n));
@@ -58,7 +103,7 @@ UDPClient::UDPClient(const char *host, int port)
     m_sockfd = sockfd;
 
     Connect(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
-    char *str = sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
+    char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
     printf("connected: %s\n", str);
 }
 

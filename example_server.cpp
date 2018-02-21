@@ -12,9 +12,8 @@ void CustomFileProc(struct aeEventLoop *eventLoop,
     Recvfrom(server->m_sockfd, msg, MAX_MSG, 0,
              (struct sockaddr *)&cliAddr, &len);
 
-    printf("recv from UDP %s:%u : %s \n",
-           inet_ntoa(cliAddr.sin_addr),
-           ntohs(cliAddr.sin_port),
+    printf("recv from UDP %s : %s \n",
+           Sock_ntop((struct sockaddr *)&cliAddr, len),
            msg);
 }
 
