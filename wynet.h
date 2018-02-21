@@ -19,6 +19,7 @@ protected:
     WyNet();
     ~WyNet();
     void Loop();
+    void StopLoop();
     aeEventLoop * GetAeLoop() {
         return aeloop;
     }

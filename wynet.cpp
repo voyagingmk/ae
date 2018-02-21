@@ -11,7 +11,6 @@ WyNet::~WyNet() {
     while(!servers.empty()) {
         UniqID serverID = servers.begin()->first;
         DestroyServer(serverID);
-        printf("Server %d destoryed.\n", serverID);
     }
     printf("WyNet destroyed.\n");
 }
@@ -32,6 +31,10 @@ bool WyNet::DestroyServer(UniqID serverId) {
     delete server;
     serverIdGen.recycleID(serverId);
     return true;
+}
+
+void WyNet::StopLoop() {
+   aeloop->stop = 1;
 }
 
 void WyNet::Loop() {

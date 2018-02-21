@@ -6,7 +6,7 @@ WyNet net;
 void Stop(int signo)   
 {  
     printf("Stop.\n");  
-    net.GetAeLoop()->stop = 1;
+    net.StopLoop();
 }  
 
 int main(int argc, char **argv)

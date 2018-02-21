@@ -49,6 +49,7 @@ Server::~Server() {
     aeDeleteFileEvent(aeloop, tcpServer.m_sockfd, AE_READABLE); 
     aeDeleteFileEvent(aeloop, udpServer.m_sockfd, AE_READABLE); 
     aeloop = NULL;
+    printf("Server destoryed.\n");
 }
 
 };
