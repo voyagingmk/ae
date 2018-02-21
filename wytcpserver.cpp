@@ -43,10 +43,13 @@ TCPServer::TCPServer(int port)
 
     m_sockfd = listenfd;
     m_family = res->ai_family;
+    memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
 	m_socklen = res->ai_addrlen;	/* return size of protocol address */
 
 	freeaddrinfo(ressave);
 
+    char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
+    printf("TCP Server created: %s\n", str);
 }
 
 

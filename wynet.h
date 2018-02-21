@@ -12,10 +12,12 @@ class WyNet
 {
 protected:
     aeEventLoop * aeloop;
-    std::map<UniqID, Server*> servers;
+    typedef std::map<UniqID, Server*> Servers;
+    Servers servers;
     UniqIDGenerator serverIdGen;
   public:
     WyNet();
+    ~WyNet();
     void Loop();
     aeEventLoop * GetAeLoop() {
         return aeloop;

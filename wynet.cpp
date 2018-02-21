@@ -6,6 +6,16 @@ WyNet::WyNet() {
     aeloop = aeCreateEventLoop(64);
 }
 
+    
+WyNet::~WyNet() {
+    while(!servers.empty()) {
+        UniqID serverID = servers.begin()->first;
+        DestroyServer(serverID);
+        printf("Server %d destoryed.\n", serverID);
+    }
+    printf("WyNet destroyed.\n");
+}
+
 UniqID WyNet::AddServer(Server * s) {
     UniqID serverId = serverIdGen.getNewID();
     servers[serverId] = s;
@@ -13,12 +23,13 @@ UniqID WyNet::AddServer(Server * s) {
 }
 
 bool WyNet::DestroyServer(UniqID serverId) {
-    if(servers.find(serverId) == servers.end()) {
+    Servers::iterator it = servers.find(serverId);
+    if(it == servers.end()) {
         return false;
     }
-    Server* server = servers[serverId];
-    server->Release(aeloop);
-    delete servers[serverId];
+    Server* server = it->second;
+    servers.erase(it);
+    delete server;
     serverIdGen.recycleID(serverId);
     return true;
 }

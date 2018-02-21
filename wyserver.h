@@ -13,13 +13,14 @@ namespace wynet
 
 class Server {
 public:
+    aeEventLoop *aeloop;
     TCPServer tcpServer;
     UDPServer udpServer;
     std::map<ConvID, KCPObject> kcpDict;
 
     Server(aeEventLoop *aeloop, int tcpPort, int udpPort);
-
-    void Release(aeEventLoop *aeloop);
+    
+    ~Server();
 
     bool hasConv(ConvID conv) {
        return kcpDict.find(conv) != kcpDict.end();

@@ -47,7 +47,7 @@ UDPServer::UDPServer(int port)
     freeaddrinfo(ressave);
 
     char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
-    printf("Server: %s\n", str);
+    printf("UDP Server created: %s\n", str);
 }
 
 UDPServer::~UDPServer()
