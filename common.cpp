@@ -2,22 +2,6 @@
 
 UDPServer::UDPServer(int port)
 {
-    /*
-    m_sockfd = Socket(PF_INET6, SOCK_DGRAM, 0);
-    int on = 1;
-    Setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,
-               (char *)&on, sizeof(on));
-    bzero(&m_sockaddr, sizeof(m_sockaddr));
-
-    m_sockaddr.sin6_family = AF_INET6;
-    m_sockaddr.sin6_addr = in6addr_any; // in6addr_loopback
-    m_sockaddr.sin6_port = htons(port);
-    m_socklen = sizeof(m_sockaddr);
-    Bind(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
-    char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
-    printf("bind: %s\n", str);
-    */
-
     int n;
     const int on = 1;
     struct addrinfo hints, *res, *ressave;
@@ -53,6 +37,7 @@ UDPServer::UDPServer(int port)
     if (res == NULL) /* errno from final socket() or bind() */
         err_sys("udp_server error for %s, %s", host, serv);
 
+    m_family = res->ai_family;
     memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
     m_socklen = res->ai_addrlen; /* return size of protocol address */
     freeaddrinfo(ressave);
@@ -64,6 +49,40 @@ UDPServer::UDPServer(int port)
 UDPServer::~UDPServer()
 {
     close(m_sockfd);
+}
+
+void UDPServer::Recvfrom()
+{
+    memset(msg, 0x0, MAX_MSG);
+    struct sockaddr_storage cliAddr;
+    socklen_t len = sizeof(cliAddr);
+    const int ret = recvfrom(m_sockfd, msg, MAX_MSG, 0,
+                             (struct sockaddr *)&cliAddr, &len);
+    if (ret == 0)
+        return;
+    if (ret < 0)
+    {
+        err_msg("Recvfrom %d", errno);
+        return;
+    }
+
+    printf("Recvfrom %s : %s \n",
+           Sock_ntop((SA *)&cliAddr, len),
+           msg);
+
+    switch (cliAddr.ss_family)
+    {
+    case AF_INET:
+    {
+        struct sockaddr_in *addr = (struct sockaddr_in *)&cliAddr;
+        break;
+    }
+    case AF_INET6:
+    {
+        struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&cliAddr;
+        break;
+    }
+    }
 }
 
 UDPClient::UDPClient(const char *host, int port)
@@ -101,6 +120,7 @@ UDPClient::UDPClient(const char *host, int port)
     m_socklen = res->ai_addrlen;
     freeaddrinfo(ressave);
     m_sockfd = sockfd;
+    m_family = res->ai_family;
 
     Connect(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
     char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);

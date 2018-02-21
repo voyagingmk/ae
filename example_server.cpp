@@ -5,16 +5,7 @@ void CustomFileProc(struct aeEventLoop *eventLoop,
                     int fd, void *clientData, int mask)
 {
     UDPServer *server = (UDPServer *)(clientData);
-    char msg[MAX_MSG];
-    memset(msg, 0x0, MAX_MSG);
-    struct sockaddr_in cliAddr;
-    socklen_t len = sizeof(cliAddr);
-    Recvfrom(server->m_sockfd, msg, MAX_MSG, 0,
-             (struct sockaddr *)&cliAddr, &len);
-
-    printf("recv from UDP %s : %s \n",
-           Sock_ntop((struct sockaddr *)&cliAddr, len),
-           msg);
+    server->Recvfrom();
 }
 
 int main(int argc, char **argv)

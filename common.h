@@ -16,6 +16,7 @@ static aeEventLoop *loop;
 
 static int Conv = 0x11223344;
 static int Port = 12001;
+static const size_t MAX_MSG = 1400;
 
 class SocketBase
 {
@@ -23,13 +24,19 @@ public:
   sockaddr_in6 m_sockaddr;
   socklen_t m_socklen;
   int m_sockfd;
+  int m_family;
+  bool isIPv4() { return m_family == PF_INET; }
+  bool isIPv6() { return m_family == PF_INET6; }
 };
 
 class UDPServer : public SocketBase
 {
+  char msg[MAX_MSG];
+
 public:
   UDPServer(int port);
   ~UDPServer();
+  void Recvfrom();
 };
 
 class UDPClient : public SocketBase
