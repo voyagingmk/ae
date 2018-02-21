@@ -9,6 +9,7 @@ void OnUdpMessage(struct aeEventLoop *eventLoop,
 }
 
 Server::Server(aeEventLoop *aeloop, int tcpPort, int udpPort):
+    tcpServer(tcpPort),
     udpServer(udpPort) 
 {
     aeCreateFileEvent(aeloop, udpServer.m_sockfd, AE_READABLE,

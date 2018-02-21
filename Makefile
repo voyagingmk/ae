@@ -3,7 +3,8 @@ all: example_client example_server
 
 
 OBJS = ae.o zmalloc.o ikcp.o error.o wrapsock.o sock_ntop.o uniqid.o  \
-	wykcp.o wyudpserver.o wyudpclient.o wynet.o wyserver.o
+	wykcp.o wyudpserver.o wyudpclient.o wynet.o wyserver.o 	\
+	wytcpserver.o  wytcpclient.o
 
 example_client : example_client.o ${OBJS}
 	g++ -g3 -o example_client  example_client.o ${OBJS}
@@ -32,10 +33,15 @@ common.o : common.cpp
 	
 wyudpserver.o : wyudpserver.cpp 
 	g++ -g3 -c wyudpserver.cpp
-	
 
 wyudpclient.o : wyudpclient.cpp 
 	g++ -g3 -c wyudpclient.cpp
+	
+wytcpserver.o : wytcpserver.cpp 
+	g++ -g3 -c wytcpserver.cpp
+
+wytcpclient.o : wytcpclient.cpp 
+	g++ -g3 -c wytcpclient.cpp
 	
 
 wykcp.o : wykcp.cpp 

@@ -13,6 +13,7 @@ namespace wynet
 
 class Server {
 public:
+    TCPServer tcpServer;
     UDPServer udpServer;
     std::map<ConvID, KCPObject> kcpDict;
 
