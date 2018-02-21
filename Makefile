@@ -2,7 +2,7 @@
 all: example_client example_server
 
 
-OBJS = ae.o zmalloc.o ikcp.o error.o wrapsock.o common.o sock_ntop.o
+OBJS = ae.o zmalloc.o ikcp.o error.o wrapsock.o common.o sock_ntop.o kcpwrapper.o
 
 example_client : example_client.o ${OBJS}
 	g++ -g3 -o example_client  example_client.o ${OBJS}
@@ -19,6 +19,9 @@ example_server.o : example_server.cpp
 
 common.o : common.cpp 
 	g++ -g3 -c common.cpp
+
+kcpwrapper.o : kcpwrapper.cpp 
+	g++ -g3 -c kcpwrapper.cpp
 
 
 ae.o : ae.c
