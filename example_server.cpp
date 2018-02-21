@@ -1,6 +1,6 @@
-#include "common.h"
+#include "wynet.h"
+using namespace wynet;
 
-#define MAX_MSG 1400
 void CustomFileProc(struct aeEventLoop *eventLoop,
                     int fd, void *clientData, int mask)
 {
@@ -11,12 +11,13 @@ void CustomFileProc(struct aeEventLoop *eventLoop,
 int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
-    UDPServer server(Port);
-    KCPObject kcpObject(Conv, &server, &SocketOutput);
+    UDPServer server(9999);
+    KCPObject kcpObject(9999, &server, &SocketOutput);
     printf("aeGetApiName: %s\n", aeGetApiName());
-    loop = aeCreateEventLoop(64);
-    aeCreateFileEvent(loop, server.m_sockfd, AE_READABLE,
+    WyNet wynet;
+    wynet.loop = aeCreateEventLoop(64);
+    aeCreateFileEvent(wynet.loop, server.m_sockfd, AE_READABLE,
                       CustomFileProc, &server);
-    aeMain(loop);
+    aeMain(wynet.loop);
     return 0;
 }

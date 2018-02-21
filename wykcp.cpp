@@ -1,5 +1,7 @@
-#include "kcpwrapper.h"
+#include "wykcp.h"
 
+namespace wynet
+{
 KCPObject::KCPObject(int conv, void *userdata, OutputFunc outputFunc)
 {
     m_kcp = ikcp_create(conv, userdata);
@@ -154,3 +156,4 @@ int KCPObject::waitsnd()
 {
     return ikcp_waitsnd(m_kcp);
 }
+};

@@ -11,6 +11,9 @@ extern "C" {
 #include "ikcp.h"
 }
 
+namespace wynet
+{
+
 class KCPObject
 {
     ikcpcb *m_kcp;
@@ -58,4 +61,5 @@ class KCPObject
     {
         ikcp_allocator(new_malloc, new_free);
     }
+};
 };
