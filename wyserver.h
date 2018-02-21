@@ -18,6 +18,8 @@ public:
 
     Server(aeEventLoop *aeloop, int tcpPort, int udpPort);
 
+    void Release(aeEventLoop *aeloop);
+
     bool hasConv(ConvID conv) {
        return kcpDict.find(conv) != kcpDict.end();
     }

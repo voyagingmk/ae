@@ -17,6 +17,7 @@ bool WyNet::DestroyServer(UniqID serverId) {
         return false;
     }
     Server* server = servers[serverId];
+    server->Release(aeloop);
     delete servers[serverId];
     serverIdGen.recycleID(serverId);
     return true;

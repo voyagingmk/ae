@@ -1,7 +1,7 @@
 #include "wyserver.h"
 
 namespace wynet {
-void CustomFileProc(struct aeEventLoop *eventLoop,
+void OnUdpMessage(struct aeEventLoop *eventLoop,
                     int fd, void *clientData, int mask)
 {
     Server *server = (Server *)(clientData);
@@ -9,9 +9,14 @@ void CustomFileProc(struct aeEventLoop *eventLoop,
 }
 
 Server::Server(aeEventLoop *aeloop, int tcpPort, int udpPort):
-udpServer(udpPort) {
-
+    udpServer(udpPort) 
+{
     aeCreateFileEvent(aeloop, udpServer.m_sockfd, AE_READABLE,
-                      CustomFileProc, (void*)this);
+                      OnUdpMessage, (void*)this);
 }
+
+void Server::Release(aeEventLoop *aeloop) {
+    aeDeleteFileEvent(aeloop, udpServer.m_sockfd, AE_READABLE);
+}
+
 };
