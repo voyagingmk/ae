@@ -54,6 +54,9 @@ class BufferSet
         return buffers[bufferID].getBuffer(n);
     }
 };
+
+// TODO
+static BufferSet gBufferSet;
 };
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef WY_PROTOCOL_DEFINE_H
 #define WY_PROTOCOL_DEFINE_H
 #include "common.h"
+#include "wybuffer.h"
 
 namespace wynet
 {
@@ -17,22 +18,33 @@ struct Handshake
 };
 
 template<class P>
-class ProtocolWrapper
+char* SerializeProtocol(P content)
 {
-public:
     PacketHeader header;
-    P content;
-    ProtocolWrapper(P c, char* buf):
-        content(c)
-    {
-        header.setProtocol(P::protocol);
-        header.setFlag(HeaderFlag::PacketLen, true);
-        header.updateHeaderLength();
-        memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
-        memcpy(buf + header.getHeaderLength(),
-               (uint8_t *)&content, sizeof(P));
-    }
-};
+    header.setProtocol(P::protocol);
+    header.setFlag(HeaderFlag::PacketLen, true);
+    header.updateHeaderLength();
+    char* buf = (char*)gBufferSet.getBuffer(0, header.getHeaderLength() + sizeof(P));
+    memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
+    memcpy(buf + header.getHeaderLength(),
+           (uint8_t *)&content, sizeof(P));
+    return buf;
+}
+    
+    
+template<class P>
+char* DeserializeProtocol(P content)
+{
+    PacketHeader header;
+    header.setProtocol(P::protocol);
+    header.setFlag(HeaderFlag::PacketLen, true);
+    header.updateHeaderLength();
+    char* buf = (char*)gBufferSet.getBuffer(0, header.getHeaderLength() + sizeof(P));
+    memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
+    memcpy(buf + header.getHeaderLength(),
+           (uint8_t *)&content, sizeof(P));
+    return buf;
+}
     
 };
 

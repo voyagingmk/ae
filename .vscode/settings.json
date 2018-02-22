@@ -14,6 +14,12 @@
         "memory": "cpp",
         "initializer_list": "cpp",
         "utility": "cpp",
-        "unp.h": "c"
+        "unp.h": "c",
+        "__tree": "cpp",
+        "bitset": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
     }
 }

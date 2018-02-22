@@ -32,17 +32,11 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     UniqID clientID = server->clientIdGen.getNewID();
     server->clientDict[clientID] = info;
 
-    PacketHeader header;
-    header.setProtocol(Protocol::Handshake);
-    header.setFlag(HeaderFlag::PacketLen, true);
-    header.updateHeaderLength();
+    
     protocol::Handshake handshake;
     handshake.clientID = clientID;
     handshake.udpPort = server->udpPort;
-    const size_t bufSize = header.getHeaderLength() + sizeof(protocol::Handshake);
-    char buf[bufSize];
-    memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
-    memcpy(buf + header.getHeaderLength(), (uint8_t *)&handshake, sizeof(protocol::Handshake));
+    char* buf = SerializeProtocol<protocol::Handshake>(handshake);
     server->Send(clientID, buf, strlen(buf));
     
     printf("Client %d connected, connfd: %d \n", clientID, connfd);
