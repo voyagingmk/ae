@@ -18,6 +18,8 @@ struct TCPClientInfo {
 class Server {
 public:
     aeEventLoop *aeloop;
+    int tcpPort;
+    int udpPort;
     TCPServer tcpServer;
     UDPServer udpServer;
     std::map<UniqID, TCPClientInfo> clientDict;

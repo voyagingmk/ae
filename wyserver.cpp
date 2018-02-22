@@ -1,5 +1,6 @@
 #include "wyserver.h"
 #include "protocol.h"
+#include "protocol_define.h"
 
 namespace wynet
 {
@@ -31,10 +32,13 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     header.setProtocol(Protocol::Handshake);
     header.setFlag(HeaderFlag::PacketLen, true);
     header.updateHeaderLength();
-    const size_t customDataSize = 8;
-    const size_t bufSize = header.getHeaderLength() + customDataSize;
+    protocol::Handshake handshake;
+    handshake.clientID = clientID;
+    handshake.udpPort = server->udpPort;
+    const size_t bufSize = header.getHeaderLength() + sizeof(protocol::Handshake);
     char buf[bufSize];
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
+    memcpy(buf + header.getHeaderLength(), (uint8_t *)&handshake, sizeof(protocol::Handshake));
     Writen(connfd, buf, strlen(buf));
 }
 
@@ -45,9 +49,12 @@ void OnUdpMessage(struct aeEventLoop *eventLoop,
     server->udpServer.Recvfrom();
 }
 
-Server::Server(aeEventLoop *aeloop, int tcpPort, int udpPort) : aeloop(aeloop),
-                                                                tcpServer(tcpPort),
-                                                                udpServer(udpPort)
+Server::Server(aeEventLoop *aeloop, int tcpPort, int udpPort) :
+    aeloop(aeloop),
+    tcpPort(tcpPort),
+    udpPort(udpPort),
+    tcpServer(tcpPort),
+    udpServer(udpPort)
 {
 
     aeCreateFileEvent(aeloop, tcpServer.m_sockfd, AE_READABLE,
