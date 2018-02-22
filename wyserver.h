@@ -5,8 +5,6 @@
 #include "wykcp.h"
 #include "wytcpserver.h"
 #include "wyudpserver.h"
-#include "wytcpclient.h"
-#include "wyudpclient.h"
 
 namespace wynet
 {

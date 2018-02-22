@@ -3,8 +3,6 @@
 
 #include "common.h"
 #include "wykcp.h"
-#include "wytcpserver.h"
-#include "wyudpserver.h"
 #include "wytcpclient.h"
 #include "wyudpclient.h"
 
@@ -15,10 +13,10 @@ class Client {
 public:
     aeEventLoop *aeloop;
     TCPClient tcpClient;
-    UDPClient udpClient;
+    UDPClient* udpClient;
     ConvID convID;
-    KCPObject kcpDict;
-    Client(aeEventLoop *aeloop, int tcpPort);
+    KCPObject* kcpDict;
+    Client(aeEventLoop *aeloop, const char *host, int tcpPort);
     ~Client();
 };
 
