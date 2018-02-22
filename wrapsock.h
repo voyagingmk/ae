@@ -42,6 +42,6 @@ void Shutdown(int, int);
 int Sockatmark(int);
 int Socket(int, int, int);
 void Socketpair(int, int, int, int *);
-void Writen(int, void *, size_t);
+size_t Writen(int, void *, size_t);
 
 #endif /* __wrapsock_h */

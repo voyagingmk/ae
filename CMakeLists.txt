@@ -28,6 +28,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     zmalloc.c
     sock_ntop.c
     readline.c
+    writen.c
     ikcp.c
     error.c)
 
