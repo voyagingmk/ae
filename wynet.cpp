@@ -33,6 +33,24 @@ bool WyNet::DestroyServer(UniqID serverId) {
     return true;
 }
 
+UniqID WyNet::AddClient(Client * s) {
+    UniqID clientId = clientIdGen.getNewID();
+    clients[clientId] = s;
+    return clientId;
+}
+
+bool WyNet::DestroyClient(UniqID clientId) {
+    Clients::iterator it = clients.find(clientId);
+    if(it == clients.end()) {
+        return false;
+    }
+    Client* client = it->second;
+    clients.erase(it);
+    delete client;
+    serverIdGen.recycleID(clientId);
+    return true;
+}
+
 void WyNet::StopLoop() {
    aeloop->stop = 1;
 }
