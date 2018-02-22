@@ -34,16 +34,35 @@ TCPClient::TCPClient(const char *host, int port) {
 	if (res == NULL)	/* errno set from final connect() */
 		err_sys("tcp_connect error for %s, %s", host, serv);
 
-	freeaddrinfo(ressave);
-
     m_family = res->ai_family;
     memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
 	m_socklen = res->ai_addrlen;	/* return size of protocol address */
+
+	freeaddrinfo(ressave);
 }
 
 TCPClient::~TCPClient()
 {
     close(m_sockfd);
 }
+
+
+
+void TCPClient::Recvfrom() {
+
+	char recvline[MAXLINE + 1];
+    int n = Readline(m_sockfd, recvline, MAXLINE);
+	printf("Readline n=%d\n", n);
+    recvline[n] = 0;	/* null terminate */
+	if (fputs(recvline, stdout) == EOF)
+		err_sys("fputs error");
+}
+
+void TCPClient::Send(const char *data, size_t len)
+{
+    ::Send(m_sockfd, data, len, 0);
+    // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
+}
+
 
 };

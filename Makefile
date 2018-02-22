@@ -4,7 +4,7 @@ all: example_client example_server
 
 OBJS = ae.o zmalloc.o ikcp.o error.o wrapsock.o sock_ntop.o uniqid.o  \
 	wykcp.o wyudpserver.o wyudpclient.o wynet.o wyserver.o wyclient.o	\
-	wytcpserver.o  wytcpclient.o
+	wytcpserver.o  wytcpclient.o readline.o
 
 example_client : example_client.o ${OBJS}
 	g++ -g3 -o example_client  example_client.o ${OBJS}
@@ -63,6 +63,10 @@ error.o : error.c
 
 wrapsock.o : wrapsock.c
 	g++ -g3 -x c -c wrapsock.c
+
+readline.o : readline.c
+	g++ -g3 -x c -c readline.c
+
 
 zmalloc.o : zmalloc.c
 	g++ -g3 -x c -c zmalloc.c

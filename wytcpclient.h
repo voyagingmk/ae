@@ -15,6 +15,7 @@ public:
   TCPClient(const char *host, int port);
   ~TCPClient();
   void Send(const char *data, size_t len);
+  void Recvfrom();
 };
 };
 

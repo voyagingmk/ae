@@ -21,9 +21,13 @@ protected:
     UniqIDGenerator clientIdGen;
   public:
     WyNet();
+    
     ~WyNet();
+
     void Loop();
+
     void StopLoop();
+
     aeEventLoop * GetAeLoop() {
         return aeloop;
     }
