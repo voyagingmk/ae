@@ -1,0 +1,139 @@
+{
+  "variant": {
+    "label": "Debug",
+    "keywordSettings": {
+      "buildType": "debug"
+    },
+    "description": "Emit debug information without performing optimizations"
+  },
+  "activeEnvironments": [],
+  "codeModel": {
+    "configurations": [
+      {
+        "name": "Debug",
+        "projects": [
+          {
+            "buildDirectory": "/Users/wyman/github/test_ae/build",
+            "name": "wynet",
+            "sourceDirectory": "/Users/wyman/github/test_ae",
+            "targets": [
+              {
+                "artifacts": [
+                  "/Users/wyman/github/test_ae/build/example_server"
+                ],
+                "buildDirectory": "/Users/wyman/github/test_ae/build",
+                "fileGroups": [
+                  {
+                    "compileFlags": "-g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk  ",
+                    "includePath": [
+                      {
+                        "path": "/Users/wyman/github/test_ae"
+                      }
+                    ],
+                    "isGenerated": false,
+                    "language": "C",
+                    "sources": [
+                      "ae.c",
+                      "wrapsock.c",
+                      "zmalloc.c",
+                      "sock_ntop.c",
+                      "readline.c",
+                      "ikcp.c",
+                      "error.c"
+                    ]
+                  },
+                  {
+                    "compileFlags": "-g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk   -std=gnu++11",
+                    "includePath": [
+                      {
+                        "path": "/Users/wyman/github/test_ae"
+                      }
+                    ],
+                    "isGenerated": false,
+                    "language": "CXX",
+                    "sources": [
+                      "example_server.cpp",
+                      "wykcp.cpp",
+                      "wynet.cpp",
+                      "wyserver.cpp",
+                      "wyclient.cpp",
+                      "wytcpclient.cpp",
+                      "wytcpserver.cpp",
+                      "wyudpclient.cpp",
+                      "wyudpserver.cpp",
+                      "uniqid.cpp"
+                    ]
+                  }
+                ],
+                "fullName": "example_server",
+                "linkLanguageFlags": "-g",
+                "linkerLanguage": "CXX",
+                "name": "example_server",
+                "sourceDirectory": "/Users/wyman/github/test_ae",
+                "type": "EXECUTABLE"
+              },
+              {
+                "artifacts": [
+                  "/Users/wyman/github/test_ae/build/example_client"
+                ],
+                "buildDirectory": "/Users/wyman/github/test_ae/build",
+                "fileGroups": [
+                  {
+                    "compileFlags": "-g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk  ",
+                    "includePath": [
+                      {
+                        "path": "/Users/wyman/github/test_ae"
+                      }
+                    ],
+                    "isGenerated": false,
+                    "language": "C",
+                    "sources": [
+                      "ae.c",
+                      "wrapsock.c",
+                      "zmalloc.c",
+                      "sock_ntop.c",
+                      "readline.c",
+                      "ikcp.c",
+                      "error.c"
+                    ]
+                  },
+                  {
+                    "compileFlags": "-g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk   -std=gnu++11",
+                    "includePath": [
+                      {
+                        "path": "/Users/wyman/github/test_ae"
+                      }
+                    ],
+                    "isGenerated": false,
+                    "language": "CXX",
+                    "sources": [
+                      "example_client.cpp",
+                      "wykcp.cpp",
+                      "wynet.cpp",
+                      "wyserver.cpp",
+                      "wyclient.cpp",
+                      "wytcpclient.cpp",
+                      "wytcpserver.cpp",
+                      "wyudpclient.cpp",
+                      "wyudpserver.cpp",
+                      "uniqid.cpp"
+                    ]
+                  }
+                ],
+                "fullName": "example_client",
+                "linkLanguageFlags": "-g",
+                "linkerLanguage": "CXX",
+                "name": "example_client",
+                "sourceDirectory": "/Users/wyman/github/test_ae",
+                "type": "EXECUTABLE"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "cookie": "0.4939190907000026",
+    "inReplyTo": "codemodel",
+    "type": "reply"
+  }
+}
