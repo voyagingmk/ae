@@ -11,31 +11,33 @@ namespace wynet
 {
 class WyNet
 {
-protected:
-    aeEventLoop * aeloop;
-    typedef std::map<UniqID, Server*> Servers;
-    typedef std::map<UniqID, Client*> Clients;
+  public:
+    aeEventLoop *aeloop;
+    typedef std::map<UniqID, Server *> Servers;
+    typedef std::map<UniqID, Client *> Clients;
     Servers servers;
     Clients clients;
     UniqIDGenerator serverIdGen;
     UniqIDGenerator clientIdGen;
+
   public:
     WyNet();
-    
+
     ~WyNet();
 
     void Loop();
 
     void StopLoop();
 
-    aeEventLoop * GetAeLoop() {
+    aeEventLoop *GetAeLoop()
+    {
         return aeloop;
     }
 
-    UniqID AddServer(Server* server);
+    UniqID AddServer(Server *server);
     bool DestroyServer(UniqID serverId);
 
-    UniqID AddClient(Client* client);
+    UniqID AddClient(Client *client);
     bool DestroyClient(UniqID serverId);
 };
 

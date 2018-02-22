@@ -29,6 +29,9 @@ public:
     Server(aeEventLoop *aeloop, int tcpPort, int udpPort);
      
     ~Server();
+    
+    
+    void Send(UniqID clientID, const char *data, size_t len);
 
     bool hasConv(ConvID conv) {
        return kcpDict.find(conv) != kcpDict.end();

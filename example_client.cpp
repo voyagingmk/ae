@@ -3,26 +3,21 @@ using namespace wynet;
 
 WyNet net;
 
-void Stop(int signo)   
-{  
-    printf("Stop.\n");  
+void Stop(int signo)
+{
     net.StopLoop();
-}  
+    printf("Stop. %d\n", net.aeloop->stop);
+}
 
 int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
-    signal(SIGINT, Stop);
-    
+    // signal(SIGINT, Stop);
+
     printf("aeGetApiName: %s\n", aeGetApiName());
-    Client* client = new Client(net.GetAeLoop(), "127.0.0.1", 9998);
+    Client *client = new Client(net.GetAeLoop(), "127.0.0.1", 9998);
     net.AddClient(client);
     net.Loop();
+    printf("exit\n");
     return 0;
-    /*
-    UDPClient client("127.0.0.1", 9999);
-    printf("aaa\n");
-    client.Send("hello", 6);
-    KCPObject kcpObject(9999, &client, &SocketOutput);
-    */
 }

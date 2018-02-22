@@ -1,62 +1,78 @@
 #include "wynet.h"
 
-namespace wynet {
+namespace wynet
+{
 
-WyNet::WyNet() {
+WyNet::WyNet()
+{
     aeloop = aeCreateEventLoop(64);
 }
 
-    
-WyNet::~WyNet() {
-    while(!servers.empty()) {
+WyNet::~WyNet()
+{
+    while (!servers.empty())
+    {
         UniqID serverID = servers.begin()->first;
         DestroyServer(serverID);
     }
     printf("WyNet destroyed.\n");
 }
 
-UniqID WyNet::AddServer(Server * s) {
+UniqID WyNet::AddServer(Server *s)
+{
     UniqID serverId = serverIdGen.getNewID();
     servers[serverId] = s;
     return serverId;
 }
 
-bool WyNet::DestroyServer(UniqID serverId) {
+bool WyNet::DestroyServer(UniqID serverId)
+{
     Servers::iterator it = servers.find(serverId);
-    if(it == servers.end()) {
+    if (it == servers.end())
+    {
         return false;
     }
-    Server* server = it->second;
+    Server *server = it->second;
     servers.erase(it);
     delete server;
     serverIdGen.recycleID(serverId);
     return true;
 }
 
-UniqID WyNet::AddClient(Client * s) {
+UniqID WyNet::AddClient(Client *s)
+{
     UniqID clientId = clientIdGen.getNewID();
     clients[clientId] = s;
     return clientId;
 }
 
-bool WyNet::DestroyClient(UniqID clientId) {
+bool WyNet::DestroyClient(UniqID clientId)
+{
     Clients::iterator it = clients.find(clientId);
-    if(it == clients.end()) {
+    if (it == clients.end())
+    {
         return false;
     }
-    Client* client = it->second;
+    Client *client = it->second;
     clients.erase(it);
     delete client;
     serverIdGen.recycleID(clientId);
     return true;
 }
 
-void WyNet::StopLoop() {
-   aeloop->stop = 1;
+void WyNet::StopLoop()
+{
+    aeStop(aeloop);
 }
 
-void WyNet::Loop() {
-    aeMain(aeloop);
+void WyNet::Loop()
+{
+    aeloop->stop = 0;
+    while (!aeloop->stop)
+    {
+        if (aeloop->beforesleep != NULL)
+            aeloop->beforesleep(aeloop);
+        aeProcessEvents(aeloop, AE_ALL_EVENTS | AE_DONT_WAIT | AE_CALL_AFTER_SLEEP);
+    }
 }
-
 };

@@ -8,7 +8,12 @@ namespace wynet
 void onTcpMessage(struct aeEventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
+    printf("onTcpMessage fd=%d\n", fd);
     Server *server = (Server *)(clientData);
+    char recvline[MAXLINE + 1];
+    int n = read(fd, recvline, MAXLINE);
+    recvline[n] = '\0';
+    printf("recv n = %d msg: %s\n", n, recvline);
 }
 
 void OnTcpNewConnection(struct aeEventLoop *eventLoop,
@@ -20,7 +25,6 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
     int connfd = Accept(sockfd, (SA *)&cliAddr, &len);
-    // server->Recvfrom();
     aeCreateFileEvent(server->aeloop, connfd, AE_READABLE,
                       onTcpMessage, server);
     TCPClientInfo info;
@@ -39,7 +43,9 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     char buf[bufSize];
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
     memcpy(buf + header.getHeaderLength(), (uint8_t *)&handshake, sizeof(protocol::Handshake));
-    Writen(connfd, buf, strlen(buf));
+    server->Send(clientID, buf, strlen(buf));
+    
+    printf("Client %d connected, connfd: %d \n", clientID, connfd);
 }
 
 void OnUdpMessage(struct aeEventLoop *eventLoop,
@@ -57,6 +63,9 @@ Server::Server(aeEventLoop *aeloop, int tcpPort, int udpPort) :
     udpServer(udpPort)
 {
 
+    printf("Server created, tcp sockfd: %d, udp sockfd: %d\n",
+           tcpServer.m_sockfd,
+           udpServer.m_sockfd);
     aeCreateFileEvent(aeloop, tcpServer.m_sockfd, AE_READABLE,
                       OnTcpNewConnection, (void *)this);
 
@@ -70,5 +79,18 @@ Server::~Server()
     aeDeleteFileEvent(aeloop, udpServer.m_sockfd, AE_READABLE);
     aeloop = NULL;
     printf("Server destoryed.\n");
+}
+    
+    
+void Server::Send(UniqID clientID, const char *data, size_t len)
+{
+    auto it = clientDict.find(clientID);
+    if(it == clientDict.end()) {
+        return;
+    }
+    TCPClientInfo& info = it->second;
+
+    ::Send(info.connfd, data, len, 0);
+    // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 };
