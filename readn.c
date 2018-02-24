@@ -12,9 +12,7 @@ readn(int fd, void *vptr, size_t n)
 	nleft = n;
 	while (nleft > 0)
     {
-        printf("read nleft %d\n", nleft);
         nread = read(fd, ptr, nleft);
-        printf("nread %d\n", nread);
 		if (nread < 0)
 		{
 			if (errno == EINTR)

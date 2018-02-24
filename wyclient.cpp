@@ -10,18 +10,21 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
 {
     printf("OnTcpMessage\n");
     Client *client = (Client *)(clientData);
-    char buf[MAXLINE + 1];
-    int n = Readn(client->tcpClient.m_sockfd, buf, MAXLINE);
-    printf("Readn n = %d\n", n);
-    buf[n] = 0;    /* null terminate */
-    PacketHeader* header = (PacketHeader*)buf;
-    Protocol protocol = header->getProtocol();
-    uint32_t packetLen = header->getUInt(HeaderFlag::PacketLen);
+    PacketHeader header;
+    int n = Readn(fd, (char*)(&header), HeaderBaseLength);
+    Readn(fd, (char*)(&header) + HeaderBaseLength, header.getHeaderLength() - HeaderBaseLength);
+    if(!header.isFlagOn(HeaderFlag::PacketLen)) {
+        return;
+    }
+    Protocol protocol = header.getProtocol();
+    uint32_t packetLen = header.getUInt(HeaderFlag::PacketLen);
     switch (protocol) {
         case Protocol::Handshake:
            {
-               protocol::Handshake* handShake = (protocol::Handshake*)((char*)buf + packetLen);
-               printf("clientID %d, udpPort %d\n", handShake->clientID, handShake->udpPort);
+               protocol::Handshake handShake;
+               assert(packetLen == header.getHeaderLength() + sizeof(protocol::Handshake));
+               Readn(fd, (char*)(&handShake), sizeof(protocol::Handshake));
+               printf("clientID %d, udpPort %d\n", handShake.clientID, handShake.udpPort);
                break;
            }
         default:
