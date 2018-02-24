@@ -18,33 +18,21 @@ struct Handshake
 };
 
 template<class P>
-char* SerializeProtocol(P content)
+PacketHeader* SerializeProtocol(P content)
 {
     PacketHeader header;
     header.setProtocol(P::protocol);
     header.setFlag(HeaderFlag::PacketLen, true);
     header.updateHeaderLength();
-    char* buf = (char*)gBufferSet.getBuffer(0, header.getHeaderLength() + sizeof(P));
+    size_t packetLen = header.getHeaderLength() + sizeof(P);
+    header.setUInt32(HeaderFlag::PacketLen, packetLen);
+    char* buf = (char*)gBufferSet.getBuffer(0, packetLen);
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
     memcpy(buf + header.getHeaderLength(),
            (uint8_t *)&content, sizeof(P));
-    return buf;
+    return (PacketHeader*)buf;
 }
-    
-    
-template<class P>
-char* DeserializeProtocol(P content)
-{
-    PacketHeader header;
-    header.setProtocol(P::protocol);
-    header.setFlag(HeaderFlag::PacketLen, true);
-    header.updateHeaderLength();
-    char* buf = (char*)gBufferSet.getBuffer(0, header.getHeaderLength() + sizeof(P));
-    memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
-    memcpy(buf + header.getHeaderLength(),
-           (uint8_t *)&content, sizeof(P));
-    return buf;
-}
+
     
 };
 

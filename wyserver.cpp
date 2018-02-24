@@ -36,8 +36,8 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     protocol::Handshake handshake;
     handshake.clientID = clientID;
     handshake.udpPort = server->udpPort;
-    char* buf = SerializeProtocol<protocol::Handshake>(handshake);
-    server->Send(clientID, buf, strlen(buf));
+    PacketHeader* header = SerializeProtocol<protocol::Handshake>(handshake);
+    server->Send(clientID, (char*)header, header->getUInt32(HeaderFlag::PacketLen));
     
     printf("Client %d connected, connfd: %d \n", clientID, connfd);
 }

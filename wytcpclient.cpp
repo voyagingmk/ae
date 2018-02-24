@@ -50,12 +50,6 @@ TCPClient::~TCPClient()
 
 void TCPClient::Recvfrom() {
 
-	char recvline[MAXLINE + 1];
-    int n = Readline(m_sockfd, recvline, MAXLINE);
-	printf("Readline n=%d\n", n);
-    recvline[n] = 0;	/* null terminate */
-	if (fputs(recvline, stdout) == EOF)
-		err_sys("fputs error");
 }
 
 void TCPClient::Send(const char *data, size_t len)
