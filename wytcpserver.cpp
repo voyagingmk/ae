@@ -25,7 +25,7 @@ TCPServer::TCPServer(int port)
 	ressave = res;
 
 	do {
-		listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		listenfd = socket(res->ai_family, res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
 		if (listenfd < 0)
 			continue;		/* error, try next one */
 

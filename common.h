@@ -3,6 +3,7 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <vector>
 #include <map>
@@ -16,3 +17,7 @@ extern "C" {
 }
 
 typedef IUINT32 ConvID;
+
+#ifndef SOCK_NONBLOCK
+#define SOCK_NONBLOCK O_NONBLOCK
+#endif
