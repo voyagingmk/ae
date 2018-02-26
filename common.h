@@ -18,6 +18,3 @@ extern "C" {
 
 typedef IUINT32 ConvID;
 
-#ifndef SOCK_NONBLOCK
-#define SOCK_NONBLOCK O_NONBLOCK
-#endif

@@ -14,7 +14,7 @@ again:
 		if (errno == ECONNABORTED)
 #endif
 			goto again;
-		else if(errno != EWOULDBLOCK && errno != EAGAIN)
+		else if (errno != EWOULDBLOCK && errno != EAGAIN)
 			err_sys("accept error");
 	}
 	return (n);
@@ -269,4 +269,13 @@ void Close(int fd)
 {
 	if (close(fd) == -1)
 		err_sys("close error");
+}
+
+int Fcntl(int fd, int cmd, int arg)
+{
+	int n;
+
+	if ((n = fcntl(fd, cmd, arg)) == -1)
+		err_sys("fcntl error");
+	return (n);
 }

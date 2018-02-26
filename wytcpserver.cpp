@@ -25,9 +25,12 @@ TCPServer::TCPServer(int port)
 	ressave = res;
 
 	do {
-		listenfd = socket(res->ai_family, res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
+		listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 		if (listenfd < 0)
 			continue;		/* error, try next one */
+        
+        int flags = Fcntl(listenfd, F_GETFL, 0);
+        Fcntl(listenfd, F_SETFL, flags | O_NONBLOCK);
 
 		Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 		if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)

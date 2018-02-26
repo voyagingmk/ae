@@ -43,5 +43,6 @@ int Sockatmark(int);
 int Socket(int, int, int);
 void Socketpair(int, int, int, int *);
 size_t Writen(int, void *, size_t);
+int Fcntl(int fd, int cmd, int arg);
 
 #endif /* __wrapsock_h */
