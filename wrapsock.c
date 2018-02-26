@@ -14,7 +14,7 @@ again:
 		if (errno == ECONNABORTED)
 #endif
 			goto again;
-		else
+		else if(errno != EWOULDBLOCK && errno != EAGAIN)
 			err_sys("accept error");
 	}
 	return (n);
