@@ -19,6 +19,7 @@ void OnTcpWritable(struct aeEventLoop *eventLoop,
     } else {
         // connect ok, remove event
         aeDeleteFileEvent(client->net->aeloop, client->tcpClient.m_sockfd, AE_WRITABLE);
+        client->onTcpConnected(client);
     }
 }
 
@@ -40,14 +41,14 @@ TCPClient::TCPClient(Client* client, const char *host, int port) {
 		err_quit("tcp_connect error for %s, %s: %s",
 				 host, serv, gai_strerror(n));
 	ressave = res;
-
+    int i;
 	do {
 		m_sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 		if (m_sockfd < 0)
 			continue;	/* ignore this one */
         int flags = Fcntl(m_sockfd, F_GETFL, 0);
         Fcntl(m_sockfd, F_SETFL, flags | O_NONBLOCK);
-        int i = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
+        i = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
         if ((i == -1) && (errno == EINPROGRESS)) {
             aeCreateFileEvent(client->net->aeloop, m_sockfd, AE_WRITABLE,
                               OnTcpWritable, (void *)client);
@@ -67,6 +68,9 @@ TCPClient::TCPClient(Client* client, const char *host, int port) {
 	m_socklen = res->ai_addrlen;	/* return size of protocol address */
 
 	freeaddrinfo(ressave);
+    if (i == 0) {
+        client->onTcpConnected(client);
+    }
 }
 
 TCPClient::~TCPClient()

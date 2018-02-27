@@ -43,7 +43,6 @@ Client::Client(WyNet *net, const char *host, int tcpPort) :
     aeCreateFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE,
                       OnTcpMessage, (void *)this);
 
-    tcpClient.Send("hello", 6);
 }
 
 Client::~Client()

@@ -9,6 +9,10 @@ void Stop(int signo)
     printf("Stop. %d\n", net.aeloop->stop);
 }
 
+void OnTcpConnected(Client *client) {
+    client->tcpClient.Send("hello", 6);
+}
+
 int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
@@ -16,6 +20,7 @@ int main(int argc, char **argv)
 
     printf("aeGetApiName: %s\n", aeGetApiName());
     Client *client = new Client(&net, "127.0.0.1", 9998);
+    client->onTcpConnected = &OnTcpConnected;
     net.AddClient(client);
     net.Loop();
     printf("exit\n");
