@@ -25,6 +25,12 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
     int connfd = Accept(sockfd, (SA *)&cliAddr, &len);
+    if (connfd == -1) {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+            // already closed
+            return;
+        }
+    }
     aeCreateFileEvent(server->aeloop, connfd, AE_READABLE,
                       onTcpMessage, server);
     TCPClientInfo info;
