@@ -9,14 +9,16 @@
 namespace wynet
 {
 
+class WyNet;
+    
 class Client {
 public:
-    aeEventLoop *aeloop;
+    WyNet *net;
     TCPClient tcpClient;
     UDPClient* udpClient;
     ConvID convID;
     KCPObject* kcpDict;
-    Client(aeEventLoop *aeloop, const char *host, int tcpPort);
+    Client(WyNet *net, const char *host, int tcpPort);
     ~Client();
 };
 

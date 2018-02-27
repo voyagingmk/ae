@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     // signal(SIGINT, Stop);
 
     printf("aeGetApiName: %s\n", aeGetApiName());
-    Client *client = new Client(net.GetAeLoop(), "127.0.0.1", 9998);
+    Client *client = new Client(&net, "127.0.0.1", 9998);
     net.AddClient(client);
     net.Loop();
     printf("exit\n");

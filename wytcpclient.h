@@ -6,13 +6,16 @@
 
 namespace wynet
 {
+
+class Client;
+    
 class TCPClient : public SocketBase
 {
   sockaddr_in m_serSockaddr;
   struct hostent *h;
 
 public:
-  TCPClient(const char *host, int port);
+  TCPClient(Client* client, const char *host, int port);
   ~TCPClient();
   void Send(const char *data, size_t len);
   void Recvfrom();

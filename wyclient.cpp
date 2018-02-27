@@ -1,6 +1,7 @@
 #include "wyclient.h"
 #include "protocol.h"
 #include "protocol_define.h"
+#include "wynet.h"
 
 namespace wynet
 {
@@ -32,12 +33,14 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
     }
 }
 
-Client::Client(aeEventLoop *aeloop, const char *host, int tcpPort) : tcpClient(host, tcpPort),
-                                                                     udpClient(NULL),
-                                                                     kcpDict(NULL)
+Client::Client(WyNet *net, const char *host, int tcpPort) :
+    net(net),
+    tcpClient(this, host, tcpPort),
+    udpClient(NULL),
+    kcpDict(NULL)
 {
 
-    aeCreateFileEvent(aeloop, tcpClient.m_sockfd, AE_READABLE,
+    aeCreateFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE,
                       OnTcpMessage, (void *)this);
 
     tcpClient.Send("hello", 6);

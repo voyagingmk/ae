@@ -1,9 +1,30 @@
 #include "wytcpclient.h"
+#include "wyclient.h"
+#include "wynet.h"
 
 namespace wynet {
 
 
-TCPClient::TCPClient(const char *host, int port) {	
+// http://man7.org/linux/man-pages/man2/connect.2.html
+void OnTcpWritable(struct aeEventLoop *eventLoop,
+                  int fd, void *clientData, int mask)
+{
+    printf("OnTcpMessage\n");
+    Client *client = (Client *)(clientData);
+    int error;
+    socklen_t len;
+    len = sizeof(error);
+    if (getsockopt(client->tcpClient.m_sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+        // close it
+    } else {
+        // connect ok, remove event
+        aeDeleteFileEvent(client->net->aeloop, client->tcpClient.m_sockfd, AE_WRITABLE);
+    }
+}
+
+    
+    
+TCPClient::TCPClient(Client* client, const char *host, int port) {
     int		n;
 	struct addrinfo	hints, *res, *ressave;
 
@@ -24,8 +45,15 @@ TCPClient::TCPClient(const char *host, int port) {
 		m_sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 		if (m_sockfd < 0)
 			continue;	/* ignore this one */
-
-		if (connect(m_sockfd, res->ai_addr, res->ai_addrlen) == 0)
+        int flags = Fcntl(m_sockfd, F_GETFL, 0);
+        Fcntl(m_sockfd, F_SETFL, flags | O_NONBLOCK);
+        int i = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
+        if ((i == -1) && (errno == EINPROGRESS)) {
+            aeCreateFileEvent(client->net->aeloop, m_sockfd, AE_WRITABLE,
+                              OnTcpWritable, (void *)client);
+            break;
+        }
+		if (i == 0)
 			break;		/* success */
 
 		Close(m_sockfd);	/* ignore this one */
