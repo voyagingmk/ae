@@ -26,10 +26,16 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     socklen_t len = sizeof(cliAddr);
     int connfd = Accept(sockfd, (SA *)&cliAddr, &len);
     if (connfd == -1) {
-        if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+        if ((errno == EAGAIN) ||
+            (errno == EWOULDBLOCK) ||
+            (errno == ECONNABORTED) ||
+            (errno == EINTR)
+            ) {
             // already closed
             return;
         }
+        std::cerr << strerror (errno) << "\n";
+        return;
     }
     aeCreateFileEvent(server->aeloop, connfd, AE_READABLE,
                       onTcpMessage, server);
