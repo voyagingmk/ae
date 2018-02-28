@@ -20,7 +20,7 @@ class Buffer
         buffer = new uint8_t[size]{0};
     }
 
-    uint8_t *getBuffer(size_t n)
+    uint8_t *reserve(size_t n)
     {
         if (n > MaxBufferSize)
         {
@@ -49,9 +49,9 @@ class BufferSet
         buffers.resize(bufferNum);
     }
 
-    uint8_t *getBuffer(uint8_t bufferID, size_t n)
+    uint8_t *reserve(uint8_t bufferID, size_t n)
     {
-        return buffers[bufferID].getBuffer(n);
+        return buffers[bufferID].reserve(n);
     }
 };
 
