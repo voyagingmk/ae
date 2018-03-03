@@ -11,6 +11,8 @@ const size_t MaxBufferSize = 1024 * 1024 * 256; // 256 MB
 
 class Buffer
 {
+  public:
+    
     uint8_t *buffer;
     size_t size;
 
@@ -111,11 +113,26 @@ public:
         BufferSet::dynamicSingleton().recycleBuffer(uniqID);
     }
     
+    BufferRef(BufferRef&& b) {
+        uniqID = b.uniqID;
+        b.uniqID = 0;
+    }
+    
+    BufferRef & operator = (BufferRef&& b) {
+        uniqID = b.uniqID;
+        b.uniqID = 0;
+        return (*this);
+    }
+    
+    
     BufferRef(const BufferRef&) = delete;
     
     BufferRef & operator = (const BufferRef&) = delete;
     
     Buffer* get() {
+        if(!uniqID) {
+            return nullptr;
+        }
         return BufferSet::dynamicSingleton().getBuffer(uniqID);
     }
 };

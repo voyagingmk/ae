@@ -10,6 +10,9 @@ void onTcpMessage(struct aeEventLoop *eventLoop,
 {
     printf("onTcpMessage fd=%d\n", fd);
     Server *server = (Server *)(clientData);
+    UniqID clientID = server->connfd2cid[fd];
+    TCPClientInfo& info = server->clientDict[clientID];
+    info.buf.readIn(fd);
     char recvline[MAXLINE + 1];
     int n = read(fd, recvline, MAXLINE);
     recvline[n] = '\0';
@@ -39,11 +42,12 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     }
     aeCreateFileEvent(server->aeloop, connfd, AE_READABLE,
                       onTcpMessage, server);
-    TCPClientInfo info;
-    info.connfd = connfd;
+    
     UniqID clientID = server->clientIdGen.getNewID();
-    server->clientDict[clientID] = info;
-
+    server->clientDict[clientID] = TCPClientInfo();
+    TCPClientInfo& info = server->clientDict[clientID];
+    info.connfd = connfd;
+    server->connfd2cid[connfd] = clientID;
     
     protocol::Handshake handshake;
     handshake.clientID = clientID;

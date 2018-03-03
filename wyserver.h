@@ -12,7 +12,7 @@ namespace wynet
 
 struct TCPClientInfo {
     int connfd;
-
+    SockBuffer buf;
 };
 
 class Server {
@@ -23,6 +23,7 @@ public:
     TCPServer tcpServer;
     UDPServer udpServer;
     std::map<UniqID, TCPClientInfo> clientDict;
+    std::map<int, UniqID> connfd2cid;
     std::map<ConvID, KCPObject> kcpDict;
     UniqIDGenerator clientIdGen;
     

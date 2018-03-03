@@ -6,6 +6,25 @@
 
 namespace wynet
 {
+    
+class SockBuffer {
+    BufferRef bufRef;
+    size_t len;
+public:
+    SockBuffer() {
+        len = 0;
+    }
+    int readIn(int sockfd) {
+        Buffer* buf = bufRef.get();
+        int space = buf->size - len;
+        const size_t RecvSize = 1400;
+        if (space <= 0) {
+            buf->reserve(buf->size + RecvSize);
+        }
+        int nread = recv(sockfd, buf->buffer + len, 1024, 0);
+        return nread;
+    }
+};
 
 class SocketBase
 {
@@ -17,7 +36,7 @@ public:
   socklen_t m_socklen;
   int m_sockfd;
   int m_family;
-  BufferRef buf;
+  SockBuffer buf;
   bool isIPv4() { return m_family == PF_INET; }
   bool isIPv6() { return m_family == PF_INET6; }
 };
