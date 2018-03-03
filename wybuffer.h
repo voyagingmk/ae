@@ -98,6 +98,28 @@ class BufferSet
     }
 };
 
+class BufferRef {
+    UniqID uniqID;
+    
+public:
+    
+    BufferRef() {
+       uniqID = BufferSet::dynamicSingleton().newBuffer();
+    }
+    
+    ~BufferRef() {
+        BufferSet::dynamicSingleton().recycleBuffer(uniqID);
+    }
+    
+    BufferRef(const BufferRef&) = delete;
+    
+    BufferRef & operator = (const BufferRef&) = delete;
+    
+    Buffer* get() {
+        return BufferSet::dynamicSingleton().getBuffer(uniqID);
+    }
+};
+    
 };
 
 #endif
