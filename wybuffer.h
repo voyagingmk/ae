@@ -52,20 +52,25 @@ class BufferSet
     
   public:
     
-    static BufferSet& singleton() {
+    static BufferSet& dynamicSingleton() {
         static BufferSet gBufferSet;
         return gBufferSet;
     }
     
-    BufferSet(int defaultCapacity = 8)
+    static BufferSet& constSingleton() {
+        static BufferSet gBufferSet;
+        return gBufferSet;
+    }
+    
+    BufferSet(int defaultSize = 8)
     {
-        buffers.reserve(defaultCapacity);
+        buffers.resize(defaultSize);
     }
     
     UniqID newBuffer() {
         UniqID uid = uniqIDGen.getNewID();
-        if (uid > buffers.capacity()) {
-            buffers.reserve(buffers.capacity() << 1);
+        if (uid > buffers.size()) {
+            buffers.resize(buffers.size() << 1);
         }
         return uid;
     }
@@ -75,9 +80,19 @@ class BufferSet
     }
     
     Buffer* getBuffer(UniqID uid) {
-        uint32_t idx = uid - 1;
-        if(idx >= buffers.size()) {
+        int32_t idx = uid - 1;
+        if(idx < 0 || idx >= buffers.size()) {
             return nullptr;
+        }
+        return &buffers[idx];
+    }
+    
+    Buffer* getBufferByIdx(int32_t idx) {
+        if (idx < 0) {
+            return nullptr;
+        }
+        while((idx+1) > buffers.size()) {
+            buffers.resize(buffers.size() << 1);
         }
         return &buffers[idx];
     }

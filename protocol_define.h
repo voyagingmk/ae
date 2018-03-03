@@ -26,7 +26,9 @@ PacketHeader *SerializeProtocol(P content)
     header.updateHeaderLength();
     size_t packetLen = header.getHeaderLength() + sizeof(P);
     header.setUInt32(HeaderFlag::PacketLen, packetLen);
-    char *buf = (char *)gBufferSet.reserve(0, packetLen);
+    BufferSet& bufferSet = BufferSet::constSingleton();
+    Buffer* buffer = bufferSet.getBufferByIdx(0);
+    uint8_t *buf = buffer->reserve(packetLen);
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
     memcpy(buf + header.getHeaderLength(),
            (uint8_t *)&content, sizeof(P));

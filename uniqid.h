@@ -5,7 +5,7 @@
 
 namespace wynet {
 
-	typedef unsigned int UniqID;
+	typedef int32_t UniqID;
 
 	class UniqIDGenerator
 	{
