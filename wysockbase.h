@@ -2,6 +2,7 @@
 #define WY_SOCKBASE_H
 
 #include "common.h"
+#include "wybuffer.h"
 
 namespace wynet
 {
@@ -16,6 +17,7 @@ public:
   socklen_t m_socklen;
   int m_sockfd;
   int m_family;
+  Buffer buffer;
   bool isIPv4() { return m_family == PF_INET; }
   bool isIPv6() { return m_family == PF_INET6; }
 };

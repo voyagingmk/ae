@@ -2,6 +2,7 @@
 #define WY_BUFFER_H
 
 #include "common.h"
+#include "uniqid.h"
 
 namespace wynet
 {
@@ -18,6 +19,11 @@ class Buffer
     {
         size = 0xff;
         buffer = new uint8_t[size]{0};
+    }
+    ~Buffer()
+    {
+        size = 0;
+        delete []buffer;
     }
 
     uint8_t *reserve(size_t n)
@@ -42,21 +48,41 @@ class Buffer
 class BufferSet
 {
     std::vector<Buffer> buffers;
-
+    UniqIDGenerator uniqIDGen;
+    
   public:
-    BufferSet(int bufferNum = 8)
-    {
-        buffers.resize(bufferNum);
+    
+    static BufferSet& singleton() {
+        static BufferSet gBufferSet;
+        return gBufferSet;
     }
-
-    uint8_t *reserve(uint8_t bufferID, size_t n)
+    
+    BufferSet(int defaultCapacity = 8)
     {
-        return buffers[bufferID].reserve(n);
+        buffers.reserve(defaultCapacity);
+    }
+    
+    UniqID newBuffer() {
+        UniqID uid = uniqIDGen.getNewID();
+        if (uid > buffers.capacity()) {
+            buffers.reserve(buffers.capacity() << 1);
+        }
+        return uid;
+    }
+    
+    void recycleBuffer(UniqID uid) {
+        uniqIDGen.recycleID(uid);
+    }
+    
+    Buffer* getBuffer(UniqID uid) {
+        uint32_t idx = uid - 1;
+        if(idx >= buffers.size()) {
+            return nullptr;
+        }
+        return &buffers[idx];
     }
 };
 
-// TODO
-static BufferSet gBufferSet;
 };
 
 #endif
