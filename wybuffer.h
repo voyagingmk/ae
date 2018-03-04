@@ -123,20 +123,18 @@ public:
     }
     
     ~BufferRef() {
-        if (uniqID) {
-            BufferSet::dynamicSingleton().recycleBuffer(uniqID);
-            printf("BufferRef recycled %d\n", uniqID);
-            uniqID = 0;
-        }
+        recycleBuffer();
     }
     
     BufferRef(BufferRef&& b) {
+        recycleBuffer();
         uniqID = b.uniqID;
         b.uniqID = 0;
         printf("BufferRef moved %d\n", uniqID);
     }
     
     BufferRef & operator = (BufferRef&& b) {
+        recycleBuffer();
         uniqID = b.uniqID;
         b.uniqID = 0;
         printf("BufferRef moved %d\n", uniqID);
@@ -148,11 +146,21 @@ public:
     
     BufferRef & operator = (const BufferRef&) = delete;
     
+    
     Buffer* get() {
         if(!uniqID) {
             return nullptr;
         }
         return BufferSet::dynamicSingleton().getBuffer(uniqID);
+    }
+    
+private:
+    void recycleBuffer() {
+        if (uniqID) {
+            BufferSet::dynamicSingleton().recycleBuffer(uniqID);
+            printf("BufferRef recycled %d\n", uniqID);
+            uniqID = 0;
+        }
     }
 };
     
