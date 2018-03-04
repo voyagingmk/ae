@@ -11,6 +11,7 @@
 #include <set>
 
 extern "C" {
+#include "log.h"
 #include "wrapsock.h"
 #include "error.h"
 #include "ae.h"
