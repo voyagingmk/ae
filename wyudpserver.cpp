@@ -47,7 +47,7 @@ UDPServer::UDPServer(int port)
     freeaddrinfo(ressave);
 
     char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
-    printf("UDP Server created: %s\n", str);
+    log_info("UDP Server created: %s\n", str);
 }
 
 UDPServer::~UDPServer()
@@ -70,9 +70,9 @@ void UDPServer::Recvfrom()
         return;
     }
 
-    printf("Recvfrom %s : %s \n",
-           Sock_ntop((SA *)&cliAddr, len),
-           msg);
+    log_debug("Recvfrom %s : %s \n",
+              Sock_ntop((SA *)&cliAddr, len),
+              msg);
 
     switch (cliAddr.ss_family)
     {

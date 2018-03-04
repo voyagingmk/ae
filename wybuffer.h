@@ -12,7 +12,6 @@ const size_t MaxBufferSize = 1024 * 1024 * 256; // 256 MB
 class Buffer
 {
   public:
-    
     uint8_t *buffer;
     size_t size;
 
@@ -25,14 +24,15 @@ class Buffer
     ~Buffer()
     {
         size = 0;
-        delete []buffer;
+        delete[] buffer;
     }
-    
+
     // keep old data
-    uint8_t* expand(size_t n) {
+    uint8_t *expand(size_t n)
+    {
         return reserve(n, true);
     }
-    
+
     uint8_t *reserve(size_t n, bool keep = false)
     {
         if (n > MaxBufferSize)
@@ -46,8 +46,9 @@ class Buffer
             {
                 size = size << 1;
             }
-            uint8_t* newBuffer = new uint8_t[size]{0};
-            if (keep) {
+            uint8_t *newBuffer = new uint8_t[size]{0};
+            if (keep)
+            {
                 memcpy(newBuffer, buffer, oldSize);
             }
             delete[] buffer;
@@ -61,109 +62,124 @@ class BufferSet
 {
     std::vector<Buffer> buffers;
     UniqIDGenerator uniqIDGen;
-    
+
   public:
-    
-    static BufferSet& dynamicSingleton() {
+    static BufferSet &dynamicSingleton()
+    {
         static BufferSet gBufferSet;
         return gBufferSet;
     }
-    
-    static BufferSet& constSingleton() {
+
+    static BufferSet &constSingleton()
+    {
         static BufferSet gBufferSet;
         return gBufferSet;
     }
-    
+
     BufferSet(int defaultSize = 8)
     {
         buffers.resize(defaultSize);
     }
-    
-    UniqID newBuffer() {
+
+    UniqID newBuffer()
+    {
         UniqID uid = uniqIDGen.getNewID();
-        if (uid > buffers.size()) {
+        if (uid > buffers.size())
+        {
             buffers.resize(buffers.size() << 1);
         }
         return uid;
     }
-    
-    void recycleBuffer(UniqID uid) {
+
+    void recycleBuffer(UniqID uid)
+    {
         uniqIDGen.recycleID(uid);
     }
-    
-    Buffer* getBuffer(UniqID uid) {
+
+    Buffer *getBuffer(UniqID uid)
+    {
         int32_t idx = uid - 1;
-        if(idx < 0 || idx >= buffers.size()) {
+        if (idx < 0 || idx >= buffers.size())
+        {
             return nullptr;
         }
         return &buffers[idx];
     }
-    
-    Buffer* getBufferByIdx(int32_t idx) {
-        if (idx < 0) {
+
+    Buffer *getBufferByIdx(int32_t idx)
+    {
+        if (idx < 0)
+        {
             return nullptr;
         }
-        while((idx+1) > buffers.size()) {
+        while ((idx + 1) > buffers.size())
+        {
             buffers.resize(buffers.size() << 1);
         }
         return &buffers[idx];
     }
 };
 
-class BufferRef {
+class BufferRef
+{
     UniqID uniqID;
-    
-public:
-    
-    BufferRef() {
-       uniqID = BufferSet::dynamicSingleton().newBuffer();
-       if (uniqID) {
-           printf("BufferRef created %d\n", uniqID);
-       }
+
+  public:
+    BufferRef()
+    {
+        uniqID = BufferSet::dynamicSingleton().newBuffer();
+        if (uniqID)
+        {
+            log_debug("BufferRef created %d\n", uniqID);
+        }
     }
-    
-    ~BufferRef() {
+
+    ~BufferRef()
+    {
         recycleBuffer();
     }
-    
-    BufferRef(BufferRef&& b) {
-        recycleBuffer();
-        uniqID = b.uniqID;
-        b.uniqID = 0;
-        printf("BufferRef moved %d\n", uniqID);
-    }
-    
-    BufferRef & operator = (BufferRef&& b) {
+
+    BufferRef(BufferRef &&b)
+    {
         recycleBuffer();
         uniqID = b.uniqID;
         b.uniqID = 0;
-        printf("BufferRef moved %d\n", uniqID);
+        log_debug("BufferRef moved %d\n", uniqID);
+    }
+
+    BufferRef &operator=(BufferRef &&b)
+    {
+        recycleBuffer();
+        uniqID = b.uniqID;
+        b.uniqID = 0;
+        log_debug("BufferRef moved %d\n", uniqID);
         return (*this);
     }
-    
-    
-    BufferRef(const BufferRef&) = delete;
-    
-    BufferRef & operator = (const BufferRef&) = delete;
-    
-    
-    Buffer* get() {
-        if(!uniqID) {
+
+    BufferRef(const BufferRef &) = delete;
+
+    BufferRef &operator=(const BufferRef &) = delete;
+
+    Buffer *get()
+    {
+        if (!uniqID)
+        {
             return nullptr;
         }
         return BufferSet::dynamicSingleton().getBuffer(uniqID);
     }
-    
-private:
-    void recycleBuffer() {
-        if (uniqID) {
+
+  private:
+    void recycleBuffer()
+    {
+        if (uniqID)
+        {
             BufferSet::dynamicSingleton().recycleBuffer(uniqID);
-            printf("BufferRef recycled %d\n", uniqID);
+            log_debug("BufferRef recycled %d\n", uniqID);
             uniqID = 0;
         }
     }
 };
-    
 };
 
 #endif

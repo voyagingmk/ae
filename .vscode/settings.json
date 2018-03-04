@@ -21,6 +21,7 @@
         "set": "cpp",
         "string": "cpp",
         "string_view": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "sstream": "cpp"
     }
 }

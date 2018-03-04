@@ -9,53 +9,52 @@ namespace wynet
 void OnTcpMessage(struct aeEventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
-    printf("OnTcpMessage\n");
+    log_debug("OnTcpMessage\n");
     Client *client = (Client *)(clientData);
     PacketHeader header;
-    int n = Readn(fd, (char*)(&header), HeaderBaseLength);
-    Readn(fd, (char*)(&header) + HeaderBaseLength, header.getHeaderLength() - HeaderBaseLength);
-    if(!header.isFlagOn(HeaderFlag::PacketLen)) {
+    int n = Readn(fd, (char *)(&header), HeaderBaseLength);
+    Readn(fd, (char *)(&header) + HeaderBaseLength, header.getHeaderLength() - HeaderBaseLength);
+    if (!header.isFlagOn(HeaderFlag::PacketLen))
+    {
         return;
     }
     Protocol protocol = header.getProtocol();
     uint32_t packetLen = header.getUInt(HeaderFlag::PacketLen);
-    switch (protocol) {
-        case Protocol::Handshake:
-           {
-               protocol::Handshake handShake;
-               assert(packetLen == header.getHeaderLength() + sizeof(protocol::Handshake));
-               Readn(fd, (char*)(&handShake), sizeof(protocol::Handshake));
-               printf("clientID %d, udpPort %d\n", handShake.clientID, handShake.udpPort);
-               break;
-           }
-        default:
-            break;
+    switch (protocol)
+    {
+    case Protocol::Handshake:
+    {
+        protocol::Handshake handShake;
+        assert(packetLen == header.getHeaderLength() + sizeof(protocol::Handshake));
+        Readn(fd, (char *)(&handShake), sizeof(protocol::Handshake));
+        log_debug("clientID %d, udpPort %d\n", handShake.clientID, handShake.udpPort);
+        break;
+    }
+    default:
+        break;
     }
 }
 
-Client::Client(WyNet *net, const char *host, int tcpPort) :
-    net(net),
-    tcpClient(this, host, tcpPort),
-    udpClient(NULL),
-    kcpDict(NULL),
-    onTcpConnected(NULL)
+Client::Client(WyNet *net, const char *host, int tcpPort) : net(net),
+                                                            tcpClient(this, host, tcpPort),
+                                                            udpClient(NULL),
+                                                            kcpDict(NULL),
+                                                            onTcpConnected(NULL)
 {
-
 }
 
 Client::~Client()
 {
-    printf("[Client] close tcp sockfd %d\n", tcpClient.m_sockfd);
+    log_info("[Client] close tcp sockfd %d\n", tcpClient.m_sockfd);
     aeDeleteFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE | AE_WRITABLE);
     tcpClient.Close();
 }
-    
-    
-    
-void Client::_onTcpConnected() {
+
+void Client::_onTcpConnected()
+{
     aeCreateFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE,
                       OnTcpMessage, (void *)this);
-    if (onTcpConnected) onTcpConnected(this);
-
+    if (onTcpConnected)
+        onTcpConnected(this);
 }
 };
