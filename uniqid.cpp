@@ -5,7 +5,7 @@ namespace wynet {
 	UniqIDGenerator::UniqIDGenerator() :
 		count(0),
         recycleThreshold(100000),
-        recycleEnabled(false)
+        recycleEnabled(true)
 	{
 	};
 
@@ -27,6 +27,9 @@ namespace wynet {
 	}
 	void UniqIDGenerator::recycleID(UniqID id)  {
         if(!recycleEnabled) {
+            return;
+        }
+        if (id <= 0) {
             return;
         }
 		recycled.insert(id);

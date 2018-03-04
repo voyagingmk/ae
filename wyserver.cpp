@@ -13,7 +13,6 @@ void onTcpMessage(struct aeEventLoop *eventLoop,
     UniqID clientID = server->connfd2cid[fd];
     TCPConnection &conn = server->connDict[clientID];
     int ret = conn.buf.readIn(fd);
-    printf("ret=%d\n", ret);
     if (ret == 0) {
         Close(fd);
         server->connfd2cid.erase(fd);
