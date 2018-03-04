@@ -45,7 +45,9 @@ Client::Client(WyNet *net, const char *host, int tcpPort) :
 
 Client::~Client()
 {
+    printf("[Client] close tcp sockfd %d\n", tcpClient.m_sockfd);
     aeDeleteFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE | AE_WRITABLE);
+    tcpClient.Close();
 }
     
     

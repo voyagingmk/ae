@@ -59,7 +59,7 @@ TCPClient::TCPClient(Client* client, const char *host, int port) {
 		if (i == 0)
 			break;		/* success */
 
-		Close(m_sockfd);	/* ignore this one */
+        ::Close(m_sockfd);	/* ignore this one */
 	} while ( (res = res->ai_next) != NULL);
 
 	if (res == NULL)	/* errno set from final connect() */
@@ -75,7 +75,7 @@ TCPClient::TCPClient(Client* client, const char *host, int port) {
     }
 }
 
-TCPClient::~TCPClient()
+void TCPClient::Close()
 {
     close(m_sockfd);
 }

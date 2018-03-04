@@ -20,7 +20,7 @@ public:
     
   TCPClient(Client* client, const char *host, int port);
     
-  ~TCPClient();
+  void Close();
     
   void Send(const char *data, size_t len);
     

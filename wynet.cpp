@@ -12,8 +12,13 @@ WyNet::~WyNet()
 {
     while (!servers.empty())
     {
-        UniqID serverID = servers.begin()->first;
-        DestroyServer(serverID);
+        UniqID serverId = servers.begin()->first;
+        DestroyServer(serverId);
+    }
+    while (!clients.empty())
+    {
+        UniqID clientId = clients.begin()->first;
+        DestroyClient(clientId);
     }
     printf("WyNet destroyed.\n");
 }
