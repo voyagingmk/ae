@@ -37,16 +37,23 @@ Client::Client(WyNet *net, const char *host, int tcpPort) :
     net(net),
     tcpClient(this, host, tcpPort),
     udpClient(NULL),
-    kcpDict(NULL)
+    kcpDict(NULL),
+    onTcpConnected(NULL)
 {
-
-    aeCreateFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE,
-                      OnTcpMessage, (void *)this);
 
 }
 
 Client::~Client()
 {
-    aeDeleteFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE || AE_WRITABLE);
+    aeDeleteFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE | AE_WRITABLE);
+}
+    
+    
+    
+void Client::_onTcpConnected() {
+    aeCreateFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE,
+                      OnTcpMessage, (void *)this);
+    if (onTcpConnected) onTcpConnected(this);
+
 }
 };

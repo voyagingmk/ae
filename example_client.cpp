@@ -10,6 +10,7 @@ void Stop(int signo)
 }
 
 void OnTcpConnected(Client *client) {
+    printf("OnTcpConnected: %d\n", client->tcpClient.m_sockfd);
     client->tcpClient.Send("hello", 6);
 }
 

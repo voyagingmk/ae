@@ -9,7 +9,7 @@ namespace wynet {
 void OnTcpWritable(struct aeEventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
-    printf("OnTcpMessage\n");
+    printf("OnTcpWritable\n");
     TCPClient *tcpClient = (TCPClient *)(clientData);
     int error;
     socklen_t len;
@@ -20,7 +20,7 @@ void OnTcpWritable(struct aeEventLoop *eventLoop,
         Client* client = tcpClient->parent;
         // connect ok, remove event
         aeDeleteFileEvent(client->net->aeloop, tcpClient->m_sockfd, AE_WRITABLE);
-        client->onTcpConnected(client);
+        tcpClient->onConnected();
     }
 }
 
@@ -71,7 +71,7 @@ TCPClient::TCPClient(Client* client, const char *host, int port) {
 
 	freeaddrinfo(ressave);
     if (i == 0) {
-        client->onTcpConnected(client);
+        onConnected();
     }
 }
 
@@ -90,6 +90,11 @@ void TCPClient::Send(const char *data, size_t len)
 {
     ::Send(m_sockfd, data, len, 0);
     // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
+}
+    
+    
+void TCPClient::onConnected() {
+     parent->_onTcpConnected();
 }
 
 

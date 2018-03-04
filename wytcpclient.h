@@ -15,11 +15,18 @@ public:
   sockaddr_in m_serSockaddr;
   struct hostent *h;
   Client* parent;
+    
 public:
+    
   TCPClient(Client* client, const char *host, int port);
+    
   ~TCPClient();
+    
   void Send(const char *data, size_t len);
+    
   void Recvfrom();
+    
+  void onConnected();
 };
 };
 
