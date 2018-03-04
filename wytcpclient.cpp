@@ -10,15 +10,16 @@ void OnTcpWritable(struct aeEventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
     printf("OnTcpMessage\n");
-    Client *client = (Client *)(clientData);
+    TCPClient *tcpClient = (TCPClient *)(clientData);
     int error;
     socklen_t len;
     len = sizeof(error);
-    if (getsockopt(client->tcpClient.m_sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+    if (getsockopt(tcpClient->m_sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
         // close it
     } else {
+        Client* client = tcpClient->parent;
         // connect ok, remove event
-        aeDeleteFileEvent(client->net->aeloop, client->tcpClient.m_sockfd, AE_WRITABLE);
+        aeDeleteFileEvent(client->net->aeloop, tcpClient->m_sockfd, AE_WRITABLE);
         client->onTcpConnected(client);
     }
 }
@@ -26,6 +27,7 @@ void OnTcpWritable(struct aeEventLoop *eventLoop,
     
     
 TCPClient::TCPClient(Client* client, const char *host, int port) {
+    parent = client;
     int		n;
 	struct addrinfo	hints, *res, *ressave;
 
@@ -51,7 +53,7 @@ TCPClient::TCPClient(Client* client, const char *host, int port) {
         i = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
         if ((i == -1) && (errno == EINPROGRESS)) {
             aeCreateFileEvent(client->net->aeloop, m_sockfd, AE_WRITABLE,
-                              OnTcpWritable, (void *)client);
+                              OnTcpWritable, (void *)this);
             break;
         }
 		if (i == 0)
