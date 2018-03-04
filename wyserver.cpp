@@ -12,7 +12,14 @@ void onTcpMessage(struct aeEventLoop *eventLoop,
     Server *server = (Server *)(clientData);
     UniqID clientID = server->connfd2cid[fd];
     TCPConnection &conn = server->connDict[clientID];
-    conn.buf.readIn(fd);
+    int ret = conn.buf.readIn(fd);
+    printf("ret=%d\n", ret);
+    if (ret == 0) {
+        Close(fd);
+        server->connfd2cid.erase(fd);
+        server->connDict.erase(clientID);
+        aeDeleteFileEvent(server->aeloop, fd, AE_READABLE);
+    }
 }
 
 void OnTcpNewConnection(struct aeEventLoop *eventLoop,

@@ -24,16 +24,16 @@ public:
         int nread = recv(sockfd, buf->buffer + len, RecvSize, 0);
         if (nread > 0) {
             len += nread;
-            return nread;
         }
         if (nread < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                return 0;
+            } else {
+                err_msg("[SockBuffer] sockfd %d readIn err: %d %s",
+                        sockfd, errno, strerror (errno));
             }
-            err_msg("[SockBuffer] sockfd %d readIn err: %d %s",
-                    sockfd, errno, strerror (errno));
         }
-        return 0;
+        // nread = 0 : remote peer closed
+        return nread;
     }
 };
 

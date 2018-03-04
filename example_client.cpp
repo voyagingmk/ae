@@ -17,7 +17,7 @@ void OnTcpConnected(Client *client) {
 int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
-    // signal(SIGINT, Stop);
+    signal(SIGINT, Stop);
 
     printf("aeGetApiName: %s\n", aeGetApiName());
     Client *client = new Client(&net, "127.0.0.1", 9998);

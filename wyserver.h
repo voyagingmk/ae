@@ -10,8 +10,9 @@
 namespace wynet
 {
 
-struct TCPConnection
+class TCPConnection
 {
+public:
     int connfd;
     SockBuffer buf;
 };
