@@ -27,8 +27,13 @@ class Buffer
         size = 0;
         delete []buffer;
     }
-
-    uint8_t *reserve(size_t n)
+    
+    // keep old data
+    uint8_t* expand(size_t n) {
+        return reserve(n, true);
+    }
+    
+    uint8_t *reserve(size_t n, bool keep = false)
     {
         if (n > MaxBufferSize)
         {
@@ -36,12 +41,17 @@ class Buffer
         }
         if (!buffer || n > size)
         {
+            size_t oldSize = size;
             while (n > size)
             {
                 size = size << 1;
             }
+            uint8_t* newBuffer = new uint8_t[size]{0};
+            if (keep) {
+                memcpy(newBuffer, buffer, oldSize);
+            }
             delete[] buffer;
-            buffer = new uint8_t[size]{0};
+            buffer = newBuffer;
         }
         return buffer;
     }

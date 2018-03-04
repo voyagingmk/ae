@@ -10,35 +10,36 @@
 namespace wynet
 {
 
-struct TCPClientInfo {
+struct TCPConnection
+{
     int connfd;
     SockBuffer buf;
 };
 
-class Server {
-public:
+class Server
+{
+  public:
     aeEventLoop *aeloop;
     int tcpPort;
     int udpPort;
     TCPServer tcpServer;
     UDPServer udpServer;
-    std::map<UniqID, TCPClientInfo> clientDict;
+    std::map<UniqID, TCPConnection> connDict;
     std::map<int, UniqID> connfd2cid;
     std::map<ConvID, KCPObject> kcpDict;
     UniqIDGenerator clientIdGen;
-    
+
     Server(aeEventLoop *aeloop, int tcpPort, int udpPort);
-     
+
     ~Server();
-    
-    
+
     void Send(UniqID clientID, const char *data, size_t len);
 
-    bool hasConv(ConvID conv) {
-       return kcpDict.find(conv) != kcpDict.end();
+    bool hasConv(ConvID conv)
+    {
+        return kcpDict.find(conv) != kcpDict.end();
     }
 };
-
 };
 
 #endif

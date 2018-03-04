@@ -19,10 +19,21 @@ public:
         int space = buf->size - len;
         const size_t RecvSize = 1400;
         if (space <= 0) {
-            buf->reserve(buf->size + RecvSize);
+            buf->expand(buf->size + RecvSize);
         }
-        int nread = recv(sockfd, buf->buffer + len, 1024, 0);
-        return nread;
+        int nread = recv(sockfd, buf->buffer + len, RecvSize, 0);
+        if (nread > 0) {
+            len += nread;
+            return nread;
+        }
+        if (nread < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                return 0;
+            }
+            err_msg("[SockBuffer] sockfd %d readIn err: %d %s",
+                    sockfd, errno, strerror (errno));
+        }
+        return 0;
     }
 };
 
