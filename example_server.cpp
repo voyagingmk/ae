@@ -11,8 +11,9 @@ void Stop(int signo)
 
 int main(int argc, char **argv)
 {
+    log_set_file("./server.log", "w+");
     signal(SIGPIPE, SIG_IGN);
-    // signal(SIGINT, Stop);
+    signal(SIGINT, Stop);
     //  UDPServer server(9999);
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s\n", aeGetApiName());

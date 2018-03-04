@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <assert.h>
 #include <time.h>
 
 #include "log.h"
@@ -74,6 +75,20 @@ void log_set_lock(log_LockFn fn) {
 
 void log_set_fp(FILE *fp) {
   L.fp = fp;
+}
+
+void log_set_file(const char* filename, const char* mode) {
+    FILE *fp = NULL;
+    fp = fopen(filename, mode);
+    assert(fp != NULL);
+    if(fp != NULL) printf("log_set_file ok\n");
+    L.fp = fp;
+}
+
+void log_close_file() {
+    if(L.fp) printf("log_close_file ok\n");
+    fclose(L.fp);
+    L.fp = NULL;
 }
 
 

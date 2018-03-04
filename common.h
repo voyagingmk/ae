@@ -10,6 +10,8 @@
 #include <map>
 #include <set>
 
+#define LOG_USE_COLOR 1
+
 extern "C" {
 #include "log.h"
 #include "wrapsock.h"

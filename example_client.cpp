@@ -3,6 +3,7 @@ using namespace wynet;
 
 WyNet net;
 
+
 void Stop(int signo)
 {
     net.StopLoop();
@@ -17,6 +18,7 @@ void OnTcpConnected(Client *client)
 
 int main(int argc, char **argv)
 {
+    log_set_file("./client.log", "w+");
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
 
