@@ -53,7 +53,7 @@ TCPServer::TCPServer(int port)
 	freeaddrinfo(ressave);
 
 	char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
-	log_info("TCP Server created: %s\n", str);
+	log_info("TCP Server created: %s", str);
 }
 
 TCPServer::~TCPServer()

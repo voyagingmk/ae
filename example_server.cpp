@@ -6,7 +6,7 @@ WyNet net;
 void Stop(int signo)
 {
     net.StopLoop();
-    log_info("Stop. %d\n", net.aeloop->stop);
+    log_info("Stop. %d", net.aeloop->stop);
 }
 
 int main(int argc, char **argv)
@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     signal(SIGINT, Stop);
     //  UDPServer server(9999);
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
-    log_info("aeGetApiName: %s\n", aeGetApiName());
+    log_info("aeGetApiName: %s", aeGetApiName());
     Server *server = new Server(net.GetAeLoop(), 9998, 9999);
     net.AddServer(server);
     net.Loop();

@@ -8,16 +8,17 @@ namespace wynet
 void onTcpMessage(struct aeEventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
-    log_debug("onTcpMessage fd=%d\n", fd);
+    log_debug("onTcpMessage fd=%d", fd);
     Server *server = (Server *)(clientData);
-    UniqID clientID = server->connfd2cid[fd];
-    TCPConnection &conn = server->connDict[clientID];
+    UniqID clientId = server->connfd2cid[fd];
+    TCPConnection &conn = server->connDict[clientId];
     int ret = conn.buf.readIn(fd);
     if (ret == 0)
     {
         Close(fd);
         server->connfd2cid.erase(fd);
-        server->connDict.erase(clientID);
+        server->convId2cid.erase(conn.convId());
+        server->connDict.erase(clientId);
         aeDeleteFileEvent(server->aeloop, fd, AE_READABLE);
     }
 }
@@ -47,20 +48,26 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     aeCreateFileEvent(server->aeloop, connfd, AE_READABLE,
                       onTcpMessage, server);
 
-    UniqID clientID = server->clientIdGen.getNewID();
-    server->connDict[clientID] = TCPConnection();
-    TCPConnection &conn = server->connDict[clientID];
+    UniqID clientId = server->clientIdGen.getNewID();
+    UniqID convId = server->convIdGen.getNewID();
+    server->connDict[clientId] = TCPConnection();
+    TCPConnection &conn = server->connDict[clientId];
     conn.connfd = connfd;
-    server->connfd2cid[connfd] = clientID;
+    uint16_t password = random();
+    conn.key = (password << 16) | convId;
+    server->connfd2cid[connfd] = clientId;
+    server->convId2cid[convId] = clientId;
 
     protocol::Handshake handshake;
-    handshake.clientID = clientID;
+    handshake.clientId = clientId;
     handshake.udpPort = server->udpPort;
-    PacketHeader *header = SerializeProtocol<protocol::Handshake>(handshake);
-    log_debug("send handshake len %d\n", header->getUInt32(HeaderFlag::PacketLen));
-    server->Send(clientID, (char *)header, header->getUInt32(HeaderFlag::PacketLen));
+    handshake.key = conn.key;
 
-    log_info("Client %d connected, connfd: %d \n", clientID, connfd);
+    PacketHeader *header = SerializeProtocol<protocol::Handshake>(handshake);
+    log_debug("send handshake len %d", header->getUInt32(HeaderFlag::PacketLen));
+    server->Send(clientId, (char *)header, header->getUInt32(HeaderFlag::PacketLen));
+
+    log_info("Client %d connected, connfd: %d, key: %d ", handshake.key, clientId, connfd);
 }
 
 void OnUdpMessage(struct aeEventLoop *eventLoop,
@@ -77,9 +84,13 @@ Server::Server(aeEventLoop *aeloop, int tcpPort, int udpPort) : aeloop(aeloop),
                                                                 udpServer(udpPort)
 {
 
-    log_info("Server created, tcp sockfd: %d, udp sockfd: %d\n",
+    convIdGen.setRecycleThreshold(2 << 15);
+    convIdGen.setRecycleEnabled(true);
+
+    log_info("Server created, tcp sockfd: %d, udp sockfd: %d",
              tcpServer.m_sockfd,
              udpServer.m_sockfd);
+
     aeCreateFileEvent(aeloop, tcpServer.m_sockfd, AE_READABLE,
                       OnTcpNewConnection, (void *)this);
 
@@ -92,12 +103,12 @@ Server::~Server()
     aeDeleteFileEvent(aeloop, tcpServer.m_sockfd, AE_READABLE);
     aeDeleteFileEvent(aeloop, udpServer.m_sockfd, AE_READABLE);
     aeloop = NULL;
-    log_info("Server destoryed.\n");
+    log_info("Server destoryed.");
 }
 
-void Server::Send(UniqID clientID, const char *data, size_t len)
+void Server::Send(UniqID clientId, const char *data, size_t len)
 {
-    auto it = connDict.find(clientID);
+    auto it = connDict.find(clientId);
     if (it == connDict.end())
     {
         return;

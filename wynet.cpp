@@ -20,7 +20,7 @@ WyNet::~WyNet()
         UniqID clientId = clients.begin()->first;
         DestroyClient(clientId);
     }
-    log_info("WyNet destroyed.\n");
+    log_info("WyNet destroyed.");
 }
 
 UniqID WyNet::AddServer(Server *s)

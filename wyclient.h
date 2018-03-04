@@ -11,27 +11,26 @@ namespace wynet
 
 class WyNet;
 class Test;
-    
-    
-class Client {
-public:
+
+class Client
+{
+  public:
     friend class TCPClient;
-    typedef void(*OnTcpConnected)(Client *);
+    typedef void (*OnTcpConnected)(Client *);
     WyNet *net;
     TCPClient tcpClient;
-    UDPClient* udpClient;
-    ConvID convID;
-    KCPObject* kcpDict;
+    UDPClient *udpClient;
+    ConvID convId;
+    KCPObject *kcpDict;
     OnTcpConnected onTcpConnected;
-    
+
     Client(WyNet *net, const char *host, int tcpPort);
 
     ~Client();
-    
-private:
-     void _onTcpConnected();
-};
 
+  private:
+    void _onTcpConnected();
+};
 };
 
 #endif

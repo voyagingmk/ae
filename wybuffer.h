@@ -130,7 +130,7 @@ class BufferRef
         uniqID = BufferSet::dynamicSingleton().newBuffer();
         if (uniqID)
         {
-            log_debug("BufferRef created %d\n", uniqID);
+            log_debug("BufferRef created %d", uniqID);
         }
     }
 
@@ -144,7 +144,7 @@ class BufferRef
         recycleBuffer();
         uniqID = b.uniqID;
         b.uniqID = 0;
-        log_debug("BufferRef moved %d\n", uniqID);
+        log_debug("BufferRef moved %d", uniqID);
     }
 
     BufferRef &operator=(BufferRef &&b)
@@ -152,7 +152,7 @@ class BufferRef
         recycleBuffer();
         uniqID = b.uniqID;
         b.uniqID = 0;
-        log_debug("BufferRef moved %d\n", uniqID);
+        log_debug("BufferRef moved %d", uniqID);
         return (*this);
     }
 
@@ -175,7 +175,7 @@ class BufferRef
         if (uniqID)
         {
             BufferSet::dynamicSingleton().recycleBuffer(uniqID);
-            log_debug("BufferRef recycled %d\n", uniqID);
+            log_debug("BufferRef recycled %d", uniqID);
             uniqID = 0;
         }
     }

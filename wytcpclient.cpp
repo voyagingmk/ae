@@ -9,7 +9,7 @@ namespace wynet
 void OnTcpWritable(struct aeEventLoop *eventLoop,
                    int fd, void *clientData, int mask)
 {
-    log_debug("OnTcpWritable\n");
+    log_debug("OnTcpWritable");
     TCPClient *tcpClient = (TCPClient *)(clientData);
     int error;
     socklen_t len;

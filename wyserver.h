@@ -12,9 +12,21 @@ namespace wynet
 
 class TCPConnection
 {
-public:
+  public:
     int connfd;
     SockBuffer buf;
+    uint32_t key;
+    KCPObject *kcpDict;
+
+    ConvID convId()
+    {
+        return key & 0x0000ffff;
+    }
+
+    uint16_t passwd()
+    {
+        return key >> 16;
+    }
 };
 
 class Server
@@ -27,19 +39,16 @@ class Server
     UDPServer udpServer;
     std::map<UniqID, TCPConnection> connDict;
     std::map<int, UniqID> connfd2cid;
-    std::map<ConvID, KCPObject> kcpDict;
+    std::map<ConvID, UniqID> convId2cid;
+
     UniqIDGenerator clientIdGen;
+    UniqIDGenerator convIdGen;
 
     Server(aeEventLoop *aeloop, int tcpPort, int udpPort);
 
     ~Server();
 
-    void Send(UniqID clientID, const char *data, size_t len);
-
-    bool hasConv(ConvID conv)
-    {
-        return kcpDict.find(conv) != kcpDict.end();
-    }
+    void Send(UniqID clientId, const char *data, size_t len);
 };
 };
 

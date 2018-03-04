@@ -8,12 +8,14 @@ namespace wynet
 
 namespace protocol
 {
+#define ProtoType(p) static const Protocol protocol = Protocol::p;
 
 struct Handshake
 {
-    uint32_t clientID;
+    uint32_t clientId;
     uint16_t udpPort;
-    static const Protocol protocol = Protocol::Handshake;
+    uint32_t key;
+    ProtoType(Handshake);
 };
 };
 
@@ -26,8 +28,8 @@ PacketHeader *SerializeProtocol(P content)
     header.updateHeaderLength();
     size_t packetLen = header.getHeaderLength() + sizeof(P);
     header.setUInt32(HeaderFlag::PacketLen, packetLen);
-    BufferSet& bufferSet = BufferSet::constSingleton();
-    Buffer* buffer = bufferSet.getBufferByIdx(0);
+    BufferSet &bufferSet = BufferSet::constSingleton();
+    Buffer *buffer = bufferSet.getBufferByIdx(0);
     uint8_t *buf = buffer->reserve(packetLen);
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
     memcpy(buf + header.getHeaderLength(),
