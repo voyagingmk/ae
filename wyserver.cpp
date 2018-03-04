@@ -8,12 +8,13 @@ namespace wynet
 void onTcpMessage(struct aeEventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
-    printf("onTcpMessage fd=%d\n", fd);
+    log_debug("onTcpMessage fd=%d\n", fd);
     Server *server = (Server *)(clientData);
     UniqID clientID = server->connfd2cid[fd];
     TCPConnection &conn = server->connDict[clientID];
     int ret = conn.buf.readIn(fd);
-    if (ret == 0) {
+    if (ret == 0)
+    {
         Close(fd);
         server->connfd2cid.erase(fd);
         server->connDict.erase(clientID);
@@ -56,10 +57,10 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     handshake.clientID = clientID;
     handshake.udpPort = server->udpPort;
     PacketHeader *header = SerializeProtocol<protocol::Handshake>(handshake);
-    printf("send handshake %d\n", header->getUInt32(HeaderFlag::PacketLen));
+    log_debug("send handshake len %d\n", header->getUInt32(HeaderFlag::PacketLen));
     server->Send(clientID, (char *)header, header->getUInt32(HeaderFlag::PacketLen));
 
-    printf("Client %d connected, connfd: %d \n", clientID, connfd);
+    log_info("Client %d connected, connfd: %d \n", clientID, connfd);
 }
 
 void OnUdpMessage(struct aeEventLoop *eventLoop,
@@ -76,9 +77,9 @@ Server::Server(aeEventLoop *aeloop, int tcpPort, int udpPort) : aeloop(aeloop),
                                                                 udpServer(udpPort)
 {
 
-    printf("Server created, tcp sockfd: %d, udp sockfd: %d\n",
-           tcpServer.m_sockfd,
-           udpServer.m_sockfd);
+    log_info("Server created, tcp sockfd: %d, udp sockfd: %d\n",
+             tcpServer.m_sockfd,
+             udpServer.m_sockfd);
     aeCreateFileEvent(aeloop, tcpServer.m_sockfd, AE_READABLE,
                       OnTcpNewConnection, (void *)this);
 
@@ -91,7 +92,7 @@ Server::~Server()
     aeDeleteFileEvent(aeloop, tcpServer.m_sockfd, AE_READABLE);
     aeDeleteFileEvent(aeloop, udpServer.m_sockfd, AE_READABLE);
     aeloop = NULL;
-    printf("Server destoryed.\n");
+    log_info("Server destoryed.\n");
 }
 
 void Server::Send(UniqID clientID, const char *data, size_t len)
