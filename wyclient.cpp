@@ -11,6 +11,15 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
 {
     log_debug("OnTcpMessage");
     Client *client = (Client *)(clientData);
+    TCPClient& tcpClient = client->tcpClient;
+    SockBuffer& buf = tcpClient.buf;
+    int ret = buf.readIn(fd);
+    if (ret == 0)
+    {
+        tcpClient.Close();
+        return;
+    }
+    // validate packet
     PacketHeader header;
     int n = Readn(fd, (char *)(&header), HeaderBaseLength);
     Readn(fd, (char *)(&header) + HeaderBaseLength, header.getHeaderLength() - HeaderBaseLength);
@@ -46,7 +55,6 @@ Client::Client(WyNet *net, const char *host, int tcpPort) : net(net),
 Client::~Client()
 {
     log_info("[Client] close tcp sockfd %d", tcpClient.m_sockfd);
-    aeDeleteFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE | AE_WRITABLE);
     tcpClient.Close();
 }
 

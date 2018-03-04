@@ -82,6 +82,7 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
 
 void TCPClient::Close()
 {
+    aeDeleteFileEvent(parent->net->aeloop, m_sockfd, AE_READABLE | AE_WRITABLE);
     close(m_sockfd);
 }
 

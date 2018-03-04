@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <sys/ioctl.h>
 #include <vector>
 #include <iostream>
 #include <map>
