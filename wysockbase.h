@@ -33,7 +33,6 @@ public:
     //  2: EAGAIN
     int readIn(int sockfd, int* nreadTotal) {
         *nreadTotal = 0;
-        Buffer* p = bufRef.get();
         do {
             int required = -1;
             int ret = validatePacket(&required);// just to get required bytes
@@ -48,10 +47,10 @@ public:
             ioctl(sockfd, FIONREAD, &npend);
             // make sure there is enough space for recv
             while (npend > leftSpace()) {
-                p->expand(p->size + npend);
+                bufRef->expand(bufRef->size + npend);
             }
             log_debug("readIn npend %d", npend);
-            int nread = recv(sockfd, p->buffer + recvSize, required, 0);
+            int nread = recv(sockfd, bufRef->buffer + recvSize, required, 0);
             log_debug("recv nread %d required %d recvSize %d", nread, required, recvSize);
             if (nread == 0) {
                 // closed
@@ -81,8 +80,7 @@ public:
             *required = HeaderBaseLength - recvSize;
             return -2;
         }
-        Buffer* p = bufRef.get();
-        uint8_t* buffer = p->buffer;
+        uint8_t* buffer = bufRef->buffer;
 
         for(int i = 0; i < recvSize; i++) {
         //    printf("--%hhu\n", *(buffer + i));

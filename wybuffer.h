@@ -148,7 +148,7 @@ class BufferRef
         log_debug("BufferRef moved %d", uniqID);
     }
     
-    Buffer* operator->()
+    inline Buffer* operator->()
     {
         return get();
     }

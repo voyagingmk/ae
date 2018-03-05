@@ -12,11 +12,11 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
     log_debug("OnTcpMessage");
     Client *client = (Client *)(clientData);
     TCPClient& tcpClient = client->tcpClient;
-    SockBuffer& buf = tcpClient.buf;
+    SockBuffer& sockBuffer = tcpClient.buf;
     // validate packet
     do {
         int nreadTotal = 0;
-        int ret = buf.readIn(fd, &nreadTotal);
+        int ret = sockBuffer.readIn(fd, &nreadTotal);
         log_info("readIn ret %d nreadTotal %d", ret, nreadTotal);
         if (ret <= 0) {
             // has error or has closed
@@ -27,22 +27,21 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
             break;
         }
         if (ret == 1) {
-            Buffer* p = buf.bufRef.get();
-            uint8_t* buffer = p->buffer;
-            PacketHeader* header = (PacketHeader*)(buffer);
+            BufferRef& bufRef = sockBuffer.bufRef;
+            PacketHeader* header = (PacketHeader*)(bufRef->buffer);
             Protocol protocol = static_cast<Protocol>(header->getProtocol());
             switch (protocol)
             {
                 case Protocol::Handshake:
                 {
-                    protocol::Handshake* handShake = (protocol::Handshake*)(buffer + header->getHeaderLength());
+                    protocol::Handshake* handShake = (protocol::Handshake*)(bufRef->buffer + header->getHeaderLength());
                     log_debug("clientId %d, udpPort %d", handShake->clientId, handShake->udpPort);
                     break;
                 }
                 default:
                     break;
             }
-            buf.resetBuffer();
+            sockBuffer.resetBuffer();
         }
     } while(1);
 }
