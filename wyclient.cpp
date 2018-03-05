@@ -13,38 +13,40 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
     Client *client = (Client *)(clientData);
     TCPClient& tcpClient = client->tcpClient;
     SockBuffer& buf = tcpClient.buf;
-    int ret = buf.readIn(fd);
-    if (ret == 0)
-    {
-        tcpClient.Close();
-        return;
-    }
     // validate packet
-    while(buf.hasPacketHeader()) {
-        
-    }
-    PacketHeader header;
-    int n = Readn(fd, (char *)(&header), HeaderBaseLength);
-    Readn(fd, (char *)(&header) + HeaderBaseLength, header.getHeaderLength() - HeaderBaseLength);
-    if (!header.isFlagOn(HeaderFlag::PacketLen))
-    {
-        return;
-    }
-    Protocol protocol = header.getProtocol();
-    uint32_t packetLen = header.getUInt(HeaderFlag::PacketLen);
-    switch (protocol)
-    {
-    case Protocol::Handshake:
-    {
-        protocol::Handshake handShake;
-        assert(packetLen == header.getHeaderLength() + sizeof(protocol::Handshake));
-        Readn(fd, (char *)(&handShake), sizeof(protocol::Handshake));
-        log_debug("clientId %d, udpPort %d", handShake.clientId, handShake.udpPort);
-        break;
-    }
-    default:
-        break;
-    }
+    do {
+        int nreadTotal = 0;
+        int ret = buf.readIn(fd, &nreadTotal);
+        log_info("readIn ret %d nreadTotal %d", ret, nreadTotal);
+        if (ret <= 0) {
+            // has error or has closed
+            tcpClient.Close();
+            return;
+        }
+        if (ret == 2) {
+            break;
+        }
+        if (ret == 1) {
+            Buffer* p = buf.bufRef.get();
+            uint8_t* buffer = p->buffer;
+            PacketHeader* header = new(buffer)PacketHeader();
+            Protocol protocol = header->getProtocol();
+            uint32_t packetLen = header->getUInt(HeaderFlag::PacketLen);
+            switch (protocol)
+            {
+                case Protocol::Handshake:
+                {
+                    protocol::Handshake handShake;
+                    assert(packetLen == header->getHeaderLength() + sizeof(protocol::Handshake));
+                    Readn(fd, (char *)(&handShake), sizeof(protocol::Handshake));
+                    log_debug("clientId %d, udpPort %d", handShake.clientId, handShake.udpPort);
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    } while(1);
 }
 
 Client::Client(WyNet *net, const char *host, int tcpPort) : net(net),

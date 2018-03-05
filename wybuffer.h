@@ -147,7 +147,12 @@ class BufferRef
         b.uniqID = 0;
         log_debug("BufferRef moved %d", uniqID);
     }
-
+    
+    Buffer* operator->()
+    {
+        return get();
+    }
+    
     BufferRef &operator=(BufferRef &&b)
     {
         recycleBuffer();

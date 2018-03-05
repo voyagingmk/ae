@@ -12,7 +12,8 @@ void onTcpMessage(struct aeEventLoop *eventLoop,
     Server *server = (Server *)(clientData);
     UniqID clientId = server->connfd2cid[fd];
     TCPConnection &conn = server->connDict[clientId];
-    int ret = conn.buf.readIn(fd);
+    int nreadTotal = 0;
+    int ret = conn.buf.readIn(fd, &nreadTotal);
     if (ret == 0)
     {
         Close(fd);

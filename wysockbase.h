@@ -8,110 +8,101 @@
 namespace wynet
 {
     
-// ring buffer
-// buffer size must pow of 2
 class SockBuffer {
+public:
     BufferRef bufRef;
-    size_t len;
-    uint32_t headIdx;
-    uint32_t tailIdx;
+    size_t recvSize;
 public:
     SockBuffer():
-        len(0),
-        headIdx(0),
-        tailIdx(0)
+        recvSize(0)
     {
     }
     
-    /*
-     size = 10
-     0  1   2   3   4   5   6   7
-            h      <=       t
-     h = 2
-     t = 6
-     size - t = 8 - 6 = 2
-     h - 0 = 2 - 0 = 2
-     leftSpace: 2 + 2 = 4 slots
-     
-     0  1   2   3   4   5   6   7
-     t              <           h
-     h = 7
-     t = 0
-     leftSpace: h - t = 7 - 0 = 7 slots
-    */
-    int leftSpace() {
-        Buffer* p = bufRef.get();
-        if (headIdx <= tailIdx) {
-            return p->size - (tailIdx - headIdx);
-        } else {
-            return (headIdx - tailIdx);
-        }
+    inline int leftSpace() {
+       return bufRef->size - recvSize;
     }
     
-    int recvSize() {
-        Buffer* p = bufRef.get();
-        if (headIdx <= tailIdx) {
-            return (tailIdx - headIdx);
-        } else {
-            return p->size - (headIdx - tailIdx);
-        }
-    }
-    
-    int readIn(int sockfd) {
+    // Warning: must consume queued packet before call readIn
+    //  0: closed
+    // -1: error
+    //  1: has available packet
+    //  2: EAGAIN
+    int readIn(int sockfd, int* nreadTotal) {
+        *nreadTotal = 0;
         Buffer* p = bufRef.get();
         int npend;
         ioctl(sockfd, FIONREAD, &npend);
         
         // 1. make sure there is enough space for recv
-        bool expanded = false;
-        size_t oldSize = p->size;
         while (npend > leftSpace()) {
-            expanded = true;
             p->expand(p->size + npend);
         }
-        if (expanded && tailIdx < headIdx) {
-            memcpy(p->buffer + oldSize, p->buffer, tailIdx);
-            tailIdx = oldSize;
-        }
-        int nreadTotal = 0;
-        int nread;
+        log_info("readIn npend %d", npend);
         // 2. read into ring buffer (slicely)
         do {
-            nread = recv(sockfd, p->buffer + tailIdx, std::min(leftSpace(), (int)(p->size - tailIdx)), 0);
+            int required = -1;
+            int ret = validatePacket(&required);// just to get required bytes
+            log_info("validatePacket ret %d required %d", ret, required);
+            if (ret == -1) {
+                // error
+                return -1;
+            } else if (ret == 0 && required == 0) {
+                return 1;
+            }
+            int nread = recv(sockfd, p->buffer + recvSize, required, 0);
+            log_info("readIn nread %d required %d recvSize %d", nread, required, recvSize);
             if (nread == 0) {
                 // closed
                 return 0;
             }
-            if (nread > 0) {
-                nreadTotal += nread;
-                tailIdx += nread;
-                tailIdx = tailIdx & (p->size - 1);
-            }
             if (nread < 0) {
                 if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    return 2;
                 } else {
                     err_msg("[SockBuffer] sockfd %d readIn err: %d %s",
                             sockfd, errno, strerror (errno));
+                    return -1;
                 }
             }
-        } while(nread > 0);
-        return nreadTotal;
+            nreadTotal += nread;
+            recvSize += nread;
+        } while(1);
+        return -1;
     }
     
-    bool hasPacketHeader() {
-        return recvSize() >= sizeof(PacketHeader);
-    }
-    
-    bool validatePacket() {
+    // -2: receiving
+    // -1: error
+    //  0: ok
+    int validatePacket(int* required) {
+        if (recvSize < HeaderBaseLength) {
+            // receiving pakcet header base
+            *required = HeaderBaseLength - recvSize;
+            return -2;
+        }
         Buffer* p = bufRef.get();
         uint8_t* buffer = p->buffer;
-        PacketHeader* header = new(buffer + headIdx)PacketHeader();
+        PacketHeader* header = new(buffer)PacketHeader();
+        if (recvSize < header->getHeaderLength()) {
+            // receiving pakcet header options
+            *required = header->getHeaderLength() - recvSize;
+            return -2;
+        }
         if (!header->isFlagOn(HeaderFlag::PacketLen))
         {
-            return false;
+            log_debug("%s", header->getHeaderDebugInfo().c_str());
+            // error: no packetLen flag
+            return -1;
         }
-        // validate whether it is a legal packet
-        return true;
+        // check length
+        uint32_t packetLen = header->getUInt(HeaderFlag::PacketLen);
+        if (recvSize < packetLen) {
+            // receiving pakcet data
+            *required = packetLen - recvSize;
+            return -2;
+        }
+        *required = 0;
+        // TODO:validate whether it is a legal packet
+        return 0;
     }
     
 };
