@@ -59,12 +59,12 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     server->connfd2cid[connfd] = clientId;
     server->convId2cid[convId] = clientId;
 
-    protocol::Handshake handshake;
+    protocol::TcpHandshake handshake;
     handshake.clientId = clientId;
     handshake.udpPort = server->udpPort;
     handshake.key = conn.key;
 
-    PacketHeader *header = SerializeProtocol<protocol::Handshake>(handshake);
+    PacketHeader *header = SerializeProtocol<protocol::TcpHandshake>(handshake);
     log_debug("send handshake len %d", header->getUInt32(HeaderFlag::PacketLen));
     server->Send(clientId, (char *)header, header->getUInt32(HeaderFlag::PacketLen));
 

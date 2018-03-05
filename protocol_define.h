@@ -6,21 +6,30 @@
 namespace wynet
 {
 
-enum class Protocol {
+enum class Protocol
+{
     Unknown = 0,
-    Handshake = 1
+    TcpHandshake = 1,
+    UdpHandshake = 2
 };
-    
+
 namespace protocol
 {
 #define ProtoType(p) static const Protocol protocol = Protocol::p;
 
-struct Handshake
+struct TcpHandshake
 {
     uint32_t clientId;
     uint16_t udpPort;
     uint32_t key;
-    ProtoType(Handshake);
+    ProtoType(TcpHandshake);
+};
+
+struct UdpHandshake
+{
+    uint32_t clientId;
+    uint32_t key;
+    ProtoType(UdpHandshake);
 };
 };
 
