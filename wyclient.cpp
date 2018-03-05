@@ -69,4 +69,11 @@ void Client::_onTcpConnected()
     if (onTcpConnected)
         onTcpConnected(this);
 }
+    
+    
+void Client::_onTcpDisconnected() {
+    aeDeleteFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE | AE_WRITABLE);
+    if (onTcpDisconnected)
+        onTcpDisconnected(this);
+}
 };

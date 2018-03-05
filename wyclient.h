@@ -17,12 +17,14 @@ class Client
   public:
     friend class TCPClient;
     typedef void (*OnTcpConnected)(Client *);
+    typedef void (*OnTcpDisconnected)(Client *);
     WyNet *net;
     TCPClient tcpClient;
     UDPClient *udpClient;
     ConvID convId;
     KCPObject *kcpDict;
     OnTcpConnected onTcpConnected;
+    OnTcpDisconnected onTcpDisconnected;
 
     Client(WyNet *net, const char *host, int tcpPort);
 
@@ -30,6 +32,8 @@ class Client
 
   private:
     void _onTcpConnected();
+    
+    void _onTcpDisconnected();
 };
 };
 

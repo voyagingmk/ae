@@ -34,17 +34,6 @@ public:
     int readIn(int sockfd, int* nreadTotal) {
         *nreadTotal = 0;
         Buffer* p = bufRef.get();
-        int npend;
-        ioctl(sockfd, FIONREAD, &npend);
-        if (!npend) {
-            return 2;
-        }
-        // 1. make sure there is enough space for recv
-        while (npend > leftSpace()) {
-            p->expand(p->size + npend);
-        }
-        log_debug("readIn npend %d", npend);
-        // 2. read into ring buffer (slicely)
         do {
             int required = -1;
             int ret = validatePacket(&required);// just to get required bytes
@@ -55,6 +44,13 @@ public:
             } else if (ret == 0 && required == 0) {
                 return 1;
             }
+            int npend;
+            ioctl(sockfd, FIONREAD, &npend);
+            // make sure there is enough space for recv
+            while (npend > leftSpace()) {
+                p->expand(p->size + npend);
+            }
+            log_debug("readIn npend %d", npend);
             int nread = recv(sockfd, p->buffer + recvSize, required, 0);
             log_debug("recv nread %d required %d recvSize %d", nread, required, recvSize);
             if (nread == 0) {

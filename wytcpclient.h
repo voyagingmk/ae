@@ -12,22 +12,23 @@ class Client;
 class TCPClient : public SocketBase
 {
 public:
-  sockaddr_in m_serSockaddr;
-  struct hostent *h;
-  Client* parent;
-    
+    sockaddr_in m_serSockaddr;
+    struct hostent *h;
+    Client* parent;
+    bool connected;
 public:
     
-  TCPClient(Client* client, const char *host, int port);
+    TCPClient(Client* client, const char *host, int port);
     
-  void Close();
+    void Close();
     
-  void Send(const char *data, size_t len);
+    void Send(const char *data, size_t len);
     
-  void Recvfrom();
+    void Recvfrom();
     
-  void onConnected();
+    void onConnected();
 };
+
 };
 
 #endif

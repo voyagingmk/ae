@@ -15,6 +15,12 @@ void OnTcpConnected(Client *client)
     client->tcpClient.Send("hello", 6);
 }
 
+void OnTcpDisconnected(Client *client)
+{
+    log_info("OnTcpDisconnected: %d", client->tcpClient.m_sockfd);
+    net.StopLoop();
+}
+
 int main(int argc, char **argv)
 {
     log_set_file("./client.log", "w+");
@@ -24,6 +30,7 @@ int main(int argc, char **argv)
     log_info("aeGetApiName: %s", aeGetApiName());
     Client *client = new Client(&net, "127.0.0.1", 9998);
     client->onTcpConnected = &OnTcpConnected;
+    client->onTcpDisconnected = &OnTcpDisconnected;
     net.AddClient(client);
     net.Loop();
     log_info("exit");

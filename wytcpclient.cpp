@@ -82,8 +82,10 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
 
 void TCPClient::Close()
 {
-    aeDeleteFileEvent(parent->net->aeloop, m_sockfd, AE_READABLE | AE_WRITABLE);
+    log_info("tcp client closed");
+    connected = false;
     close(m_sockfd);
+    parent->_onTcpDisconnected();
 }
 
 void TCPClient::Recvfrom()
@@ -98,6 +100,7 @@ void TCPClient::Send(const char *data, size_t len)
 
 void TCPClient::onConnected()
 {
+    connected = true;
     parent->_onTcpConnected();
 }
 };
