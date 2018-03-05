@@ -82,6 +82,10 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
 
 void TCPClient::Close()
 {
+    if (!connected)
+    {
+        return;
+    }
     log_info("tcp client closed");
     connected = false;
     close(m_sockfd);

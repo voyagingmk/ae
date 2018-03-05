@@ -9,7 +9,7 @@ namespace wynet
 void OnTcpMessage(struct aeEventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
-    log_debug("OnTcpMessage");
+    log_debug("OnTcpMessage fd %d", fd);
     Client *client = (Client *)(clientData);
     TCPClient& tcpClient = client->tcpClient;
     SockBuffer& sockBuffer = tcpClient.buf;
@@ -17,7 +17,7 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
     do {
         int nreadTotal = 0;
         int ret = sockBuffer.readIn(fd, &nreadTotal);
-        log_info("readIn ret %d nreadTotal %d", ret, nreadTotal);
+        log_debug("readIn ret %d nreadTotal %d", ret, nreadTotal);
         if (ret <= 0) {
             // has error or has closed
             tcpClient.Close();
@@ -35,7 +35,7 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
                 case Protocol::Handshake:
                 {
                     protocol::Handshake* handShake = (protocol::Handshake*)(bufRef->buffer + header->getHeaderLength());
-                    log_debug("clientId %d, udpPort %d", handShake->clientId, handShake->udpPort);
+                    log_info("clientId %d, udpPort %d", handShake->clientId, handShake->udpPort);
                     break;
                 }
                 default:

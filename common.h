@@ -12,6 +12,9 @@
 #include <set>
 #include <algorithm>
 
+
+//#define DEBUG_MODE 1
+
 #define LOG_USE_COLOR 1
 
 extern "C" {
