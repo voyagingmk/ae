@@ -7,11 +7,6 @@
 
 namespace wynet
 {
-// protocol -> rule
-enum class Protocol {
-    Unknown = 0,
-    Handshake = 1
-};
     
 enum class HeaderFlag : uint32_t
 {
@@ -60,14 +55,14 @@ class PacketHeader
 		return version;
 	}
 
-	inline Protocol getProtocol()
+	inline uint8_t getProtocol()
 	{
-		return static_cast<Protocol>(protocol);
+		return protocol;
 	}
 
-	inline void setProtocol(Protocol p)
+	inline void setProtocol(uint8_t p)
 	{
-		protocol = static_cast<uint8_t>(p);
+		protocol = p;
 	}
 
 	inline uint8_t getHeaderLength()

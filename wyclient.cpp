@@ -30,8 +30,7 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
             Buffer* p = buf.bufRef.get();
             uint8_t* buffer = p->buffer;
             PacketHeader* header = (PacketHeader*)(buffer);
-            Protocol protocol = header->getProtocol();
-            // uint32_t packetLen = header->getUInt(HeaderFlag::PacketLen);
+            Protocol protocol = static_cast<Protocol>(header->getProtocol());
             switch (protocol)
             {
                 case Protocol::Handshake:

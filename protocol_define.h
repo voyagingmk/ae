@@ -6,6 +6,11 @@
 namespace wynet
 {
 
+enum class Protocol {
+    Unknown = 0,
+    Handshake = 1
+};
+    
 namespace protocol
 {
 #define ProtoType(p) static const Protocol protocol = Protocol::p;
@@ -23,7 +28,7 @@ template <class P>
 PacketHeader *SerializeProtocol(P content)
 {
     PacketHeader header;
-    header.setProtocol(P::protocol);
+    header.setProtocol(static_cast<uint8_t>(P::protocol));
     header.setFlag(HeaderFlag::PacketLen, true);
     header.updateHeaderLength();
     size_t packetLen = header.getHeaderLength() + sizeof(P);
