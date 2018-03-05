@@ -21,7 +21,9 @@ class Client
     WyNet *net;
     TCPClient tcpClient;
     UDPClient *udpClient;
-    ConvID convId;
+    uint32_t key;
+    uint32_t clientId;
+    uint16_t udpPort;
     KCPObject *kcpDict;
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;
@@ -29,6 +31,16 @@ class Client
     Client(WyNet *net, const char *host, int tcpPort);
 
     ~Client();
+    
+    ConvID convId()
+    {
+        return key & 0x0000ffff;
+    }
+    
+    uint16_t passwd()
+    {
+        return key >> 16;
+    }
 
   private:
     void _onTcpConnected();

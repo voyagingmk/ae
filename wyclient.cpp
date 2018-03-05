@@ -36,6 +36,9 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
                 {
                     protocol::Handshake* handShake = (protocol::Handshake*)(bufRef->buffer + header->getHeaderLength());
                     log_info("clientId %d, udpPort %d", handShake->clientId, handShake->udpPort);
+                    client->key = handShake->key;
+                    client->udpPort = handShake->udpPort;
+                    client->clientId = handShake->clientId;
                     break;
                 }
                 default:

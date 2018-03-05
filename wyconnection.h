@@ -8,6 +8,7 @@
 namespace wynet
 {
 
+// for server only
 class TCPConnection
 {
   public:
