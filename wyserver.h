@@ -3,31 +3,13 @@
 
 #include "common.h"
 #include "uniqid.h"
-#include "wykcp.h"
 #include "wytcpserver.h"
 #include "wyudpserver.h"
+#include "wyconnection.h"
 
 namespace wynet
 {
 
-class TCPConnection
-{
-  public:
-    int connfd;
-    SockBuffer buf;
-    uint32_t key;
-    KCPObject *kcpDict;
-
-    ConvID convId()
-    {
-        return key & 0x0000ffff;
-    }
-
-    uint16_t passwd()
-    {
-        return key >> 16;
-    }
-};
 
 class Server
 {
