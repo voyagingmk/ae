@@ -20,6 +20,9 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
         return;
     }
     // validate packet
+    while(buf.hasPacketHeader()) {
+        
+    }
     PacketHeader header;
     int n = Readn(fd, (char *)(&header), HeaderBaseLength);
     Readn(fd, (char *)(&header) + HeaderBaseLength, header.getHeaderLength() - HeaderBaseLength);

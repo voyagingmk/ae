@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <algorithm>
 
 #define LOG_USE_COLOR 1
 
