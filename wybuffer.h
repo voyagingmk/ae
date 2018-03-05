@@ -172,6 +172,7 @@ class BufferRef
         {
             return nullptr;
         }
+        // log_debug("BufferRef get %d", uniqID);
         return BufferSet::dynamicSingleton().getBuffer(uniqID);
     }
 

@@ -40,12 +40,19 @@ static std::map<HeaderFlag, std::string> FlagToStr{
 };
 
 // small endian
-    class PacketHeader
+class PacketHeader
 {
   public:
-	PacketHeader()
+	PacketHeader(bool reset = true)
 	{
-		memset(data, 0, HeaderDataLength);
+        if (reset) {
+            memset(data, 0, HeaderDataLength);
+            version = 1;
+            length = 0;
+            protocol = 0;
+            hash = 0;
+            flag = 0;
+        }
 	}
 
 	inline uint8_t getVersion()
@@ -155,7 +162,12 @@ static std::map<HeaderFlag, std::string> FlagToStr{
 
 	std::string getHeaderDebugInfo()
 	{
-		std::string info = "\n";
+		std::string info = "";
+        info += to_string(version) + "\n";
+        info += to_string(length) + "\n";
+        info += to_string(protocol) + "\n";
+        info += to_string(hash) + "\n";
+        info += to_string(flag) + "\n";
 		for (auto it = FlagToBytes.begin(); it != FlagToBytes.end(); it++)
 		{
 			info += FlagToStr[it->first];
@@ -183,11 +195,11 @@ static std::map<HeaderFlag, std::string> FlagToStr{
     }
 
   public:
-	uint8_t version = 1;
-	uint8_t length = 0;
-	uint8_t protocol = 0;
-	uint8_t hash = 0;
-	uint32_t flag = 0;
+	uint8_t version;
+	uint8_t length;
+	uint8_t protocol;
+	uint8_t hash;
+	uint32_t flag;
 	uint8_t data[HeaderDataLength];
 };
 };

@@ -22,6 +22,10 @@ public:
        return bufRef->size - recvSize;
     }
     
+    inline void resetBuffer() {
+        recvSize = 0;
+    }
+    
     // Warning: must consume queued packet before call readIn
     //  0: closed
     // -1: error
@@ -32,17 +36,19 @@ public:
         Buffer* p = bufRef.get();
         int npend;
         ioctl(sockfd, FIONREAD, &npend);
-        
+        if (!npend) {
+            return 2;
+        }
         // 1. make sure there is enough space for recv
         while (npend > leftSpace()) {
             p->expand(p->size + npend);
         }
-        log_info("readIn npend %d", npend);
+        log_debug("readIn npend %d", npend);
         // 2. read into ring buffer (slicely)
         do {
             int required = -1;
             int ret = validatePacket(&required);// just to get required bytes
-            log_info("validatePacket ret %d required %d", ret, required);
+            log_debug("validatePacket ret %d required %d", ret, required);
             if (ret == -1) {
                 // error
                 return -1;
@@ -50,7 +56,7 @@ public:
                 return 1;
             }
             int nread = recv(sockfd, p->buffer + recvSize, required, 0);
-            log_info("readIn nread %d required %d recvSize %d", nread, required, recvSize);
+            log_debug("recv nread %d required %d recvSize %d", nread, required, recvSize);
             if (nread == 0) {
                 // closed
                 return 0;
@@ -81,7 +87,14 @@ public:
         }
         Buffer* p = bufRef.get();
         uint8_t* buffer = p->buffer;
-        PacketHeader* header = new(buffer)PacketHeader();
+
+        for(int i = 0; i < recvSize; i++) {
+        //    printf("--%hhu\n", *(buffer + i));
+        }
+        PacketHeader* header = (PacketHeader*)(buffer);
+        for(int i = 0; i < recvSize; i++) {
+        //    printf("==%hhu\n", *(buffer + i));
+        }
         if (recvSize < header->getHeaderLength()) {
             // receiving pakcet header options
             *required = header->getHeaderLength() - recvSize;
@@ -89,7 +102,7 @@ public:
         }
         if (!header->isFlagOn(HeaderFlag::PacketLen))
         {
-            log_debug("%s", header->getHeaderDebugInfo().c_str());
+            // log_error("header->isFlagOn PacketLen false, flag: %u", header->flag);
             // error: no packetLen flag
             return -1;
         }

@@ -29,22 +29,21 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
         if (ret == 1) {
             Buffer* p = buf.bufRef.get();
             uint8_t* buffer = p->buffer;
-            PacketHeader* header = new(buffer)PacketHeader();
+            PacketHeader* header = (PacketHeader*)(buffer);
             Protocol protocol = header->getProtocol();
-            uint32_t packetLen = header->getUInt(HeaderFlag::PacketLen);
+            // uint32_t packetLen = header->getUInt(HeaderFlag::PacketLen);
             switch (protocol)
             {
                 case Protocol::Handshake:
                 {
-                    protocol::Handshake handShake;
-                    assert(packetLen == header->getHeaderLength() + sizeof(protocol::Handshake));
-                    Readn(fd, (char *)(&handShake), sizeof(protocol::Handshake));
-                    log_debug("clientId %d, udpPort %d", handShake.clientId, handShake.udpPort);
+                    protocol::Handshake* handShake = (protocol::Handshake*)(buffer + header->getHeaderLength());
+                    log_debug("clientId %d, udpPort %d", handShake->clientId, handShake->udpPort);
                     break;
                 }
                 default:
                     break;
             }
+            buf.resetBuffer();
         }
     } while(1);
 }
