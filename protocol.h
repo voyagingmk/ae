@@ -16,10 +16,10 @@ enum class HeaderFlag : uint32_t
 	Compress = 1 << 3
 };
 
-constexpr size_t HeaderBaseLength = 8;
-constexpr size_t HeaderDataLength = 0xff;
+static const size_t HeaderBaseLength = 8;
+static const size_t HeaderDataLength = 0xff;
 
-static std::map<HeaderFlag, size_t> FlagToBytes{
+static const std::map<const HeaderFlag, const size_t> FlagToBytes{
     {HeaderFlag::PacketLen, 4}, // record packet size ( slice stream data )
 	{HeaderFlag::Base64, 0},
 	{HeaderFlag::Encrypt, 0},
@@ -27,7 +27,7 @@ static std::map<HeaderFlag, size_t> FlagToBytes{
 };
 
 // for debug
-static std::map<HeaderFlag, std::string> FlagToStr{
+static const std::map<const HeaderFlag, const std::string> FlagToStr{
     {HeaderFlag::PacketLen, "PacketLen"},
 	{HeaderFlag::Base64, "Base64"},
 	{HeaderFlag::Encrypt, "Encrypt"},
@@ -50,12 +50,12 @@ class PacketHeader
         }
 	}
 
-	inline uint8_t getVersion()
+	inline uint8_t getVersion() const
 	{
 		return version;
 	}
 
-	inline uint8_t getProtocol()
+	inline uint8_t getProtocol() const
 	{
 		return protocol;
 	}
@@ -65,7 +65,7 @@ class PacketHeader
 		protocol = p;
 	}
 
-	inline uint8_t getHeaderLength()
+	inline uint8_t getHeaderLength() const
 	{
 		return length;
 	}
@@ -75,7 +75,7 @@ class PacketHeader
 		length = calDataSize() + HeaderBaseLength;
 	}
 
-	bool isFlagOn(HeaderFlag f)
+	bool isFlagOn(HeaderFlag f) const
 	{
 		return (flag & (uint32_t)f) > 0;
 	}
@@ -97,40 +97,40 @@ class PacketHeader
 		}
 	}
 
-	size_t getFlagPos(HeaderFlag f)
+	size_t getFlagPos(HeaderFlag f) const
 	{
 		size_t count = 0;
 		for (size_t i = 0; i < 32; i++)
 		{
-			HeaderFlag _f = HeaderFlag(1 << i);
+			const HeaderFlag _f = HeaderFlag(1 << i);
 			if (_f == f)
 			{
 				return count;
 			}
 			else if (flag & (uint32_t)_f)
 			{
-				count += FlagToBytes[_f];
+				count += FlagToBytes.at(_f);
 			}
 		}
 		return 0;
 	}
 
-	size_t calDataSize()
+	size_t calDataSize() const
 	{
 		size_t bytesNum = 0;
 		for (size_t i = 0; i < 32; i++)
 		{
-			HeaderFlag _f = HeaderFlag(1 << i);
+			const HeaderFlag _f = HeaderFlag(1 << i);
 			if (flag & (uint32_t)_f)
 			{
-				bytesNum += FlagToBytes[_f];
+				bytesNum += FlagToBytes.at(_f);
 			}
 		}
 		return bytesNum;
 	}
     
-    uint32_t getUInt(HeaderFlag f) {
-        size_t bytes = FlagToBytes[f];
+    uint32_t getUInt(HeaderFlag f) const {
+        size_t bytes = FlagToBytes.at(f);
         if (bytes == 1) {
             return (uint32_t)(getUInt8(f));
         } else if (bytes == 4) {
@@ -139,7 +139,7 @@ class PacketHeader
         return 0;
     }
     
-    uint8_t getUInt8(HeaderFlag f) {
+    uint8_t getUInt8(HeaderFlag f) const {
         return *(data + getFlagPos(f));
     }
 
@@ -147,7 +147,7 @@ class PacketHeader
         *(data + getFlagPos(f)) = val;
     }
     
-    uint32_t getUInt32(HeaderFlag f) {
+    uint32_t getUInt32(HeaderFlag f) const {
         return ntohl(*((uint32_t *)(data + getFlagPos(f))));
     }
 
@@ -155,7 +155,7 @@ class PacketHeader
         *((uint32_t *)(data + getFlagPos(f))) = htonl(val);
     }
 
-	std::string getHeaderDebugInfo()
+	std::string getHeaderDebugInfo() const
 	{
 		std::string info = "";
         info += to_string(version) + "\n";
@@ -165,7 +165,7 @@ class PacketHeader
         info += to_string(flag) + "\n";
 		for (auto it = FlagToBytes.begin(); it != FlagToBytes.end(); it++)
 		{
-			info += FlagToStr[it->first];
+			info += FlagToStr.at(it->first);
 			if (isFlagOn(it->first))
 			{
 				info += " on";
@@ -182,7 +182,7 @@ class PacketHeader
 	}
     
     template <typename T>
-    std::string to_string(T value)
+    std::string to_string(const T& value) const
     {
         std::ostringstream os;
         os << value;

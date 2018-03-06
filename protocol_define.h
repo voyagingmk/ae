@@ -17,64 +17,70 @@ enum class Protocol
 
 namespace protocol
 {
-    
-#define ProtoType(p) static const Protocol protocol = Protocol::p;
-#define ProtoSize(p) size_t Size() { \
-    return sizeof(p); \
-}
 
-    
-    
-struct ProtocolBase {
-    uint8_t* BeginPos() {
-        return (uint8_t*)this;
+#define ProtoType(p)                    \
+    inline Protocol GetProtocol() const \
+    {                                   \
+        return Protocol::p;             \
+    }
+
+#define ProtoSize(p)      \
+    size_t Size()         \
+    {                     \
+        return sizeof(p); \
+    }
+
+struct ProtocolBase
+{
+    uint8_t *BeginPos()
+    {
+        return (uint8_t *)this;
     }
 };
-    
-struct TcpHandshake: public ProtocolBase
+
+struct TcpHandshake : public ProtocolBase
 {
     ProtoType(TcpHandshake);
     ProtoSize(TcpHandshake);
     uint32_t clientId;
     uint16_t udpPort;
     uint32_t key;
-
 };
-    
-struct UdpProtocolBase: public ProtocolBase
+
+struct UdpProtocolBase : public ProtocolBase
 {
     uint32_t clientId;
     uint32_t key;
 };
-    
-struct UdpHandshake: public UdpProtocolBase
+
+struct UdpHandshake : public UdpProtocolBase
 {
     ProtoType(UdpHandshake);
     ProtoSize(UdpHandshake);
 };
-    
-struct UdpHeartbeat: public UdpProtocolBase
+
+struct UdpHeartbeat : public UdpProtocolBase
 {
     ProtoType(UdpHeartbeat);
     ProtoSize(UdpHeartbeat);
 };
-    
-struct UserPacket: public ProtocolBase
+
+struct UserPacket : public ProtocolBase
 {
     ProtoType(UserPacket);
     ProtoSize(UserPacket);
 };
-
 };
 
 template <class P>
-PacketHeader *SerializeProtocol(P& p, size_t len = 0)
+PacketHeader *SerializeProtocol(P &p, size_t len = 0)
 {
-    if (!len) {
+    if (!len)
+    {
         len = p.Size();
     }
     PacketHeader header;
-    header.setProtocol(static_cast<uint8_t>(P::protocol));
+    header.setProtocol(static_cast<uint8_t>(p.GetProtocol()));
     header.setFlag(HeaderFlag::PacketLen, true);
     header.updateHeaderLength();
     size_t packetLen = header.getHeaderLength() + len;
