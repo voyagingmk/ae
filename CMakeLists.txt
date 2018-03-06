@@ -63,9 +63,16 @@ SET(HEADERS
     log.h
   )
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 add_executable(example_server example_server.cpp  ${MY_SOURCERS} ${HEADERS})
 
 add_executable(example_client example_client.cpp  ${MY_SOURCERS} ${HEADERS})
+
+target_link_libraries(example_server Threads::Threads)
+
+target_link_libraries(example_client Threads::Threads)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
