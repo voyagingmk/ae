@@ -51,6 +51,8 @@ private:
     
     void _onTcpMessage(int connfdTcp);
     
+    void _onTcpDisconnected(int connfdTcp);
+    
     friend void onTcpMessage(struct aeEventLoop *eventLoop,
                       int connfdTcp, void *clientData, int mask);
     

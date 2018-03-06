@@ -83,18 +83,7 @@ Server::~Server()
 }
     
 void Server::CloseConnect(int connfdTcp) {
-    Close(connfdTcp);
-    aeDeleteFileEvent(net->aeloop, connfdTcp, AE_READABLE);
-    if (connfd2cid.find(connfdTcp) != connfd2cid.end()) {
-        UniqID clientId = connfd2cid[connfdTcp];
-        connfd2cid.erase(connfdTcp);
-        ConnectionForServer &conn = connDict[clientId];
-        convId2cid.erase(conn.convId());
-        connDict.erase(clientId);
-        log_info("CloseConnect %d connected, connfdTcp: %d", clientId, connfdTcp);
-        if (onTcpDisconnected)
-            onTcpDisconnected(this, clientId);
-    }
+    _onTcpDisconnected(connfdTcp);
 }
 
 void Server::SendByTcp(UniqID clientId, const uint8_t *data, size_t len)
@@ -143,6 +132,24 @@ void Server::_onTcpConnected(int connfdTcp) {
     if (onTcpConnected)
         onTcpConnected(this, clientId);
 }
+    
+    
+void Server::_onTcpDisconnected(int connfdTcp)
+{
+    Close(connfdTcp);
+    aeDeleteFileEvent(net->aeloop, connfdTcp, AE_READABLE);
+    if (connfd2cid.find(connfdTcp) != connfd2cid.end()) {
+        UniqID clientId = connfd2cid[connfdTcp];
+        connfd2cid.erase(connfdTcp);
+        ConnectionForServer &conn = connDict[clientId];
+        convId2cid.erase(conn.convId());
+        connDict.erase(clientId);
+        log_info("CloseConnect %d connected, connfdTcp: %d", clientId, connfdTcp);
+        if (onTcpDisconnected)
+            onTcpDisconnected(this, clientId);
+    }
+}
+    
     
     
 void Server::_onTcpMessage(int connfdTcp) {
