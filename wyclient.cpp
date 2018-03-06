@@ -12,52 +12,7 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
 {
     log_debug("OnTcpMessage fd %d", fd);
     Client *client = (Client *)(clientData);
-    TCPClient &tcpClient = client->tcpClient;
-    SockBuffer &sockBuffer = tcpClient.buf;
-    // validate packet
-    do
-    {
-        int nreadTotal = 0;
-        int ret = sockBuffer.readIn(fd, &nreadTotal);
-        log_debug("readIn ret %d nreadTotal %d", ret, nreadTotal);
-        if (ret <= 0)
-        {
-            // has error or has closed
-            tcpClient.Close();
-            return;
-        }
-        if (ret == 2)
-        {
-            break;
-        }
-        if (ret == 1)
-        {
-            BufferRef &bufRef = sockBuffer.bufRef;
-            PacketHeader *header = (PacketHeader *)(bufRef->buffer);
-            Protocol protocol = static_cast<Protocol>(header->getProtocol());
-            switch (protocol)
-            {
-            case Protocol::TcpHandshake:
-            {
-                protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->buffer + header->getHeaderLength());
-                ConnectionForClient& conn = client->conn;
-                conn.key = handShake->key;
-                conn.udpPort = handShake->udpPort;
-                conn.clientId = handShake->clientId;
-                log_info("clientId %d, udpPort %d convId %d passwd %d",
-                         handShake->clientId, handShake->udpPort,
-                         conn.convId(),
-                         conn.passwd());
-                break;
-            }
-                    
-            //  onTcpRecvUserData();
-            default:
-                break;
-            }
-            sockBuffer.resetBuffer();
-        }
-    } while (1);
+    client->_onTcpMessage();
 }
 
 Client::Client(WyNet *net, const char *host, int tcpPort) :
@@ -102,11 +57,60 @@ void Client::_onTcpDisconnected()
     if (onTcpDisconnected)
         onTcpDisconnected(this);
 }
-    
-    
-void Client::_onTcpRecvUserData()
-{
-    
+
+void Client::_onTcpMessage() {
+    SockBuffer &sockBuffer = tcpClient.buf;
+    // validate packet
+    do
+    {
+        int nreadTotal = 0;
+        int ret = sockBuffer.readIn(tcpClient.m_sockfd, &nreadTotal);
+        log_debug("readIn ret %d nreadTotal %d", ret, nreadTotal);
+        if (ret <= 0)
+        {
+            // has error or has closed
+            tcpClient.Close();
+            return;
+        }
+        if (ret == 2)
+        {
+            break;
+        }
+        if (ret == 1)
+        {
+            BufferRef &bufRef = sockBuffer.bufRef;
+            PacketHeader *header = (PacketHeader *)(bufRef->buffer);
+            Protocol protocol = static_cast<Protocol>(header->getProtocol());
+            switch (protocol)
+            {
+                case Protocol::TcpHandshake:
+                {
+                    protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->buffer + header->getHeaderLength());
+                    conn.key = handShake->key;
+                    conn.udpPort = handShake->udpPort;
+                    conn.clientId = handShake->clientId;
+                    log_info("clientId %d, udpPort %d convId %d passwd %d",
+                             handShake->clientId, handShake->udpPort,
+                             conn.convId(),
+                             conn.passwd());
+                    break;
+                }
+                case Protocol::UserPacket:
+                {
+                    protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->buffer + header->getHeaderLength());
+                    size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
+                    // log_debug("getHeaderLength: %d", header->getHeaderLength());
+                    if (onTcpRecvUserData) {
+                        onTcpRecvUserData(this, (uint8_t*)p, dataLength);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            sockBuffer.resetBuffer();
+        }
+    } while (1);
 }
     
 };
