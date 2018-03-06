@@ -12,7 +12,7 @@ void Stop(int signo)
 void OnTcpConnected(Client *client)
 {
     log_info("OnTcpConnected: %d", client->tcpClient.m_sockfd);
-    client->tcpClient.Send("hello", 6);
+    client->SendByTcp("hello", 6);
 }
 
 void OnTcpDisconnected(Client *client)
@@ -23,7 +23,8 @@ void OnTcpDisconnected(Client *client)
 
 int main(int argc, char **argv)
 {
-    if (argc > 1) {
+    if (argc > 1)
+    {
         log_set_level((int)(*argv[1]));
     }
     log_set_file("./client.log", "w+");

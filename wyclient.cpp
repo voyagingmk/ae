@@ -57,10 +57,11 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
     } while (1);
 }
 
-Client::Client(WyNet *net, const char *host, int tcpPort) : net(net),
-                                                            tcpClient(this, host, tcpPort),
-                                                            udpClient(NULL),
-                                                            onTcpConnected(NULL)
+Client::Client(WyNet *net, const char *host, int tcpPort) :
+    net(net),
+    tcpClient(this, host, tcpPort),
+    udpClient(NULL),
+    onTcpConnected(NULL)
 {
 }
 
@@ -68,6 +69,15 @@ Client::~Client()
 {
     log_info("[Client] close tcp sockfd %d", tcpClient.m_sockfd);
     tcpClient.Close();
+}
+    
+    
+void Client::SendByTcp(const char *data, size_t len) {
+    
+}
+
+void Client::SendByTcp(PacketHeader *header) {
+    
 }
 
 void Client::_onTcpConnected()

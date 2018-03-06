@@ -16,24 +16,29 @@ class Test;
 class Client
 {
 public:
-  friend class TCPClient;
-  typedef void (*OnTcpConnected)(Client *);
-  typedef void (*OnTcpDisconnected)(Client *);
-  WyNet *net;
-  ConnectionForClient conn;
-  TCPClient tcpClient;
-  UDPClient *udpClient;
-  OnTcpConnected onTcpConnected;
-  OnTcpDisconnected onTcpDisconnected;
+    friend class TCPClient;
+    typedef void (*OnTcpConnected)(Client *);
+    typedef void (*OnTcpDisconnected)(Client *);
+    WyNet *net;
+    ConnectionForClient conn;
+    TCPClient tcpClient;
+    UDPClient *udpClient;
+    OnTcpConnected onTcpConnected;
+    OnTcpDisconnected onTcpDisconnected;
 
-  Client(WyNet *net, const char *host, int tcpPort);
+    Client(WyNet *net, const char *host, int tcpPort);
 
-  ~Client();
+    ~Client();
+
+
+    void SendByTcp(const char *data, size_t len);
+    
+    void SendByTcp(PacketHeader *header);
 
 private:
-  void _onTcpConnected();
+    void _onTcpConnected();
 
-  void _onTcpDisconnected();
+    void _onTcpDisconnected();
 };
 };
 
