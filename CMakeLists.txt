@@ -32,7 +32,6 @@ FILE(GLOB_RECURSE MY_SOURCERS
     wrapsock.c
     zmalloc.c
     sock_ntop.c
-    readline.c
     writen.c
     ikcp.c
     log.c
