@@ -73,7 +73,7 @@ Client::~Client()
     
     
 void Client::SendByTcp(const char *data, size_t len) {
-    
+    tcpClient.Send(data, len);
 }
 
 void Client::SendByTcp(PacketHeader *header) {

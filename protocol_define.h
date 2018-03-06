@@ -11,22 +11,38 @@ enum class Protocol
     Unknown,
     TcpHandshake,
     UdpHandshake,
-    UdpHeartbeat
+    UdpHeartbeat,
+    UserPacket,
 };
 
 namespace protocol
 {
+    
 #define ProtoType(p) static const Protocol protocol = Protocol::p;
+#define ProtoSize(p) size_t Size() { \
+    return sizeof(p); \
+}
 
-struct TcpHandshake
+    
+    
+struct ProtocolBase {
+    uint8_t* DataPointer() {
+        return (uint8_t*)this;
+    }
+};
+    
+struct TcpHandshake: public ProtocolBase
 {
+    ProtoType(TcpHandshake);
+    ProtoSize(TcpHandshake);
     uint32_t clientId;
     uint16_t udpPort;
     uint32_t key;
-    ProtoType(TcpHandshake);
+
 };
     
-struct UdpProtocolBase {
+struct UdpProtocolBase: public ProtocolBase
+{
     uint32_t clientId;
     uint32_t key;
 };
@@ -34,16 +50,34 @@ struct UdpProtocolBase {
 struct UdpHandshake: public UdpProtocolBase
 {
     ProtoType(UdpHandshake);
+    ProtoSize(UdpHandshake);
 };
     
 struct UdpHeartbeat: public UdpProtocolBase
 {
     ProtoType(UdpHeartbeat);
+    ProtoSize(UdpHeartbeat);
 };
+    
+struct UserPacket
+{
+    ProtoType(UserPacket);
+    uint32_t len;
+    uint8_t *data;
+    
+    uint8_t* DataPointer() {
+        return data;
+    }
+    
+    size_t Size() {
+        return len;
+    }
+};
+
 };
 
 template <class P>
-PacketHeader *SerializeProtocol(P content)
+PacketHeader *SerializeProtocol(P p)
 {
     PacketHeader header;
     header.setProtocol(static_cast<uint8_t>(P::protocol));
@@ -55,8 +89,7 @@ PacketHeader *SerializeProtocol(P content)
     Buffer *buffer = bufferSet.getBufferByIdx(0);
     uint8_t *buf = buffer->reserve(packetLen);
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
-    memcpy(buf + header.getHeaderLength(),
-           (uint8_t *)&content, sizeof(P));
+    memcpy(buf + header.getHeaderLength(), p.DataPointer(), p.Size());
     return (PacketHeader *)buf;
 }
 };
