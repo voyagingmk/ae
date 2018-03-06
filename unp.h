@@ -219,8 +219,13 @@ struct unp_in_pktinfo
 
 typedef void Sigfunc(int); /* for signal handlers */
 
+#ifndef min
 #define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+#ifndef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
+#endif
 
 char *sock_ntop(const SA *, socklen_t);
 char *Sock_ntop(const SA *, socklen_t);
