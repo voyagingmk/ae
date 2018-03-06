@@ -39,6 +39,14 @@ void onTcpMessage(struct aeEventLoop *eventLoop,
                 {
                     break;
                 }
+                case Protocol::UserPacket:
+                {
+                    protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->buffer + header->getHeaderLength());
+                    
+                    log_debug("getHeaderLength: %d", header->getHeaderLength());
+                    log_debug("UserPacket: %s", (const char*)p->data);
+                    break;
+                }
                 default:
                     break;
             }
@@ -142,8 +150,8 @@ void Server::CloseConnect(int connfdTcp) {
 
 void Server::SendByTcp(UniqID clientId, const uint8_t *data, size_t len)
 {
-    protocol::UserPacket p(data, len);
-    PacketHeader* header = SerializeProtocol<protocol::UserPacket>(p);
+    protocol::UserPacket p(data);
+    PacketHeader* header = SerializeProtocol<protocol::UserPacket>(p, len);
     SendByTcp(clientId, header);
 }
     

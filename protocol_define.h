@@ -62,38 +62,32 @@ struct UdpHeartbeat: public UdpProtocolBase
 struct UserPacket: public ProtocolBase
 {
     ProtoType(UserPacket);
-    UserPacket(const uint8_t *d, uint32_t l):
-        len(l),
+    ProtoSize(UserPacket);
+    UserPacket(const uint8_t *d):
         data(d)
     {}
-    uint32_t len;
     const uint8_t *data;
-    
-    const uint8_t* BeginPos() {
-        return data;
-    }
-    
-    size_t Size() {
-        return len;
-    }
 };
 
 };
 
 template <class P>
-PacketHeader *SerializeProtocol(P p)
+PacketHeader *SerializeProtocol(P p, size_t len = 0)
 {
+    if (!len) {
+        len = p.Size();
+    }
     PacketHeader header;
     header.setProtocol(static_cast<uint8_t>(P::protocol));
     header.setFlag(HeaderFlag::PacketLen, true);
     header.updateHeaderLength();
-    size_t packetLen = header.getHeaderLength() + sizeof(P);
+    size_t packetLen = header.getHeaderLength() + len;
     header.setUInt32(HeaderFlag::PacketLen, packetLen);
     BufferSet &bufferSet = BufferSet::constSingleton();
     Buffer *buffer = bufferSet.getBufferByIdx(0);
     uint8_t *buf = buffer->reserve(packetLen);
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
-    memcpy(buf + header.getHeaderLength(), p.BeginPos(), p.Size());
+    memcpy(buf + header.getHeaderLength(), p.BeginPos(), len);
     return (PacketHeader *)buf;
 }
 };
