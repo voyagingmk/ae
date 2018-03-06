@@ -32,8 +32,8 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     assert(sockfd == fd);
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
-    int connfd = Accept(sockfd, (SA *)&cliAddr, &len);
-    if (connfd == -1)
+    int connfdTcp = Accept(sockfd, (SA *)&cliAddr, &len);
+    if (connfdTcp == -1)
     {
         if ((errno == EAGAIN) ||
             (errno == EWOULDBLOCK) ||
@@ -46,29 +46,26 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
         err_msg("[server] new connection err: %d %s", errno, strerror(errno));
         return;
     }
-    aeCreateFileEvent(server->aeloop, connfd, AE_READABLE,
+    aeCreateFileEvent(server->aeloop, connfdTcp, AE_READABLE,
                       onTcpMessage, server);
 
     UniqID clientId = server->clientIdGen.getNewID();
     UniqID convId = server->convIdGen.getNewID();
     server->connDict[clientId] = ConnectionForServer();
     ConnectionForServer &conn = server->connDict[clientId];
-    conn.connfd = connfd;
+    conn.connfdTcp = connfdTcp;
     uint16_t password = random();
     conn.key = (password << 16) | convId;
-    server->connfd2cid[connfd] = clientId;
+    server->connfd2cid[connfdTcp] = clientId;
     server->convId2cid[convId] = clientId;
 
     protocol::TcpHandshake handshake;
     handshake.clientId = clientId;
     handshake.udpPort = server->udpPort;
     handshake.key = conn.key;
+    server->SendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
 
-    PacketHeader *header = SerializeProtocol<protocol::TcpHandshake>(handshake);
-    log_debug("send handshake len %d", header->getUInt32(HeaderFlag::PacketLen));
-    server->Send(clientId, (char *)header, header->getUInt32(HeaderFlag::PacketLen));
-
-    log_info("Client %d connected, connfd: %d, key: %d ", handshake.key, clientId, connfd);
+    log_info("Client %d connected, connfdTcp: %d, key: %d ", handshake.key, clientId, connfdTcp);
 }
 
 void OnUdpMessage(struct aeEventLoop *eventLoop,
@@ -107,7 +104,7 @@ Server::~Server()
     log_info("Server destoryed.");
 }
 
-void Server::Send(UniqID clientId, const char *data, size_t len)
+void Server::SendByTcp(UniqID clientId, const char *data, size_t len)
 {
     auto it = connDict.find(clientId);
     if (it == connDict.end())
@@ -115,8 +112,14 @@ void Server::Send(UniqID clientId, const char *data, size_t len)
         return;
     }
     ConnectionForServer &conn = it->second;
-
-    ::Send(conn.connfd, data, len, 0);
+    ::Send(conn.connfdTcp, data, len, 0);
     // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
+    
+    
+void Server::SendByTcp(UniqID clientId, PacketHeader *header) {
+    assert(header != nullptr);
+    SendByTcp(clientId, (char *)header, header->getUInt32(HeaderFlag::PacketLen));
+}
+    
 };

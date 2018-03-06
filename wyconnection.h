@@ -13,7 +13,12 @@ class Connection
 {
   public:
     uint32_t key;
-    KCPObject *kcpDict;
+    KCPObject *kcpObj;
+
+    Connection() : key(0),
+                   kcpObj(nullptr)
+    {
+    }
 
     ConvID convId()
     {
@@ -25,21 +30,20 @@ class Connection
         return key >> 16;
     }
 };
-    
-class ConnectionForServer: public Connection
+
+class ConnectionForServer : public Connection
 {
-public:
-    int connfd;
+  public:
+    int connfdTcp;
     SockBuffer buf;
 };
-    
-class ConnectionForClient: public Connection
+
+class ConnectionForClient : public Connection
 {
-public:
+  public:
     int udpPort;
     uint32_t clientId;
 };
-    
 };
 
 #endif
