@@ -13,7 +13,7 @@
 #include <algorithm>
 
 
-//#define DEBUG_MODE 1
+#define DEBUG_MODE 1
 
 #define LOG_USE_COLOR 1
 

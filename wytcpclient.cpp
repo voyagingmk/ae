@@ -96,7 +96,7 @@ void TCPClient::Recvfrom()
 {
 }
 
-void TCPClient::Send(const char *data, size_t len)
+void TCPClient::Send(uint8_t *data, size_t len)
 {
     ::Send(m_sockfd, data, len, 0);
     // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);

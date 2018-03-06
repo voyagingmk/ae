@@ -72,12 +72,14 @@ Client::~Client()
 }
     
     
-void Client::SendByTcp(const char *data, size_t len) {
-    tcpClient.Send(data, len);
+void Client::SendByTcp(const uint8_t *data, size_t len) {
+    protocol::UserPacket p(data, len);
+    PacketHeader* header = SerializeProtocol<protocol::UserPacket>(p);
+    tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
 
 void Client::SendByTcp(PacketHeader *header) {
-    
+    tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
 
 void Client::_onTcpConnected()

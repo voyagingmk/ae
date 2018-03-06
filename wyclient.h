@@ -31,7 +31,7 @@ public:
     ~Client();
 
 
-    void SendByTcp(const char *data, size_t len);
+    void SendByTcp(const uint8_t *data, size_t len);
     
     void SendByTcp(PacketHeader *header);
 

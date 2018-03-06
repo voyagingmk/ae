@@ -22,7 +22,7 @@ public:
     
     void Close();
     
-    void Send(const char *data, size_t len);
+    void Send(uint8_t *data, size_t len);
     
     void Recvfrom();
     

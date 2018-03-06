@@ -26,7 +26,7 @@ namespace protocol
     
     
 struct ProtocolBase {
-    uint8_t* DataPointer() {
+    uint8_t* BeginPos() {
         return (uint8_t*)this;
     }
 };
@@ -59,13 +59,17 @@ struct UdpHeartbeat: public UdpProtocolBase
     ProtoSize(UdpHeartbeat);
 };
     
-struct UserPacket
+struct UserPacket: public ProtocolBase
 {
     ProtoType(UserPacket);
+    UserPacket(const uint8_t *d, uint32_t l):
+        len(l),
+        data(d)
+    {}
     uint32_t len;
-    uint8_t *data;
+    const uint8_t *data;
     
-    uint8_t* DataPointer() {
+    const uint8_t* BeginPos() {
         return data;
     }
     
@@ -89,7 +93,7 @@ PacketHeader *SerializeProtocol(P p)
     Buffer *buffer = bufferSet.getBufferByIdx(0);
     uint8_t *buf = buffer->reserve(packetLen);
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
-    memcpy(buf + header.getHeaderLength(), p.DataPointer(), p.Size());
+    memcpy(buf + header.getHeaderLength(), p.BeginPos(), p.Size());
     return (PacketHeader *)buf;
 }
 };

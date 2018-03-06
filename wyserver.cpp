@@ -12,16 +12,39 @@ void onTcpMessage(struct aeEventLoop *eventLoop,
     Server *server = (Server *)(clientData);
     UniqID clientId = server->connfd2cid[fd];
     ConnectionForServer &conn = server->connDict[clientId];
-    int nreadTotal = 0;
-    int ret = conn.buf.readIn(fd, &nreadTotal);
-    if (ret == 0)
+    SockBuffer& sockBuffer = conn.buf;
+    do
     {
-        Close(fd);
-        server->connfd2cid.erase(fd);
-        server->convId2cid.erase(conn.convId());
-        server->connDict.erase(clientId);
-        aeDeleteFileEvent(server->aeloop, fd, AE_READABLE);
-    }
+        int nreadTotal = 0;
+        int ret = sockBuffer.readIn(fd, &nreadTotal);
+        log_debug("[tcp] readIn ret %d nreadTotal %d", ret, nreadTotal);
+        if (ret <= 0)
+        {
+            // has error or has closed
+            server->CloseConnect(fd);
+            return;
+        }
+        if (ret == 2)
+        {
+            break;
+        }
+        if (ret == 1)
+        {
+            BufferRef &bufRef = sockBuffer.bufRef;
+            PacketHeader *header = (PacketHeader *)(bufRef->buffer);
+            Protocol protocol = static_cast<Protocol>(header->getProtocol());
+            switch (protocol)
+            {
+                case Protocol::UdpHandshake:
+                {
+                    break;
+                }
+                default:
+                    break;
+            }
+            sockBuffer.resetBuffer();
+        }
+    } while (1);
 }
 
 void OnTcpNewConnection(struct aeEventLoop *eventLoop,
@@ -65,7 +88,7 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     handshake.key = conn.key;
     server->SendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
 
-    log_info("Client %d connected, connfdTcp: %d, key: %d ", handshake.key, clientId, connfdTcp);
+    log_info("Client %d connected, connfdTcp: %d, key: %d ", clientId, connfdTcp, handshake.key);
 }
 
 void OnUdpMessage(struct aeEventLoop *eventLoop,
@@ -103,23 +126,37 @@ Server::~Server()
     aeloop = NULL;
     log_info("Server destoryed.");
 }
+    
+void Server::CloseConnect(int connfdTcp) {
+    Close(connfdTcp);
+    aeDeleteFileEvent(aeloop, connfdTcp, AE_READABLE);
+    if (connfd2cid.find(connfdTcp) != connfd2cid.end()) {
+        UniqID clientId = connfd2cid[connfdTcp];
+        connfd2cid.erase(connfdTcp);
+        ConnectionForServer &conn = connDict[clientId];
+        convId2cid.erase(conn.convId());
+        connDict.erase(clientId);
+        log_info("CloseConnect %d connected, connfdTcp: %d", clientId, connfdTcp);
+    }
+}
 
-void Server::SendByTcp(UniqID clientId, const char *data, size_t len)
+void Server::SendByTcp(UniqID clientId, const uint8_t *data, size_t len)
 {
+    protocol::UserPacket p(data, len);
+    PacketHeader* header = SerializeProtocol<protocol::UserPacket>(p);
+    SendByTcp(clientId, header);
+}
+    
+    
+void Server::SendByTcp(UniqID clientId, PacketHeader *header) {
+    assert(header != nullptr);
     auto it = connDict.find(clientId);
     if (it == connDict.end())
     {
         return;
     }
     ConnectionForServer &conn = it->second;
-    ::Send(conn.connfdTcp, data, len, 0);
-    // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
-}
-    
-    
-void Server::SendByTcp(UniqID clientId, PacketHeader *header) {
-    assert(header != nullptr);
-    SendByTcp(clientId, (char *)header, header->getUInt32(HeaderFlag::PacketLen));
+    ::Send(conn.connfdTcp, (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
 }
     
 };

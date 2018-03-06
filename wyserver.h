@@ -29,7 +29,9 @@ public:
 
     ~Server();
 
-    void SendByTcp(UniqID clientId, const char *data, size_t len);
+    void CloseConnect(int fd);
+    
+    void SendByTcp(UniqID clientId, const uint8_t *data, size_t len);
 
     void SendByTcp(UniqID clientId, PacketHeader *header);
 
