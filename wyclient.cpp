@@ -50,6 +50,8 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
                          conn.passwd());
                 break;
             }
+                    
+            //  onTcpRecvUserData();
             default:
                 break;
             }
@@ -61,8 +63,10 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
 Client::Client(WyNet *net, const char *host, int tcpPort) :
     net(net),
     tcpClient(this, host, tcpPort),
-    udpClient(NULL),
-    onTcpConnected(NULL)
+    udpClient(nullptr),
+    onTcpConnected(nullptr),
+    onTcpDisconnected(nullptr),
+    onTcpRecvUserData(nullptr)
 {
 }
 

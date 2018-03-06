@@ -10,10 +10,11 @@
 namespace wynet
 {
 
+class WyNet;
+    
 class Server
 {
-public:
-    aeEventLoop *aeloop;
+    WyNet *net;
     int tcpPort;
     int udpPort;
     TCPServer tcpServer;
@@ -21,11 +22,20 @@ public:
     std::map<UniqID, ConnectionForServer> connDict;
     std::map<int, UniqID> connfd2cid;
     std::map<ConvID, UniqID> convId2cid;
-
+    
     UniqIDGenerator clientIdGen;
     UniqIDGenerator convIdGen;
+    
+public:
+    typedef void (*OnTcpConnected)(Server *, UniqID clientId);
+    typedef void (*OnTcpDisconnected)(Server *, UniqID clientId);
+    typedef void (*OnTcpRecvUserData)(Server *, UniqID clientId);
 
-    Server(aeEventLoop *aeloop, int tcpPort, int udpPort);
+    OnTcpConnected onTcpConnected;
+    OnTcpDisconnected onTcpDisconnected;
+    OnTcpRecvUserData onTcpRecvUserData;
+
+    Server(WyNet *net, int tcpPort, int udpPort);
 
     ~Server();
 
@@ -35,6 +45,17 @@ public:
 
     void SendByTcp(UniqID clientId, PacketHeader *header);
 
+private:
+    
+    void _onTcpConnected(int connfdTcp);
+    
+    void _onTcpMessage(int connfdTcp);
+    
+    friend void onTcpMessage(struct aeEventLoop *eventLoop,
+                      int connfdTcp, void *clientData, int mask);
+    
+    friend void OnTcpNewConnection(struct aeEventLoop *eventLoop,
+                                   int listenfdTcp, void *clientData, int mask);
 };
 };
 

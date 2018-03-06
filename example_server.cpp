@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     //  UDPServer server(9999);
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s", aeGetApiName());
-    Server *server = new Server(net.GetAeLoop(), 9998, 9999);
+    Server *server = new Server(&net, 9998, 9999);
     net.AddServer(server);
     net.Loop();
     return 0;

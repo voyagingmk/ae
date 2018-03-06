@@ -19,23 +19,25 @@ public:
     friend class TCPClient;
     typedef void (*OnTcpConnected)(Client *);
     typedef void (*OnTcpDisconnected)(Client *);
+    typedef void (*OnTcpRecvUserData)(Client *);
     WyNet *net;
     ConnectionForClient conn;
     TCPClient tcpClient;
     UDPClient *udpClient;
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;
+    OnTcpRecvUserData onTcpRecvUserData;
 
     Client(WyNet *net, const char *host, int tcpPort);
 
     ~Client();
-
 
     void SendByTcp(const uint8_t *data, size_t len);
     
     void SendByTcp(PacketHeader *header);
 
 private:
+    
     void _onTcpConnected();
 
     void _onTcpDisconnected();
