@@ -48,9 +48,11 @@ void LogSocketState(int sockfd)
     int keepIdle = 0;
     int keepInterval = 0;
     int keepCount = 0;
+#ifdef TCP_KEEPALIVE
     len = sizeof(keepAlive);
     Getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPALIVE, &keepAlive, &len);
     log_debug("TCP_KEEPALIVE = %d", keepAlive);
+#endif
 #ifdef TCP_KEEPIDLE
     len = sizeof(keepIdle);
     Getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, &len); // tcp_keepalive_time
