@@ -102,4 +102,11 @@ void Client::_onTcpDisconnected()
     if (onTcpDisconnected)
         onTcpDisconnected(this);
 }
+    
+    
+void Client::_onTcpRecvUserData()
+{
+    
+}
+    
 };

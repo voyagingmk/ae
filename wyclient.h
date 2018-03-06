@@ -15,15 +15,17 @@ class Test;
 
 class Client
 {
+    WyNet *net;
+    ConnectionForClient conn;
+    TCPClient tcpClient;
+    UDPClient *udpClient;
+    
 public:
     friend class TCPClient;
     typedef void (*OnTcpConnected)(Client *);
     typedef void (*OnTcpDisconnected)(Client *);
     typedef void (*OnTcpRecvUserData)(Client *, uint8_t*, size_t);
-    WyNet *net;
-    ConnectionForClient conn;
-    TCPClient tcpClient;
-    UDPClient *udpClient;
+    
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;
     OnTcpRecvUserData onTcpRecvUserData;
@@ -35,12 +37,29 @@ public:
     void SendByTcp(const uint8_t *data, size_t len);
     
     void SendByTcp(PacketHeader *header);
+    
+    const TCPClient& GetTcpClient() const {
+        return tcpClient;
+    }
+    
+    const UDPClient* GetUdpClient() const {
+        return udpClient;
+    }
+    
+    WyNet* GetNet() const {
+        return net;
+    }
 
 private:
     
     void _onTcpConnected();
 
     void _onTcpDisconnected();
+    
+    void _onTcpRecvUserData();
+    
+    friend void OnTcpMessage(struct aeEventLoop *eventLoop,
+                      int fd, void *clientData, int mask);
 };
 };
 

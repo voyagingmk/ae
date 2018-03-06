@@ -27,6 +27,11 @@ public:
     void Recvfrom();
     
     void onConnected();
+
+private:
+    
+    friend void OnTcpWritable(struct aeEventLoop *eventLoop,
+                       int fd, void *clientData, int mask);
 };
 
 };

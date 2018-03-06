@@ -11,13 +11,13 @@ void Stop(int signo)
 
 void OnTcpConnected(Client *client)
 {
-    log_info("OnTcpConnected: %d", client->tcpClient.m_sockfd);
+    log_info("OnTcpConnected: %d", client->GetTcpClient().m_sockfd);
     client->SendByTcp((const uint8_t*)"hello", 5);
 }
 
 void OnTcpDisconnected(Client *client)
 {
-    log_info("OnTcpDisconnected: %d", client->tcpClient.m_sockfd);
+    log_info("OnTcpDisconnected: %d", client->GetTcpClient().m_sockfd);
     net.StopLoop();
 }
 

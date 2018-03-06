@@ -22,7 +22,7 @@ void OnTcpWritable(struct aeEventLoop *eventLoop,
     {
         Client *client = tcpClient->parent;
         // connect ok, remove event
-        aeDeleteFileEvent(client->net->aeloop, tcpClient->m_sockfd, AE_WRITABLE);
+        aeDeleteFileEvent(client->GetNet()->aeloop, tcpClient->m_sockfd, AE_WRITABLE);
         tcpClient->onConnected();
     }
 }

@@ -39,7 +39,7 @@ public:
 
     ~Server();
 
-    void CloseConnect(int fd);
+    void CloseConnect(int connfdTcp);
     
     void SendByTcp(UniqID clientId, const uint8_t *data, size_t len);
 
