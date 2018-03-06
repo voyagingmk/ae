@@ -57,6 +57,7 @@ UDPServer::~UDPServer()
 
 void UDPServer::Recvfrom()
 {
+    /*
     memset(msg, 0x0, MAX_MSG);
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
@@ -86,6 +87,6 @@ void UDPServer::Recvfrom()
         struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&cliAddr;
         break;
     }
-    }
+    }*/
 }
 };

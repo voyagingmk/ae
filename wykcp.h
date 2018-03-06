@@ -49,6 +49,7 @@ class KCPObject
 
     int waitsnd();
 
+    // not thread safe
     static void setAllocator(void *(*new_malloc)(size_t), void (*new_free)(void *))
     {
         ikcp_allocator(new_malloc, new_free);
