@@ -9,11 +9,9 @@ namespace wynet
 {
 
 // for server only
-class TCPConnection
+class Connection
 {
   public:
-    int connfd;
-    SockBuffer buf;
     uint32_t key;
     KCPObject *kcpDict;
 
@@ -27,6 +25,21 @@ class TCPConnection
         return key >> 16;
     }
 };
+    
+class ConnectionForServer: public Connection
+{
+public:
+    int connfd;
+    SockBuffer buf;
+};
+    
+class ConnectionForClient: public Connection
+{
+public:
+    int udpPort;
+    uint32_t clientId;
+};
+    
 };
 
 #endif

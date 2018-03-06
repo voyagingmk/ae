@@ -8,9 +8,10 @@ namespace wynet
 
 enum class Protocol
 {
-    Unknown = 0,
-    TcpHandshake = 1,
-    UdpHandshake = 2
+    Unknown,
+    TcpHandshake,
+    UdpHandshake,
+    UdpHeartbeat
 };
 
 namespace protocol
@@ -24,12 +25,20 @@ struct TcpHandshake
     uint32_t key;
     ProtoType(TcpHandshake);
 };
-
-struct UdpHandshake
-{
+    
+struct UdpProtocolBase {
     uint32_t clientId;
     uint32_t key;
+};
+    
+struct UdpHandshake: public UdpProtocolBase
+{
     ProtoType(UdpHandshake);
+};
+    
+struct UdpHeartbeat: public UdpProtocolBase
+{
+    ProtoType(UdpHeartbeat);
 };
 };
 

@@ -11,7 +11,7 @@ void onTcpMessage(struct aeEventLoop *eventLoop,
     log_debug("onTcpMessage fd=%d", fd);
     Server *server = (Server *)(clientData);
     UniqID clientId = server->connfd2cid[fd];
-    TCPConnection &conn = server->connDict[clientId];
+    ConnectionForServer &conn = server->connDict[clientId];
     int nreadTotal = 0;
     int ret = conn.buf.readIn(fd, &nreadTotal);
     if (ret == 0)
@@ -51,8 +51,8 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
 
     UniqID clientId = server->clientIdGen.getNewID();
     UniqID convId = server->convIdGen.getNewID();
-    server->connDict[clientId] = TCPConnection();
-    TCPConnection &conn = server->connDict[clientId];
+    server->connDict[clientId] = ConnectionForServer();
+    ConnectionForServer &conn = server->connDict[clientId];
     conn.connfd = connfd;
     uint16_t password = random();
     conn.key = (password << 16) | convId;
@@ -114,7 +114,7 @@ void Server::Send(UniqID clientId, const char *data, size_t len)
     {
         return;
     }
-    TCPConnection &conn = it->second;
+    ConnectionForServer &conn = it->second;
 
     ::Send(conn.connfd, data, len, 0);
     // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);

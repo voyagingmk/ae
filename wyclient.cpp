@@ -39,13 +39,14 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
             case Protocol::TcpHandshake:
             {
                 protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->buffer + header->getHeaderLength());
-                client->key = handShake->key;
-                client->udpPort = handShake->udpPort;
-                client->clientId = handShake->clientId;
+                ConnectionForClient& conn = client->conn;
+                conn.key = handShake->key;
+                conn.udpPort = handShake->udpPort;
+                conn.clientId = handShake->clientId;
                 log_info("clientId %d, udpPort %d convId %d passwd %d",
                          handShake->clientId, handShake->udpPort,
-                         client->convId(),
-                         client->passwd());
+                         conn.convId(),
+                         conn.passwd());
                 break;
             }
             default:
@@ -59,7 +60,6 @@ void OnTcpMessage(struct aeEventLoop *eventLoop,
 Client::Client(WyNet *net, const char *host, int tcpPort) : net(net),
                                                             tcpClient(this, host, tcpPort),
                                                             udpClient(NULL),
-                                                            kcpDict(NULL),
                                                             onTcpConnected(NULL)
 {
 }

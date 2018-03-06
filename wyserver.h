@@ -10,27 +10,26 @@
 namespace wynet
 {
 
-
 class Server
 {
-  public:
-    aeEventLoop *aeloop;
-    int tcpPort;
-    int udpPort;
-    TCPServer tcpServer;
-    UDPServer udpServer;
-    std::map<UniqID, TCPConnection> connDict;
-    std::map<int, UniqID> connfd2cid;
-    std::map<ConvID, UniqID> convId2cid;
+public:
+  aeEventLoop *aeloop;
+  int tcpPort;
+  int udpPort;
+  TCPServer tcpServer;
+  UDPServer udpServer;
+  std::map<UniqID, ConnectionForServer> connDict;
+  std::map<int, UniqID> connfd2cid;
+  std::map<ConvID, UniqID> convId2cid;
 
-    UniqIDGenerator clientIdGen;
-    UniqIDGenerator convIdGen;
+  UniqIDGenerator clientIdGen;
+  UniqIDGenerator convIdGen;
 
-    Server(aeEventLoop *aeloop, int tcpPort, int udpPort);
+  Server(aeEventLoop *aeloop, int tcpPort, int udpPort);
 
-    ~Server();
+  ~Server();
 
-    void Send(UniqID clientId, const char *data, size_t len);
+  void Send(UniqID clientId, const char *data, size_t len);
 };
 };
 

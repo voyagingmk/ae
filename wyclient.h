@@ -5,6 +5,7 @@
 #include "wykcp.h"
 #include "wytcpclient.h"
 #include "wyudpclient.h"
+#include "wyconnection.h"
 
 namespace wynet
 {
@@ -14,38 +15,25 @@ class Test;
 
 class Client
 {
-  public:
-    friend class TCPClient;
-    typedef void (*OnTcpConnected)(Client *);
-    typedef void (*OnTcpDisconnected)(Client *);
-    WyNet *net;
-    TCPClient tcpClient;
-    UDPClient *udpClient;
-    uint32_t key;
-    uint32_t clientId;
-    uint16_t udpPort;
-    KCPObject *kcpDict;
-    OnTcpConnected onTcpConnected;
-    OnTcpDisconnected onTcpDisconnected;
+public:
+  friend class TCPClient;
+  typedef void (*OnTcpConnected)(Client *);
+  typedef void (*OnTcpDisconnected)(Client *);
+  WyNet *net;
+  ConnectionForClient conn;
+  TCPClient tcpClient;
+  UDPClient *udpClient;
+  OnTcpConnected onTcpConnected;
+  OnTcpDisconnected onTcpDisconnected;
 
-    Client(WyNet *net, const char *host, int tcpPort);
+  Client(WyNet *net, const char *host, int tcpPort);
 
-    ~Client();
-    
-    ConvID convId()
-    {
-        return key & 0x0000ffff;
-    }
-    
-    uint16_t passwd()
-    {
-        return key >> 16;
-    }
+  ~Client();
 
-  private:
-    void _onTcpConnected();
-    
-    void _onTcpDisconnected();
+private:
+  void _onTcpConnected();
+
+  void _onTcpDisconnected();
 };
 };
 
