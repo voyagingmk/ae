@@ -63,16 +63,12 @@ struct UserPacket: public ProtocolBase
 {
     ProtoType(UserPacket);
     ProtoSize(UserPacket);
-    UserPacket(const uint8_t *d):
-        data(d)
-    {}
-    const uint8_t *data;
 };
 
 };
 
 template <class P>
-PacketHeader *SerializeProtocol(P p, size_t len = 0)
+PacketHeader *SerializeProtocol(P& p, size_t len = 0)
 {
     if (!len) {
         len = p.Size();

@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.0.0)
 
 project(wynet VERSION 0.0.0)
 
+set(CMAKE_BUILD_TYPE Debug)
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")  
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")  
+
 if(UNIX)
     MESSAGE(STATUS "It is UNIX-like OS")  
     SET (CMAKE_C_COMPILER             "/usr/bin/clang")
@@ -30,6 +34,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     readline.c
     writen.c
     ikcp.c
+    log.c
     error.c)
 
 add_executable(example_server example_server.cpp  ${MY_SOURCERS})
