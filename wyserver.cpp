@@ -178,9 +178,11 @@ void Server::_onTcpMessage(int connfdTcp) {
                 case Protocol::UserPacket:
                 {
                     protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->buffer + header->getHeaderLength());
-                    
-                    log_debug("getHeaderLength: %d", header->getHeaderLength());
-                    log_debug("UserPacket: %s", (const char*)p);
+                    size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
+                    // log_debug("getHeaderLength: %d", header->getHeaderLength());
+                    if (onTcpRecvUserData) {
+                        onTcpRecvUserData(this, clientId, (uint8_t*)p, dataLength);
+                    }
                     break;
                 }
                 default:

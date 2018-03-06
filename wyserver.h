@@ -29,7 +29,7 @@ class Server
 public:
     typedef void (*OnTcpConnected)(Server *, UniqID clientId);
     typedef void (*OnTcpDisconnected)(Server *, UniqID clientId);
-    typedef void (*OnTcpRecvUserData)(Server *, UniqID clientId);
+    typedef void (*OnTcpRecvUserData)(Server *, UniqID clientId, uint8_t*, size_t);
 
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;

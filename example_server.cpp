@@ -9,6 +9,23 @@ void Stop(int signo)
     log_info("Stop. %d", net.aeloop->stop);
 }
 
+
+void OnTcpConnected(Server * server, UniqID clientId)
+{
+    log_debug("[OnTcpConnected] %d", clientId);
+}
+
+void OnTcpDisconnected(Server * server, UniqID clientId)
+{
+    log_debug("[OnTcpDisconnected] %d", clientId);
+}
+
+void OnTcpRecvUserData(Server * server, UniqID clientId, uint8_t* p, size_t len) {
+    
+    log_debug("[OnTcpRecvUserData] %d, %s", clientId, (const char*)p);
+}
+
+
 int main(int argc, char **argv)
 {
     if (argc > 1) {
@@ -21,6 +38,9 @@ int main(int argc, char **argv)
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s", aeGetApiName());
     Server *server = new Server(&net, 9998, 9999);
+    server->onTcpConnected = &OnTcpConnected;
+    server->onTcpDisconnected = &OnTcpDisconnected;
+    server->onTcpRecvUserData = &OnTcpRecvUserData;
     net.AddServer(server);
     net.Loop();
     return 0;

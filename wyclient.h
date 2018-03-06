@@ -19,7 +19,7 @@ public:
     friend class TCPClient;
     typedef void (*OnTcpConnected)(Client *);
     typedef void (*OnTcpDisconnected)(Client *);
-    typedef void (*OnTcpRecvUserData)(Client *);
+    typedef void (*OnTcpRecvUserData)(Client *, uint8_t*, size_t);
     WyNet *net;
     ConnectionForClient conn;
     TCPClient tcpClient;
