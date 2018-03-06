@@ -1,39 +1,65 @@
 #include "wyutils.h"
 
+void CheckReturnValue(int ret) {
+    if (ret == 0) {
+        return;
+    }
+    if (ret == -1) {
+        log_error("getsockopt error %d %s", errno, strerror (errno));
+    }
+}
+
+void Getsockopt(int socket, int level, int option_name,
+                void * &option_value, socklen_t * &option_len) {
+    int ret = getsockopt(socket, level, option_name, option_value, option_len);
+    CheckReturnValue(ret);
+}
+
 void LogSocketState(int sockfd)
 {
     log_info("---- LogSocketState %d ----", sockfd);
+    socklen_t len = 0;
     int sndbuf = 0;
     int rcvbuf = 0;
     int mss = 0;
-    socklen_t len = 0;
+    int isKeepAlive = 0;
+    int isReuseAddr = 0;
     len = sizeof(rcvbuf);
-    getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
-    len = sizeof(mss);
-    getsockopt(sockfd, IPPROTO_TCP, TCP_MAXSEG, &mss, &len);
+    Getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
+    log_info("SO_RCVBUF = %d", rcvbuf);
     len = sizeof(sndbuf);
-    getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
-    log_info("SO_RCVBUF = %d, SO_SNDBUF = %d, MSS = %d", rcvbuf, sndbuf, mss);
+    Getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
+    log_info("SO_SNDBUF = %d", sndbuf);
+    len = sizeof(mss);
+    Getsockopt(sockfd, IPPROTO_TCP, TCP_MAXSEG, &mss, &len);
+    log_info("TCP_MAXSEG = %d", mss);
+    len = sizeof(isKeepAlive);
+    Getsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &isKeepAlive, &len);
+    log_info("SO_KEEPALIVE = %d", isKeepAlive);
+    len = sizeof(isReuseAddr);
+    Getsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &isReuseAddr, &len);
+    log_info("SO_REUSEADDR = %d", isReuseAddr);
+    
+    
     
     int keepAlive = 0;
     int keepIdle = 0;
     int keepInterval = 0;
     int keepCount = 0;
     len = sizeof(keepAlive);
-    getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPALIVE, &keepAlive, &len);
+    Getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPALIVE, &keepAlive, &len);
     log_info("TCP_KEEPALIVE = %d", keepAlive);
 #ifdef TCP_KEEPIDLE
     len = sizeof(keepIdle);
-    getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, &len); // tcp_keepalive_time
+    Getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, &len); // tcp_keepalive_time
     log_info("TCP_KEEPIDLE = %d", keepIdle);
 #endif
     len = sizeof(keepInterval);
-    getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, &len); // tcp_keepalive_intvl
+    Getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, &len); // tcp_keepalive_intvl
     log_info("TCP_KEEPINTVL = %d", keepInterval);
     len = sizeof(keepCount);
-    getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPCNT, &keepCount, &len); // tcp_keepalive_probes
+    Getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPCNT, &keepCount, &len); // tcp_keepalive_probes
     log_info("TCP_KEEPCNT = %d", keepCount);
-    
 
     log_info("---- LogSocketState End %d ----", sockfd);
 }
