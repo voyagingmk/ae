@@ -5,13 +5,13 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sys/ioctl.h>
 #include <vector>
 #include <iostream>
 #include <map>
 #include <set>
 #include <algorithm>
-
 
 #define DEBUG_MODE 1
 
@@ -26,4 +26,3 @@ extern "C" {
 }
 
 typedef IUINT32 ConvID;
-

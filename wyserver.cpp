@@ -1,6 +1,7 @@
 #include "wyserver.h"
 #include "protocol.h"
 #include "protocol_define.h"
+#include "wyutils.h"
 
 namespace wynet
 {
@@ -97,6 +98,7 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     server->SendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
 
     log_info("Client %d connected, connfdTcp: %d, key: %d ", clientId, connfdTcp, handshake.key);
+    LogSocketState(connfdTcp);
 }
 
 void OnUdpMessage(struct aeEventLoop *eventLoop,

@@ -26,6 +26,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     wytcpserver.cpp
     wyudpclient.cpp
     wyudpserver.cpp
+    wyutils.cpp
     uniqid.cpp
     ae.c
     wrapsock.c
@@ -37,9 +38,35 @@ FILE(GLOB_RECURSE MY_SOURCERS
     log.c
     error.c)
 
-add_executable(example_server example_server.cpp  ${MY_SOURCERS})
+SET(HEADERS
+    protocol_define.h
+    protocol.h
+    ikcp.h
+    ae.h
+    common.h
+    zmalloc.h
+    unp.h
+    wynet.h
+    wrapsock.h
+    wyconnection.h
+    wykcp.h
+    wysockbase.h
+    wybuffer.h
+    wyclient.h
+    wyserver.h
+    wyudpclient.h
+    wytcpclient.h
+    wyudpserver.h
+    wytcpserver.h
+    uniqid.h
+    wyutils.h
+    error.h
+    log.h
+  )
 
-add_executable(example_client example_client.cpp  ${MY_SOURCERS})
+add_executable(example_server example_server.cpp  ${MY_SOURCERS} ${HEADERS})
+
+add_executable(example_client example_client.cpp  ${MY_SOURCERS} ${HEADERS})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

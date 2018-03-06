@@ -2,6 +2,7 @@
 #include "protocol.h"
 #include "protocol_define.h"
 #include "wynet.h"
+#include "wyutils.h"
 
 namespace wynet
 {
@@ -86,6 +87,7 @@ void Client::_onTcpConnected()
 {
     aeCreateFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE,
                       OnTcpMessage, (void *)this);
+    LogSocketState(tcpClient.m_sockfd);
     if (onTcpConnected)
         onTcpConnected(this);
 }
