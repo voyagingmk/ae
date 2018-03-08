@@ -38,14 +38,16 @@ public:
     Server(WyNet *net, int tcpPort, int udpPort);
 
     ~Server();
-
-    void CloseConnect(int connfdTcp);
+    
+    void CloseConnect(UniqID clientId);
     
     void SendByTcp(UniqID clientId, const uint8_t *data, size_t len);
 
     void SendByTcp(UniqID clientId, PacketHeader *header);
 
 private:
+    
+    void CloseConnectByFd(int connfdTcp);
     
     void _onTcpConnected(int connfdTcp);
     

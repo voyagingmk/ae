@@ -80,8 +80,18 @@ Server::~Server()
     net = nullptr;
     log_info("Server destoryed.");
 }
+    
+void Server::CloseConnect(UniqID clientId)
+{
+    auto it = connDict.find(clientId);
+    if (it == connDict.end())
+    {
+        return;
+    }
+    CloseConnectByFd(it->second.connfdTcp);
+}
 
-void Server::CloseConnect(int connfdTcp)
+void Server::CloseConnectByFd(int connfdTcp)
 {
     _onTcpDisconnected(connfdTcp);
 }
@@ -105,10 +115,16 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header)
     int ret = send(conn.connfdTcp, (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
     if (ret < 0)
     {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        // should never EMSGSIZE ENOBUFS
+        
+        if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
         {
             return;
         }
+        // close the client
+        log_error("SendByTcp err %d", errno);
+        CloseConnectByFd(conn.connfdTcp);
+        
     }
 }
 
@@ -150,7 +166,7 @@ void Server::_onTcpDisconnected(int connfdTcp)
         ConnectionForServer &conn = connDict[clientId];
         convId2cid.erase(conn.convId());
         connDict.erase(clientId);
-        log_info("CloseConnect %d connected, connfdTcp: %d", clientId, connfdTcp);
+        log_info("CloseConnectByFd %d connected, connfdTcp: %d", clientId, connfdTcp);
         if (onTcpDisconnected)
             onTcpDisconnected(this, clientId);
     }
@@ -169,7 +185,7 @@ void Server::_onTcpMessage(int connfdTcp)
         if (ret <= 0)
         {
             // has error or has closed
-            CloseConnect(connfdTcp);
+            CloseConnectByFd(connfdTcp);
             return;
         }
         if (ret == 2)
