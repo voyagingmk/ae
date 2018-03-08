@@ -98,7 +98,14 @@ void TCPClient::Recvfrom()
 
 void TCPClient::Send(uint8_t *data, size_t len)
 {
-    ::Send(m_sockfd, data, len, 0);
+    int ret = send(m_sockfd, data, len, 0);
+    if (ret < 0)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            return;
+        }
+    }
     // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 

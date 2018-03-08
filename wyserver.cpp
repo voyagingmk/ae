@@ -43,19 +43,18 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
 void OnUdpMessage(struct aeEventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
-   // Server *server = (Server *)(clientData);
-   // server->udpServer.Recvfrom();
+    // Server *server = (Server *)(clientData);
+    // server->udpServer.Recvfrom();
 }
 
-Server::Server(WyNet *net, int tcpPort, int udpPort) :
-    net(net),
-    tcpPort(tcpPort),
-    udpPort(udpPort),
-    tcpServer(tcpPort),
-    udpServer(udpPort),
-    onTcpConnected(nullptr),
-    onTcpDisconnected(nullptr),
-    onTcpRecvUserData(nullptr)
+Server::Server(WyNet *net, int tcpPort, int udpPort) : net(net),
+                                                       tcpPort(tcpPort),
+                                                       udpPort(udpPort),
+                                                       tcpServer(tcpPort),
+                                                       udpServer(udpPort),
+                                                       onTcpConnected(nullptr),
+                                                       onTcpDisconnected(nullptr),
+                                                       onTcpRecvUserData(nullptr)
 {
 
     convIdGen.setRecycleThreshold(2 << 15);
@@ -70,7 +69,7 @@ Server::Server(WyNet *net, int tcpPort, int udpPort) :
 
     aeCreateFileEvent(net->aeloop, udpServer.m_sockfd, AE_READABLE,
                       OnUdpMessage, (void *)this);
-    
+
     LogSocketState(tcpServer.m_sockfd);
 }
 
@@ -81,20 +80,21 @@ Server::~Server()
     net = nullptr;
     log_info("Server destoryed.");
 }
-    
-void Server::CloseConnect(int connfdTcp) {
+
+void Server::CloseConnect(int connfdTcp)
+{
     _onTcpDisconnected(connfdTcp);
 }
 
 void Server::SendByTcp(UniqID clientId, const uint8_t *data, size_t len)
 {
-    protocol::UserPacket* p = (protocol::UserPacket*)data;
-    PacketHeader* header = SerializeProtocol<protocol::UserPacket>(*p, len);
+    protocol::UserPacket *p = (protocol::UserPacket *)data;
+    PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
     SendByTcp(clientId, header);
 }
-    
-    
-void Server::SendByTcp(UniqID clientId, PacketHeader *header) {
+
+void Server::SendByTcp(UniqID clientId, PacketHeader *header)
+{
     assert(header != nullptr);
     auto it = connDict.find(clientId);
     if (it == connDict.end())
@@ -102,14 +102,21 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header) {
         return;
     }
     ConnectionForServer &conn = it->second;
-    ::Send(conn.connfdTcp, (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
+    int ret = send(conn.connfdTcp, (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
+    if (ret < 0)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            return;
+        }
+    }
 }
-    
 
-void Server::_onTcpConnected(int connfdTcp) {
+void Server::_onTcpConnected(int connfdTcp)
+{
     aeCreateFileEvent(net->aeloop, connfdTcp, AE_READABLE,
                       onTcpMessage, this);
-    
+
     UniqID clientId = clientIdGen.getNewID();
     UniqID convId = convIdGen.getNewID();
     connDict[clientId] = ConnectionForServer();
@@ -119,26 +126,25 @@ void Server::_onTcpConnected(int connfdTcp) {
     conn.key = (password << 16) | convId;
     connfd2cid[connfdTcp] = clientId;
     convId2cid[convId] = clientId;
-    
+
     protocol::TcpHandshake handshake;
     handshake.clientId = clientId;
     handshake.udpPort = udpPort;
     handshake.key = conn.key;
     SendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
 
-    
     log_info("Client %d connected, connfdTcp: %d, key: %d ", clientId, connfdTcp, handshake.key);
     LogSocketState(connfdTcp);
     if (onTcpConnected)
         onTcpConnected(this, clientId);
 }
-    
-    
+
 void Server::_onTcpDisconnected(int connfdTcp)
 {
     Close(connfdTcp);
     aeDeleteFileEvent(net->aeloop, connfdTcp, AE_READABLE);
-    if (connfd2cid.find(connfdTcp) != connfd2cid.end()) {
+    if (connfd2cid.find(connfdTcp) != connfd2cid.end())
+    {
         UniqID clientId = connfd2cid[connfdTcp];
         connfd2cid.erase(connfdTcp);
         ConnectionForServer &conn = connDict[clientId];
@@ -149,13 +155,12 @@ void Server::_onTcpDisconnected(int connfdTcp)
             onTcpDisconnected(this, clientId);
     }
 }
-    
-    
-    
-void Server::_onTcpMessage(int connfdTcp) {
+
+void Server::_onTcpMessage(int connfdTcp)
+{
     UniqID clientId = connfd2cid[connfdTcp];
     ConnectionForServer &conn = connDict[clientId];
-    SockBuffer& sockBuffer = conn.buf;
+    SockBuffer &sockBuffer = conn.buf;
     do
     {
         int nreadTotal = 0;
@@ -178,26 +183,26 @@ void Server::_onTcpMessage(int connfdTcp) {
             Protocol protocol = static_cast<Protocol>(header->getProtocol());
             switch (protocol)
             {
-                case Protocol::UdpHandshake:
+            case Protocol::UdpHandshake:
+            {
+                break;
+            }
+            case Protocol::UserPacket:
+            {
+                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->buffer + header->getHeaderLength());
+                size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
+                // log_debug("getHeaderLength: %d", header->getHeaderLength());
+                if (onTcpRecvUserData)
                 {
-                    break;
+                    onTcpRecvUserData(this, clientId, (uint8_t *)p, dataLength);
                 }
-                case Protocol::UserPacket:
-                {
-                    protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->buffer + header->getHeaderLength());
-                    size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
-                    // log_debug("getHeaderLength: %d", header->getHeaderLength());
-                    if (onTcpRecvUserData) {
-                        onTcpRecvUserData(this, clientId, (uint8_t*)p, dataLength);
-                    }
-                    break;
-                }
-                default:
-                    break;
+                break;
+            }
+            default:
+                break;
             }
             sockBuffer.resetBuffer();
         }
     } while (1);
 }
-    
 };
