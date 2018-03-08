@@ -101,10 +101,11 @@ void TCPClient::Send(uint8_t *data, size_t len)
     int ret = send(m_sockfd, data, len, 0);
     if (ret < 0)
     {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
         {
             return;
         }
+        Close();
     }
     // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }

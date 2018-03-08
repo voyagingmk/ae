@@ -116,7 +116,6 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header)
     if (ret < 0)
     {
         // should never EMSGSIZE ENOBUFS
-        
         if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
         {
             return;
@@ -124,7 +123,6 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header)
         // close the client
         log_error("SendByTcp err %d", errno);
         CloseConnectByFd(conn.connfdTcp);
-        
     }
 }
 
