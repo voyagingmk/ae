@@ -1,6 +1,7 @@
 #include "wytcpclient.h"
 #include "wyclient.h"
 #include "wynet.h"
+#include "wyutils.h"
 
 namespace wynet
 {
@@ -51,9 +52,15 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
         m_sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (m_sockfd < 0)
             continue; /* ignore this one */
+        
         int flags = Fcntl(m_sockfd, F_GETFL, 0);
         Fcntl(m_sockfd, F_SETFL, flags | O_NONBLOCK);
+        
+        SetSockRecvBufSize(m_sockfd, 32 * 1024);
+        SetSockSendBufSize(m_sockfd, 32 * 1024);
+
         i = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
+        
         if ((i == -1) && (errno == EINPROGRESS))
         {
             aeCreateFileEvent(client->net->aeloop, m_sockfd, AE_WRITABLE,
