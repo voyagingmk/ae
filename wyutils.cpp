@@ -69,10 +69,24 @@ void LogSocketState(int sockfd)
 }
 
 
-int SetSockSendBufSize(int fd, int bytes) {
-    return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&bytes, sizeof(int));
+int SetSockSendBufSize(int fd, int newSndbuf) {
+    int sndbuf = 0;
+    socklen_t len = sizeof(sndbuf);
+    Getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
+    if (sndbuf >= newSndbuf) {
+        return -1;
+    }
+    return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&newSndbuf, sizeof(int));
+    log_debug("SetSockSendBufSize = %d", newSndbuf);
 }
 
-int SetSockRecvBufSize(int fd, int bytes) {
-    return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&bytes, sizeof(int));
+int SetSockRecvBufSize(int fd, int newRcvbuf) {
+    int rcvbuf = 0;
+    socklen_t len = sizeof(rcvbuf);
+    Getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
+    if (rcvbuf >= newRcvbuf) {
+        return -1;
+    }
+    return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&newRcvbuf, sizeof(int));
+    log_debug("SetSockSendBufSize = %d", newRcvbuf);
 }

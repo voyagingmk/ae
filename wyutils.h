@@ -13,8 +13,8 @@ void LogSocketState(int fd);
 
 #endif
 
-int SetSockSendBufSize(int fd, int bytes);
+int SetSockSendBufSize(int fd, int newSndbuf);
 
-int SetSockRecvBufSize(int fd, int bytes);
+int SetSockRecvBufSize(int fd, int newRcvbuf);
 
 #endif
