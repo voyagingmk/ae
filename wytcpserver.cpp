@@ -34,11 +34,17 @@ TCPServer::TCPServer(int port)
 		int flags = Fcntl(listenfd, F_GETFL, 0);
 		Fcntl(listenfd, F_SETFL, flags | O_NONBLOCK);
 
-		Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-		if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
-			break; /* success */
-
-		Close(listenfd); /* bind error, close and try next one */
+		int ret = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+        if (ret < 0) {
+            log_error("[Server][tcp] setsockopt SO_REUSEADDR err %d", errno);
+            Close(listenfd);
+            continue;
+        }
+        if (bind(listenfd, res->ai_addr, res->ai_addrlen) < 0) {
+            Close(listenfd); /* bind error, close and try next one */
+            continue;
+        }
+        break; /* success */
 	} while ((res = res->ai_next) != NULL);
 
 	if (res == NULL) /* errno from final socket() or bind() */
