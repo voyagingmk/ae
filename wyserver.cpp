@@ -23,18 +23,21 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     assert(sockfd == listenfdTcp);
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
-    int connfdTcp = Accept(listenfdTcp, (SA *)&cliAddr, &len);
-    if (connfdTcp == -1)
+    int connfdTcp = accept(listenfdTcp, (SA *)&cliAddr, &len);
+    if (connfdTcp < 0)
     {
         if ((errno == EAGAIN) ||
             (errno == EWOULDBLOCK) ||
             (errno == ECONNABORTED) ||
+#ifdef EPROTO
+            (errno == EPROTO) ||
+#endif
             (errno == EINTR))
         {
             // already closed
             return;
         }
-        err_msg("[server] new connection err: %d %s", errno, strerror(errno));
+        log_error("[Server] Accept err: %d %s", errno, strerror(errno));
         return;
     }
     server->_onTcpConnected(connfdTcp);
@@ -60,7 +63,7 @@ Server::Server(WyNet *net, int tcpPort, int udpPort) : net(net),
     convIdGen.setRecycleThreshold(2 << 15);
     convIdGen.setRecycleEnabled(true);
 
-    log_info("Server created, tcp sockfd: %d, udp sockfd: %d",
+    log_info("[Server] created, tcp sockfd: %d, udp sockfd: %d",
              tcpServer.m_sockfd,
              udpServer.m_sockfd);
 
@@ -78,7 +81,7 @@ Server::~Server()
     aeDeleteFileEvent(net->aeloop, tcpServer.m_sockfd, AE_READABLE);
     aeDeleteFileEvent(net->aeloop, udpServer.m_sockfd, AE_READABLE);
     net = nullptr;
-    log_info("Server destoryed.");
+    log_info("[Server] destoryed.");
 }
     
 void Server::CloseConnect(UniqID clientId)
@@ -88,11 +91,17 @@ void Server::CloseConnect(UniqID clientId)
     {
         return;
     }
-    CloseConnectByFd(it->second.connfdTcp);
+    CloseConnectByFd(it->second.connfdTcp, true);
 }
 
-void Server::CloseConnectByFd(int connfdTcp)
+void Server::CloseConnectByFd(int connfdTcp, bool force)
 {
+    if (force) {
+        struct linger l;
+        l.l_onoff = 1;        /* cause RST to be sent on close() */
+        l.l_linger = 0;
+        Setsockopt(connfdTcp, SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+    }
     _onTcpDisconnected(connfdTcp);
 }
 
@@ -121,8 +130,8 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header)
             return;
         }
         // close the client
-        log_error("SendByTcp err %d", errno);
-        CloseConnectByFd(conn.connfdTcp);
+        log_error("[Server][tcp] SendByTcp err %d", errno);
+        CloseConnectByFd(conn.connfdTcp, true);
     }
 }
 
@@ -147,7 +156,7 @@ void Server::_onTcpConnected(int connfdTcp)
     handshake.key = conn.key;
     SendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
 
-    log_info("Client %d connected, connfdTcp: %d, key: %d ", clientId, connfdTcp, handshake.key);
+    log_info("[Server][tcp] connected, clientId: %d, connfdTcp: %d, key: %d", clientId, connfdTcp, handshake.key);
     LogSocketState(connfdTcp);
     if (onTcpConnected)
         onTcpConnected(this, clientId);
@@ -155,7 +164,10 @@ void Server::_onTcpConnected(int connfdTcp)
 
 void Server::_onTcpDisconnected(int connfdTcp)
 {
-    Close(connfdTcp);
+    int ret = close(connfdTcp);
+    if (ret < 0) {
+        log_error("[Server][tcp] close err %d", ret);
+    }
     aeDeleteFileEvent(net->aeloop, connfdTcp, AE_READABLE);
     if (connfd2cid.find(connfdTcp) != connfd2cid.end())
     {
@@ -164,7 +176,7 @@ void Server::_onTcpDisconnected(int connfdTcp)
         ConnectionForServer &conn = connDict[clientId];
         convId2cid.erase(conn.convId());
         connDict.erase(clientId);
-        log_info("CloseConnectByFd %d connected, connfdTcp: %d", clientId, connfdTcp);
+        log_info("[Server][tcp] closed, clientId: %d connfdTcp: %d", clientId, connfdTcp);
         if (onTcpDisconnected)
             onTcpDisconnected(this, clientId);
     }
@@ -179,11 +191,11 @@ void Server::_onTcpMessage(int connfdTcp)
     {
         int nreadTotal = 0;
         int ret = sockBuffer.readIn(connfdTcp, &nreadTotal);
-        log_debug("[tcp] readIn fd %d ret %d nreadTotal %d", connfdTcp, ret, nreadTotal);
+        log_debug("[Server][tcp] readIn connfdTcp %d ret %d nreadTotal %d", connfdTcp, ret, nreadTotal);
         if (ret <= 0)
         {
             // has error or has closed
-            CloseConnectByFd(connfdTcp);
+            CloseConnectByFd(connfdTcp, true);
             return;
         }
         if (ret == 2)

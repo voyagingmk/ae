@@ -39,6 +39,7 @@ public:
 
     ~Server();
     
+    // only use in unusal cases
     void CloseConnect(UniqID clientId);
     
     void SendByTcp(UniqID clientId, const uint8_t *data, size_t len);
@@ -47,7 +48,7 @@ public:
 
 private:
     
-    void CloseConnectByFd(int connfdTcp);
+    void CloseConnectByFd(int connfdTcp, bool force = false);
     
     void _onTcpConnected(int connfdTcp);
     
