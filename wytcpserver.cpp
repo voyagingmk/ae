@@ -1,4 +1,5 @@
 #include "wytcpserver.h"
+#include "wyutils.h"
 
 namespace wynet
 {
@@ -43,6 +44,9 @@ TCPServer::TCPServer(int port)
 	if (res == NULL) /* errno from final socket() or bind() */
 		err_sys("tcp_listen error for %s, %s", host, serv);
 
+    SetSockRecvBufSize(listenfd, 32 * 1024);
+    SetSockSendBufSize(listenfd, 32 * 1024);
+    
 	Listen(listenfd, LISTENQ);
 
 	m_sockfd = listenfd;

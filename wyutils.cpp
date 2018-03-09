@@ -67,3 +67,12 @@ void LogSocketState(int sockfd)
 
     log_debug("---- LogSocketState End %d ----", sockfd);
 }
+
+
+int SetSockSendBufSize(int fd, int bytes) {
+    return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&bytes, sizeof(int));
+}
+
+int SetSockRecvBufSize(int fd, int bytes) {
+    return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&bytes, sizeof(int));
+}
