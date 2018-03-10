@@ -116,7 +116,7 @@ class BufferSet: public Noncopyable
         }
         while ((idx + 1) > buffers.size())
         {
-            buffers.resize(buffers.size() << 1);
+            buffers.push_back(std::make_shared<Buffer>());
         }
         return buffers[idx];
     }
