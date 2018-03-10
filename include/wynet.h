@@ -6,6 +6,7 @@
 #include "wykcp.h"
 #include "wyserver.h"
 #include "wyclient.h"
+#include "mutex.h"
 
 namespace wynet
 {
@@ -19,7 +20,8 @@ class WyNet
     Clients clients;
     UniqIDGenerator serverIdGen;
     UniqIDGenerator clientIdGen;
-
+    MutexLock mutexLock;
+    
   public:
     WyNet();
 

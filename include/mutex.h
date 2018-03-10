@@ -12,7 +12,7 @@ class MutexLock : Noncopyable
 {
 public:
   MutexLock()
-      : m_pid(0)
+      :m_tid(0)
   {
     pthread_mutex_init(&m_mutex, NULL);
   }
@@ -24,18 +24,20 @@ public:
 
   bool isLockedByThisThread() const
   {
-    return m_pid == CurrentThread::tid();
+      uint64_t tid;
+      pthread_threadid_np(NULL, &tid);
+      return m_tid == tid;
   }
 
   void lock()
   {
     pthread_mutex_lock(&m_mutex);
-    setPid();
+    setTid();
   }
 
   void unlock()
   {
-    resetPid();
+    resetTid();
     pthread_mutex_unlock(&m_mutex);
   }
 
@@ -47,18 +49,18 @@ public:
 private:
   friend class Condition;
 
-  void resetPid()
+  void resetTid()
   {
-    m_pid = 0;
+    m_tid = 0;
   }
 
-  void setPid()
+  void setTid()
   {
-    m_pid = CurrentThread::tid();
+      pthread_threadid_np(NULL, &m_tid);
   }
 
   pthread_mutex_t m_mutex;
-  pid_t m_pid;
+  uint64_t m_tid;
 };
 
 class MutexLockGuard : Noncopyable
@@ -78,6 +80,9 @@ public:
 private:
   MutexLock &m_mutex;
 };
+  
+#define MutexLockGuard(x) static_assert(false, "[MutexLockGuard] error use")
+
 }
 
 #endif
