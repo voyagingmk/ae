@@ -2,12 +2,13 @@
 #define WY_UNIQID_H
 
 #include "common.h"
+#include "noncopyable.h"
 
 namespace wynet {
 
 	typedef int32_t UniqID;
 
-	class UniqIDGenerator
+	class UniqIDGenerator: public Noncopyable 
 	{
 	public:
 		UniqIDGenerator();

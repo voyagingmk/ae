@@ -3,13 +3,14 @@
 
 #include "common.h"
 #include "uniqid.h"
+#include "noncopyable.h"
 
 namespace wynet
 {
 
 const size_t MaxBufferSize = 1024 * 1024 * 256; // 256 MB
 
-class Buffer
+class Buffer: public Noncopyable
 {
   public:
     uint8_t *buffer;
@@ -59,9 +60,9 @@ class Buffer
 };
     
     
-class BufferSet
+class BufferSet: public Noncopyable
 {
-    std::vector<Buffer> buffers;
+    std::vector<std::shared_ptr<Buffer>> buffers;
     UniqIDGenerator uniqIDGen;
 
   public:
@@ -87,7 +88,7 @@ class BufferSet
         UniqID uid = uniqIDGen.getNewID();
         if (uid > buffers.size())
         {
-            buffers.resize(buffers.size() << 1);
+            buffers.push_back(std::make_shared<Buffer>());
         }
         return uid;
     }
@@ -97,17 +98,17 @@ class BufferSet
         uniqIDGen.recycleID(uid);
     }
 
-    Buffer *getBuffer(UniqID uid)
+    std::shared_ptr<Buffer> getBuffer(UniqID uid)
     {
         int32_t idx = uid - 1;
         if (idx < 0 || idx >= buffers.size())
         {
             return nullptr;
         }
-        return &buffers[idx];
+        return buffers[idx];
     }
 
-    Buffer *getBufferByIdx(int32_t idx)
+    std::shared_ptr<Buffer> getBufferByIdx(int32_t idx)
     {
         if (idx < 0)
         {
@@ -117,11 +118,11 @@ class BufferSet
         {
             buffers.resize(buffers.size() << 1);
         }
-        return &buffers[idx];
+        return buffers[idx];
     }
 };
 
-class BufferRef
+class BufferRef: public Noncopyable
 {
     UniqID uniqID;
 
@@ -148,11 +149,6 @@ class BufferRef
         log_debug("BufferRef moved %d", uniqID);
     }
     
-    inline Buffer* operator->()
-    {
-        return get();
-    }
-    
     BufferRef &operator=(BufferRef &&b)
     {
         recycleBuffer();
@@ -162,11 +158,12 @@ class BufferRef
         return (*this);
     }
 
-    BufferRef(const BufferRef &) = delete;
-
-    BufferRef &operator=(const BufferRef &) = delete;
-
-    Buffer *get()
+    inline std::shared_ptr<Buffer> operator->()
+    {
+        return get();
+    }
+    
+    std::shared_ptr<Buffer> get()
     {
         if (!uniqID)
         {
