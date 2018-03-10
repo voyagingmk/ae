@@ -55,6 +55,7 @@ SET(HEADERS
     include/wyutils.h
     include/common.h
     include/mutex.h
+    include/condition.h
     external/wrapsock.h
     external/error.h
     external/log.h

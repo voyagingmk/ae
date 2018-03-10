@@ -5,6 +5,10 @@
 #include "uniqid.h"
 #include "noncopyable.h"
 
+#include "mutex.h"
+#include "condition.h"
+
+
 namespace wynet
 {
 
@@ -64,7 +68,8 @@ class BufferSet: public Noncopyable
 {
     std::vector<std::shared_ptr<Buffer>> buffers;
     UniqIDGenerator uniqIDGen;
-
+    MutexLock m_mutex;
+    Condition m_cond;
   public:
     static BufferSet &dynamicSingleton()
     {
@@ -78,7 +83,9 @@ class BufferSet: public Noncopyable
         return gBufferSet;
     }
 
-    BufferSet()
+    BufferSet():
+        m_mutex(),
+        m_cond(m_mutex)
     {
     }
 

@@ -12,7 +12,6 @@ class MutexLock : Noncopyable
 {
 public:
   MutexLock()
-      :m_tid(0)
   {
       pthread_mutexattr_t attr;
       pthread_mutexattr_init (&attr);
@@ -29,51 +28,70 @@ public:
     pthread_mutex_destroy(&m_mutex);
   }
 
-  bool isLockedByThisThread() const
-  {
-      uint64_t tid;
-      pthread_threadid_np(NULL, &tid);
-      return m_tid == tid;
-  }
-
   void lock()
   {
-    pthread_mutex_lock(&m_mutex);
-    setTid();
+      pthread_mutex_lock(&m_mutex);
   }
 
   void unlock()
   {
-    resetTid();
-    pthread_mutex_unlock(&m_mutex);
+      pthread_mutex_unlock(&m_mutex);
   }
 
-  pthread_mutex_t *getPthreadMutex()
+  pthread_mutex_t *getMutexPointer()
   {
-    return &m_mutex;
+      return &m_mutex;
   }
 
-private:
-  friend class Condition;
-
-  void resetTid()
-  {
-    m_tid = 0;
-  }
-
-  void setTid()
-  {
-      pthread_threadid_np(NULL, &m_tid);
-  }
-
-  pthread_mutex_t m_mutex;
-  uint64_t m_tid;
+protected:
+    friend class Condition;
+    pthread_mutex_t m_mutex;
 };
 
+    
+class MutexLock2: public MutexLock
+{
+    MutexLock2():
+    m_tid(0)
+    {}
+   
+    bool isLockedByThisThread() const
+    {
+        uint64_t tid;
+        pthread_threadid_np(NULL, &tid);
+        return m_tid == tid;
+    }
+    
+    void lock()
+    {
+        pthread_mutex_lock(&m_mutex);
+        setTid();
+    }
+    
+    void unlock()
+    {
+        resetTid();
+        pthread_mutex_unlock(&m_mutex);
+    }
+    
+    void resetTid()
+    {
+        m_tid = 0;
+    }
+    
+    void setTid()
+    {
+        pthread_threadid_np(NULL, &m_tid);
+    }
+    
+    uint64_t m_tid;
+};
+
+template<typename ML>
 class MutexLockGuard : Noncopyable
 {
 public:
-    explicit MutexLockGuard(MutexLock &mutex):
+    explicit MutexLockGuard(ML &mutex):
         m_mutex(mutex)
     {
         m_mutex.lock();
@@ -85,11 +103,13 @@ public:
   }
 
 private:
-  MutexLock &m_mutex;
+  ML &m_mutex;
 };
   
 #define MutexLockGuard(x) static_assert(false, "[MutexLockGuard] error use")
 
+
+   
 }
 
 #endif

@@ -7,7 +7,6 @@
 #include "wyudpserver.h"
 #include "wyconnection.h"
 #include "noncopyable.h"
-
 namespace wynet
 {
 
