@@ -14,7 +14,14 @@ public:
   MutexLock()
       :m_tid(0)
   {
-    pthread_mutex_init(&m_mutex, NULL);
+      pthread_mutexattr_t attr;
+      pthread_mutexattr_init (&attr);
+#ifdef DEBUG_MODE
+      pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_ERRORCHECK);
+#else
+      pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_DEFAULT);
+#endif
+      pthread_mutex_init(&m_mutex, &attr);
   }
 
   ~MutexLock()
