@@ -45,7 +45,6 @@ void LogSocketState(int sockfd)
     log_debug("SO_REUSEADDR = %d", isReuseAddr);
 
     int keepAlive = 0;
-    int keepIdle = 0;
     int keepInterval = 0;
     int keepCount = 0;
 #ifdef TCP_KEEPALIVE
@@ -54,6 +53,7 @@ void LogSocketState(int sockfd)
     log_debug("TCP_KEEPALIVE = %d", keepAlive);
 #endif
 #ifdef TCP_KEEPIDLE
+    int keepIdle = 0;
     len = sizeof(keepIdle);
     Getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, &len); // tcp_keepalive_time
     log_debug("TCP_KEEPIDLE = %d", keepIdle);

@@ -4,12 +4,13 @@
 #include "common.h"
 #include "wykcp.h"
 #include "wysockbase.h"
+#include "noncopyable.h"
 
 namespace wynet
 {
 
 // for server only
-class Connection
+class Connection: public Noncopyable 
 {
   public:
     uint32_t key;
@@ -29,6 +30,14 @@ class Connection
     {
         return key >> 16;
     }
+    
+    Connection& operator=(Connection && c) {
+        key = c.key;
+        kcpObj = c.kcpObj;
+        c.key = 0;
+        c.kcpObj = nullptr;
+        return *this;
+    }
 };
 
 class ConnectionForServer : public Connection
@@ -36,6 +45,12 @@ class ConnectionForServer : public Connection
   public:
     int connfdTcp;
     SockBuffer buf;
+    ConnectionForServer& operator=(ConnectionForServer && c) {
+        connfdTcp = c.connfdTcp;
+        buf = std::move(c.buf);
+        c.connfdTcp = 0;
+        return *this;
+    }
 };
 
 class ConnectionForClient : public Connection

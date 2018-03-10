@@ -6,13 +6,14 @@
 #include "wytcpserver.h"
 #include "wyudpserver.h"
 #include "wyconnection.h"
+#include "noncopyable.h"
 
 namespace wynet
 {
 
 class WyNet;
     
-class Server
+class Server: public Noncopyable
 {
     WyNet *net;
     int tcpPort;

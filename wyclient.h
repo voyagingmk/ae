@@ -6,6 +6,7 @@
 #include "wytcpclient.h"
 #include "wyudpclient.h"
 #include "wyconnection.h"
+#include "noncopyable.h"
 
 namespace wynet
 {
@@ -13,7 +14,7 @@ namespace wynet
 class WyNet;
 class Test;
 
-class Client
+class Client: public Noncopyable 
 {
     WyNet *net;
     ConnectionForClient conn;

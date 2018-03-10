@@ -4,11 +4,12 @@
 #include "common.h"
 #include "wybuffer.h"
 #include "protocol.h"
+#include "noncopyable.h"
 
 namespace wynet
 {
     
-class SockBuffer {
+class SockBuffer: public Noncopyable {
 public:
     BufferRef bufRef;
     size_t recvSize;
@@ -16,6 +17,18 @@ public:
     SockBuffer():
         recvSize(0)
     {
+    }
+    SockBuffer& operator=(SockBuffer && s) {
+        bufRef = std::move(s.bufRef);
+        recvSize = s.recvSize;
+        s.recvSize = 0;
+        return *this;
+    }
+    
+    SockBuffer(SockBuffer && s) {
+        bufRef = std::move(s.bufRef);
+        recvSize = s.recvSize;
+        s.recvSize = 0;
     }
     
     inline int leftSpace() {
