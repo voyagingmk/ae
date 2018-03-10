@@ -54,6 +54,7 @@ SET(HEADERS
     include/uniqid.h
     include/wyutils.h
     include/common.h
+    include/mutex.h
     external/wrapsock.h
     external/error.h
     external/log.h
