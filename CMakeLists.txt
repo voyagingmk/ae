@@ -17,6 +17,10 @@ set (CMAKE_CXX_STANDARD 11)
 set (BUILD_SHARED_LIBS false)
 
 include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_SOURCE_DIR}/external")
+include_directories("${PROJECT_SOURCE_DIR}/src")
+
 FILE(GLOB_RECURSE MY_SOURCERS
     wykcp.cpp
     wynet.cpp
