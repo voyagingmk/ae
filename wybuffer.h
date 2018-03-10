@@ -78,9 +78,8 @@ class BufferSet: public Noncopyable
         return gBufferSet;
     }
 
-    BufferSet(int defaultSize = 8)
+    BufferSet()
     {
-        buffers.resize(defaultSize);
     }
 
     UniqID newBuffer()
