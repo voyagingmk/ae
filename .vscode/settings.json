@@ -22,6 +22,10 @@
         "string": "cpp",
         "string_view": "cpp",
         "__locale": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "deque": "cpp",
+        "__mutex_base": "cpp",
+        "locale": "cpp",
+        "ostream": "cpp"
     }
 }
