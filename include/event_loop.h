@@ -17,6 +17,10 @@ class EventLoop : Noncopyable
     void loop();
 
     void stop();
+
+    void createTimerEvent(long long ms,
+                          aeTimeProc *proc, void *clientData,
+                          aeEventFinalizerProc *finalizerProc);
 };
 };
 

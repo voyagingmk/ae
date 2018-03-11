@@ -5,7 +5,7 @@ namespace wynet
 
 EventLoop::EventLoop()
 {
-     aeloop = aeCreateEventLoop(64);
+    aeloop = aeCreateEventLoop(64);
 }
 
 EventLoop::~EventLoop()
@@ -26,5 +26,12 @@ void EventLoop::loop()
 void EventLoop::stop()
 {
     aeStop(aeloop);
+}
+
+void EventLoop ::createTimerEvent(long long ms,
+                                  aeTimeProc *proc, void *clientData,
+                                  aeEventFinalizerProc *finalizerProc)
+{
+    assert(AE_ERR != aeCreateTimeEvent(aeloop, ms, proc, clientData, finalizerProc));
 }
 };
