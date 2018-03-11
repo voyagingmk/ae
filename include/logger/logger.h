@@ -47,8 +47,8 @@ public:
 private:
   void threadFunc();
 
-  typedef std::shared_ptr<LoggingBuffer> BufferPtr;
-  typedef std::vector<BufferPtr> BufferVector;
+  typedef std::unique_ptr<LoggingBuffer> BufferPtr;
+  typedef std::vector<BufferPtr> BufferPtrVector;
 
   const int m_flushInterval;
   bool m_running;
@@ -60,7 +60,7 @@ private:
   Condition m_cond;
   BufferPtr m_curBuffer;
   BufferPtr m_nextBuffer;
-  BufferVector m_buffers;
+  BufferPtrVector m_fulledBuffers;
 };
 }
 #endif

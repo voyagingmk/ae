@@ -16,11 +16,11 @@ Logger::Logger(const string &logtitle,
                                     m_cond(m_mutex),
                                     m_curBuffer(new LoggingBuffer),
                                     m_nextBuffer(new LoggingBuffer),
-                                    m_buffers()
+                                    m_fulledBuffers()
 {
     m_curBuffer->clean();
     m_nextBuffer->clean();
-    m_buffers.reserve(16);
+    m_fulledBuffers.reserve(16);
 }
 
 void Logger::append(const char *logline, int len)
@@ -32,7 +32,7 @@ void Logger::append(const char *logline, int len)
     }
     else
     {
-        m_buffers.push_back(m_curBuffer);
+        m_fulledBuffers.push_back(m_curBuffer);
 
         if (m_nextBuffer)
         {
@@ -56,7 +56,7 @@ void Logger::threadFunc()
     BufferPtr newBuffer2(new LoggingBuffer);
     newBuffer1->clean();
     newBuffer2->clean();
-    BufferVector buffersToWrite;
+    BufferPtrVector buffersToWrite;
     buffersToWrite.reserve(16);
     while (m_running)
     {
@@ -66,13 +66,13 @@ void Logger::threadFunc()
 
         {
             MutexLockGuard<MutexLock> lock(mutex);
-            if (m_buffers.empty()) // unusual usage!
+            if (m_fulledBuffers.empty()) // unusual usage!
             {
                 m_cond.waitForSeconds(m_flushInterval);
             }
-            m_buffers.push_back(m_curBuffer);
+            m_fulledBuffers.push_back(m_curBuffer);
             m_curBuffer = std::move(newBuffer1);
-            buffersToWrite.swap(m_buffers);
+            buffersToWrite.swap(m_fulledBuffers);
             if (!m_nextBuffer)
             {
                 m_nextBuffer = std::move(newBuffer2);
@@ -106,7 +106,7 @@ void Logger::threadFunc()
         if (!newBuffer1)
         {
             assert(!buffersToWrite.empty());
-            newBuffer1 = buffersToWrite.back();
+            newBuffer1 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
             newBuffer1->reset();
         }
@@ -114,7 +114,7 @@ void Logger::threadFunc()
         if (!newBuffer2)
         {
             assert(!buffersToWrite.empty());
-            newBuffer2 = buffersToWrite.back();
+            newBuffer2 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
             newBuffer2->reset();
         }
