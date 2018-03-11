@@ -17,7 +17,7 @@ namespace CurrentThread
 __thread int t_tidCached = 0;
 __thread char t_tidString[32];
 __thread int t_tidStringLength = 6;
-__thread const char *t_threadName = "Unknown";
+__thread const char *t_threadName = "unknown";
 
 void cacheTid()
 {
@@ -29,6 +29,8 @@ void cacheTid()
 
 bool isMainThread()
 {
+    // https://linux.die.net/man/2/gettid
+    // In a single-threaded process, the thread ID is equal to the process ID
     return tid() == ::getpid();
 }
 
@@ -47,10 +49,10 @@ void afterFork()
     CurrentThread::tid();
 }
 
-class ThreadNameInitializer
+class ThreadNameInit
 {
   public:
-    ThreadNameInitializer()
+    ThreadNameInit()
     {
         CurrentThread::t_threadName = "main";
         CurrentThread::tid();
@@ -58,7 +60,7 @@ class ThreadNameInitializer
     }
 };
 
-ThreadNameInitializer init;
+const static ThreadNameInit init;
 };
 
 ///////////////////////////////////////////
