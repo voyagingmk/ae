@@ -17,4 +17,7 @@ int SetSockSendBufSize(int fd, int newSndbuf);
 
 int SetSockRecvBufSize(int fd, int newRcvbuf);
 
+
+std::string hostname();
+
 #endif
