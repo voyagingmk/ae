@@ -16,12 +16,10 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
     LoggingBuffer():
         used(0)
     {
-        setCookie(cookieStart);
     }
 
     ~LoggingBuffer()
     {
-        setCookie(cookieEnd);
     }
 
     void append(const char *buf, size_t len)
@@ -46,7 +44,7 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
     }
 
     size_t leftOpacity() const { 
-        m_size - used; 
+        return m_size - used;
     }
 
     void add(size_t len) { 
@@ -60,24 +58,16 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
 
     const char *debugString();
 
-    void setCookie(void (*cookie)()) { 
-        m_cookie = cookie; 
-    }
-
     string toString() const { 
         return string((const char *)m_data, length());
     }
 
   private:
+    
     const char *end() const { 
         return (const char *)m_data + m_size; 
     }
-
-    static void cookieStart();
-
-    static void cookieEnd();
-
-    void (*m_cookie)();
+    
     size_t used;
 };
     

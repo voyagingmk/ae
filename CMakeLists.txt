@@ -28,6 +28,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     src/wyudpserver.cpp
     src/wyutils.cpp
     src/uniqid.cpp
+    src/wythread.cpp
     src/logger/logger.cpp
     external/ae.c
     external/wrapsock.c
@@ -57,6 +58,7 @@ SET(HEADERS
     include/common.h
     include/mutex.h
     include/condition.h
+    include/wythread.h
     include/logger/logging_buffer.h
     include/logger/logger.h
     external/wrapsock.h

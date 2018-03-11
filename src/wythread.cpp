@@ -3,37 +3,56 @@
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/prctl.h>
+// #include <sys/prctl.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
-#include <linux/unistd.h>
+#include <unistd.h>
 
 namespace wynet
 {
+using namespace std;
 namespace CurrentThread
 {
 __thread int t_cachedTid = 0;
 __thread char t_tidString[32];
 __thread int t_tidStringLength = 6;
 __thread const char *t_threadName = "unknown";
-const bool sameType = boost::is_same<int, pid_t>::value;
-BOOST_STATIC_ASSERT(sameType);
+
+void cacheTid()
+{
+    if (t_cachedTid == 0)
+    {
+        t_cachedTid = gettid();
+        t_tidStringLength = snprintf(t_tidString, sizeof t_tidString, "%5d ", t_cachedTid);
+    }
 }
 
-namespace detail
+bool isMainThread()
 {
+    return tid() == ::getpid();
+}
+
+void sleepUsec(int64_t usec)
+{
+    struct timespec ts = {0, 0};
+    ts.tv_sec = static_cast<time_t>(usec / (1000 * 1000));
+    ts.tv_nsec = static_cast<long>(usec % (1000 * 1000) * 1000);
+    ::nanosleep(&ts, NULL);
+}
 
 pid_t gettid()
 {
-    return static_cast<pid_t>(::syscall(SYS_gettid));
+    uint64_t tid;
+    pthread_threadid_np(NULL, &tid);
+    return static_cast<pid_t>(tid);
+    // return static_cast<pid_t>(::syscall(SYS_gettid));
 }
 
 void afterFork()
 {
-    muduo::CurrentThread::t_cachedTid = 0;
-    muduo::CurrentThread::t_threadName = "main";
+    CurrentThread::t_cachedTid = 0;
+    CurrentThread::t_threadName = "main";
     CurrentThread::tid();
-    // no need to call pthread_atfork(NULL, NULL, &afterFork);
 }
 
 class ThreadNameInitializer
@@ -41,17 +60,18 @@ class ThreadNameInitializer
   public:
     ThreadNameInitializer()
     {
-        muduo::CurrentThread::t_threadName = "main";
+        CurrentThread::t_threadName = "main";
         CurrentThread::tid();
         pthread_atfork(NULL, NULL, &afterFork);
     }
 };
 
 ThreadNameInitializer init;
+};
 
 struct ThreadData
 {
-    typedef muduo::Thread::ThreadFunc ThreadFunc;
+    typedef Thread::ThreadFunc ThreadFunc;
     ThreadFunc m_func;
     string m_name;
     pid_t *m_tid;
@@ -70,21 +90,21 @@ struct ThreadData
 
     void runInThread()
     {
-        *m_tid = muduo::CurrentThread::tid();
+        *m_tid = CurrentThread::tid();
         m_tid = NULL;
         m_latch->countDown();
         m_latch = NULL;
 
-        muduo::CurrentThread::t_threadName = m_name.empty() ? "muduoThread" : m_name.c_str();
-        ::prctl(PR_SET_NAME, muduo::CurrentThread::t_threadName);
+        CurrentThread::t_threadName = m_name.empty() ? "muduoThread" : m_name.c_str();
+        ::prctl(PR_SET_NAME, CurrentThread::t_threadName);
         try
         {
             m_func();
-            muduo::CurrentThread::t_threadName = "finished";
+            CurrentThread::t_threadName = "finished";
         }
         catch (const Exception &ex)
         {
-            muduo::CurrentThread::t_threadName = "crashed";
+            CurrentThread::t_threadName = "crashed";
             fprintf(stderr, "exception caught in Thread %s\n", m_name.c_str());
             fprintf(stderr, "reason: %s\n", ex.what());
             fprintf(stderr, "stack trace: %s\n", ex.stackTrace());
@@ -92,14 +112,14 @@ struct ThreadData
         }
         catch (const std::exception &ex)
         {
-            muduo::CurrentThread::t_threadName = "crashed";
+            CurrentThread::t_threadName = "crashed";
             fprintf(stderr, "exception caught in Thread %s\n", m_name.c_str());
             fprintf(stderr, "reason: %s\n", ex.what());
             abort();
         }
         catch (...)
         {
-            muduo::CurrentThread::t_threadName = "crashed";
+            CurrentThread::t_threadName = "crashed";
             fprintf(stderr, "unknown exception caught in Thread %s\n", m_name.c_str());
             throw; // rethrow
         }
@@ -112,32 +132,6 @@ void *startThread(void *obj)
     data->runInThread();
     delete data;
     return NULL;
-}
-}
-}
-
-using namespace muduo;
-
-void CurrentThread::cacheTid()
-{
-    if (t_cachedTid == 0)
-    {
-        t_cachedTid = detail::gettid();
-        t_tidStringLength = snprintf(t_tidString, sizeof t_tidString, "%5d ", t_cachedTid);
-    }
-}
-
-bool CurrentThread::isMainThread()
-{
-    return tid() == ::getpid();
-}
-
-void CurrentThread::sleepUsec(int64_t usec)
-{
-    struct timespec ts = {0, 0};
-    ts.tv_sec = static_cast<time_t>(usec / Timestamp::kMicroSecondsPerSecond);
-    ts.tv_nsec = static_cast<long>(usec % Timestamp::kMicroSecondsPerSecond * 1000);
-    ::nanosleep(&ts, NULL);
 }
 
 Thread::Thread(const ThreadFunc &func, const string &n)
@@ -188,8 +182,8 @@ void Thread::start()
     assert(!m_started);
     m_started = true;
     // FIXME: move(m_func)
-    detail::ThreadData *data = new detail::ThreadData(m_func, m_name, &m_tid, &m_latch);
-    if (pthread_create(&m_pthreadId, NULL, &detail::startThread, data))
+    ThreadData *data = new ThreadData(m_func, m_name, &m_tid, &m_latch);
+    if (pthread_create(&m_pthreadId, NULL, &startThread, data))
     {
         m_started = false;
         delete data; // or no delete?
@@ -211,3 +205,4 @@ int Thread::join()
 }
 
 std::atomic<int32_t> Thread::m_numCreated;
+};
