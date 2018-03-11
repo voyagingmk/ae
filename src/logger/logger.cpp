@@ -108,7 +108,7 @@ void Logger::threadFunc()
             assert(!buffersToWrite.empty());
             newBuffer1 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
-            newBuffer1->clean();
+            newBuffer1->reset();
         }
 
         if (!newBuffer2)
@@ -116,7 +116,7 @@ void Logger::threadFunc()
             assert(!buffersToWrite.empty());
             newBuffer2 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
-            newBuffer2->clean();
+            newBuffer2->reset();
         }
 
         buffersToWrite.clear();
