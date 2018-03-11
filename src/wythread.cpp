@@ -7,6 +7,8 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "exception.h"
+
 
 namespace wynet
 {
@@ -68,6 +70,8 @@ class ThreadNameInitializer
 
 ThreadNameInitializer init;
 };
+
+///////////////////////////////////////////
 
 struct ThreadData
 {
@@ -143,7 +147,8 @@ Thread::Thread(const ThreadFunc &func, const string &n)
       m_name(n),
       m_latch(1)
 {
-    setDefaultName();
+    int num = ++m_numCreated;
+    setDefaultName(num);
 }
 
 Thread::Thread(ThreadFunc &&func, const std::string &n)
