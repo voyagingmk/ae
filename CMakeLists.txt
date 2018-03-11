@@ -27,6 +27,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     src/wyudpclient.cpp
     src/wyudpserver.cpp
     src/wyutils.cpp
+    src/event_loop.cpp
     src/uniqid.cpp
     src/wythread.cpp
     src/exception.cpp
@@ -58,6 +59,7 @@ SET(HEADERS
     include/wytcpserver.h
     include/uniqid.h
     include/wyutils.h
+    include/event_loop.h
     include/common.h
     include/mutex.h
     include/condition.h
