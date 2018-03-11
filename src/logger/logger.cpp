@@ -32,7 +32,7 @@ void Logger::append(const char *logline, int len)
     }
     else
     {
-        m_fulledBuffers.push_back(m_curBuffer);
+        m_fulledBuffers.push_back(std::move(m_curBuffer));
 
         if (m_nextBuffer)
         {
@@ -40,7 +40,7 @@ void Logger::append(const char *logline, int len)
         }
         else
         {
-            m_curBuffer.reset(new LoggingBuffer()); // Rarely happens
+            m_curBuffer.reset(new LoggingBuffer());
         }
         m_curBuffer->append(logline, len);
         m_cond.notify();
@@ -52,8 +52,8 @@ void Logger::threadFunc()
     assert(m_running == true);
     m_latch.countDown();
     LogFile output(m_logtitle, m_rollSize, false);
-    BufferPtr newBuffer1(new LoggingBuffer);
-    BufferPtr newBuffer2(new LoggingBuffer);
+    BufferUniquePtr newBuffer1(new LoggingBuffer);
+    BufferUniquePtr newBuffer2(new LoggingBuffer);
     newBuffer1->clean();
     newBuffer2->clean();
     BufferPtrVector buffersToWrite;
@@ -70,7 +70,7 @@ void Logger::threadFunc()
             {
                 m_cond.waitForSeconds(m_flushInterval);
             }
-            m_fulledBuffers.push_back(m_curBuffer);
+            m_fulledBuffers.push_back(std::move(m_curBuffer));
             m_curBuffer = std::move(newBuffer1);
             buffersToWrite.swap(m_fulledBuffers);
             if (!m_nextBuffer)
@@ -108,7 +108,7 @@ void Logger::threadFunc()
             assert(!buffersToWrite.empty());
             newBuffer1 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
-            newBuffer1->reset();
+            newBuffer1->clean();
         }
 
         if (!newBuffer2)
@@ -116,7 +116,7 @@ void Logger::threadFunc()
             assert(!buffersToWrite.empty());
             newBuffer2 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
-            newBuffer2->reset();
+            newBuffer2->clean();
         }
 
         buffersToWrite.clear();

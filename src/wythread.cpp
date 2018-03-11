@@ -179,7 +179,7 @@ void Thread::start()
     m_started = true;
     // FIXME: move(m_func)
     ThreadData *data = new ThreadData(m_func, m_name, &m_tid, &m_latch);
-    int ret = pthread_create(&m_pthreadId, NULL, &startThread, data));
+    int ret = pthread_create(&m_pthreadId, NULL, &startThread, data);
     if(ret)
     {
         m_started = false;
