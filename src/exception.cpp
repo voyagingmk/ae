@@ -42,7 +42,6 @@ void Exception::fillStackTrace()
   {
     for (int i = 0; i < nptrs; ++i)
     {
-      // TODO demangle funcion name with abi::__cxa_demangle
       m_stack.append(strings[i]);
       m_stack.push_back('\n');
     }

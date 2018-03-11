@@ -31,3 +31,7 @@ typedef IUINT32 ConvID;
 #define fwrite_unlocked fwrite
 #define fflush_unlocked fflush
 #endif
+
+
+#define G_LIKELY(expr) (__builtin_expect ( !!(expr), 1))
+#define G_UNLIKELY(expr) (__builtin_expect ( !!(expr), 0))
