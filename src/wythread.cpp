@@ -100,7 +100,6 @@ struct ThreadData
         m_latch = NULL;
 
         CurrentThread::t_threadName = m_name.empty() ? "muduoThread" : m_name.c_str();
-        ::prctl(PR_SET_NAME, CurrentThread::t_threadName);
         try
         {
             m_func();
@@ -192,7 +191,7 @@ void Thread::start()
     {
         m_started = false;
         delete data; // or no delete?
-        LOG_SYSFATAL << "Failed in pthread_create";
+        // LOG_SYSFATAL << "Failed in pthread_create";
     }
     else
     {

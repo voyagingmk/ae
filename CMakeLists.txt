@@ -31,6 +31,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     src/wythread.cpp
     src/exception.cpp
     src/logger/logger.cpp
+    src/logger/log_file.cpp
     external/ae.c
     external/wrapsock.c
     external/zmalloc.c
@@ -63,6 +64,7 @@ SET(HEADERS
     include/exception.h
     include/logger/logging_buffer.h
     include/logger/logger.h
+    include/logger/log_file.h
     external/wrapsock.h
     external/error.h
     external/log.h
