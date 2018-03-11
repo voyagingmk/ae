@@ -17,15 +17,14 @@ namespace CurrentThread
 __thread int t_tidCached = 0;
 __thread char t_tidString[32];
 __thread int t_tidStringLength = 6;
-__thread const char *t_threadName = "unknown";
+__thread const char *t_threadName = "Unknown";
 
 void cacheTid()
 {
-    if (t_tidCached == 0)
-    {
-        t_tidCached = gettid();
-        t_tidStringLength = snprintf(t_tidString, sizeof t_tidString, "%5d ", t_tidCached);
-    }
+    if (t_tidCached)
+        return;
+    t_tidCached = gettid();
+    t_tidStringLength = snprintf(t_tidString, sizeof(t_tidString), "%5d ", t_tidCached);
 }
 
 bool isMainThread()
