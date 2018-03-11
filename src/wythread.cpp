@@ -32,14 +32,6 @@ bool isMainThread()
     return tid() == ::getpid();
 }
 
-void sleepUsec(int64_t usec)
-{
-    struct timespec ts = {0, 0};
-    ts.tv_sec = static_cast<time_t>(usec / (1000 * 1000));
-    ts.tv_nsec = static_cast<long>(usec % (1000 * 1000) * 1000);
-    ::nanosleep(&ts, NULL);
-}
-
 pid_t gettid()
 {
     uint64_t tid;

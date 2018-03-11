@@ -49,8 +49,6 @@ inline const char *name()
 }
 
 bool isMainThread();
-
-void sleepUsec(int64_t usec);
 };
 
 class Thread : Noncopyable
@@ -89,5 +87,6 @@ private:
 
   static std::atomic<int32_t> m_numCreated; // increase only
 };
-}
+};
+
 #endif
