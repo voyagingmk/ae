@@ -15,8 +15,8 @@ using namespace std;
 class Logger : Noncopyable
 {
   public:
-    Logger(const string &basename,
-           off_t rollSize,
+    Logger(const string &logtitle,
+           off_t rollSize = 500 * 1024 * 1024,
            int flushInterval = 3);
 
     ~Logger()
@@ -33,7 +33,7 @@ class Logger : Noncopyable
     {
         m_running = true;
         m_thread.start();
-        latch_.wait();
+        m_latch.wait();
     }
 
     void stop()
@@ -49,17 +49,17 @@ class Logger : Noncopyable
     typedef std::vector<std::unique_ptr<LoggingBuffer>> BufferVector;
     typedef BufferVector::auto_type BufferPtr;
 
-    const int flushInterval_;
+    const int m_flushInterval;
     bool m_running;
-    string basename_;
-    off_t rollSize_;
+    string m_logtitle;
+    off_t m_rollSize;
     muduo::Thread m_thread;
-    muduo::CountDownLatch latch_;
+    muduo::CountDownLatch m_latch;
     MutexLock m_mutex;
     Condition m_cond;
-    BufferPtr currentBuffer_;
-    BufferPtr nextBuffer_;
-    BufferVector buffers_;
+    BufferPtr m_curBuffer;
+    BufferPtr m_nextBuffer;
+    BufferVector m_buffers;
 };
 }
 #endif

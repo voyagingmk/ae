@@ -51,8 +51,9 @@ class LoggingBuffer : public StaticBuffer
         used += len; 
     }
 
-    void reset() { 
-        used = 0; 
+    void clean() { 
+        used = 0;
+        StaticBuffer::clean();
     }
 
     const char *debugString();

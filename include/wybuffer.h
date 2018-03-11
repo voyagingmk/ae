@@ -29,8 +29,10 @@ class StaticBuffer: public BufferBase
   public:
     uint8_t m_data[BUF_SIZE];
     size_t m_size;
-
-
+  public:
+    void clean() {
+        bzero(m_data, m_size); 
+    }
 };
 
 
