@@ -1,5 +1,6 @@
 
 #include "logger/logger.h"
+#include "logger/log_file.h"
 
 namespace wynet
 {
@@ -69,8 +70,8 @@ void Logger::threadFunc()
             {
                 m_cond.waitForSeconds(m_flushInterval);
             }
-            m_buffers.push_back(currentBuffer_.release());
-            m_currentBuffer = std::move(newBuffer1);
+            m_buffers.push_back(m_curBuffer);
+            m_curBuffer = std::move(newBuffer1);
             buffersToWrite.swap(m_buffers);
             if (!m_nextBuffer)
             {
@@ -83,8 +84,7 @@ void Logger::threadFunc()
         if (buffersToWrite.size() > 25)
         {
             char buf[256];
-            snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger buffers\n",
-                     Timestamp::now().toFormattedString().c_str(),
+            snprintf(buf, sizeof buf, "Dropped log messages, %zd larger buffers\n",
                      buffersToWrite.size() - 2);
             fputs(buf, stderr);
             output.append(buf, static_cast<int>(strlen(buf)));
@@ -94,7 +94,7 @@ void Logger::threadFunc()
         for (size_t i = 0; i < buffersToWrite.size(); ++i)
         {
             // FIXME: use unbuffered stdio FILE ? or use ::writev ?
-            output.append(buffersToWrite[i].data(), buffersToWrite[i].length());
+            output.append((const char *)buffersToWrite[i]->data(), buffersToWrite[i]->length());
         }
 
         if (buffersToWrite.size() > 2)
@@ -106,14 +106,16 @@ void Logger::threadFunc()
         if (!newBuffer1)
         {
             assert(!buffersToWrite.empty());
-            newBuffer1 = buffersToWrite.pop_back();
+            newBuffer1 = buffersToWrite.back();
+            buffersToWrite.pop_back();
             newBuffer1->reset();
         }
 
         if (!newBuffer2)
         {
             assert(!buffersToWrite.empty());
-            newBuffer2 = buffersToWrite.pop_back();
+            newBuffer2 = buffersToWrite.back();
+            buffersToWrite.pop_back();
             newBuffer2->reset();
         }
 

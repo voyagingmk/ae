@@ -30,6 +30,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     src/uniqid.cpp
     src/wythread.cpp
     src/exception.cpp
+    src/count_down_latch.cpp
     src/logger/logger.cpp
     src/logger/log_file.cpp
     external/ae.c
@@ -62,6 +63,7 @@ SET(HEADERS
     include/condition.h
     include/wythread.h
     include/exception.h
+    include/count_down_latch.h
     include/logger/logging_buffer.h
     include/logger/logger.h
     include/logger/log_file.h

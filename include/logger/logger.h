@@ -47,7 +47,7 @@ public:
 private:
   void threadFunc();
 
-  typedef std::unique_ptr<LoggingBuffer> BufferPtr;
+  typedef std::shared_ptr<LoggingBuffer> BufferPtr;
   typedef std::vector<BufferPtr> BufferVector;
 
   const int m_flushInterval;

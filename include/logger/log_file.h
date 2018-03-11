@@ -10,10 +10,26 @@ namespace wynet
 {
 using namespace std;
 
-namespace FileUtil
+class AppendFile : Noncopyable
 {
-class AppendFile;
-}
+public:
+  explicit AppendFile(std::string &filename);
+
+  ~AppendFile();
+
+  void append(const char *logline, const size_t len);
+
+  void flush();
+
+  off_t writtenBytes() const { return m_writtenBytes; }
+
+private:
+  size_t write(const char *logline, size_t len);
+
+  FILE *m_fp;
+  char m_buffer[64 * 1024];
+  off_t m_writtenBytes;
+};
 
 class LogFile : Noncopyable
 {
@@ -45,9 +61,10 @@ private:
   time_t m_startOfPeriod;
   time_t m_lastRoll;
   time_t m_lastFlush;
-  unique_ptr<FileUtil::AppendFile> m_file;
+  unique_ptr<AppendFile> m_file;
 
   const static int kRollPerSeconds_ = 60 * 60 * 24;
 };
-}
+};
+
 #endif

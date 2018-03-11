@@ -37,6 +37,7 @@
         "new": "cpp",
         "stdexcept": "cpp",
         "typeinfo": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "chrono": "cpp"
     }
 }

@@ -19,8 +19,12 @@ class BufferBase : public Noncopyable
   protected:
     BufferBase() {}
   public:
+    
     void clean() {}
-
+    
+    uint8_t* data() {}
+    
+    size_t length() {}
 };
 
 template<int BUF_SIZE>
@@ -32,6 +36,14 @@ class StaticBuffer: public BufferBase
   public:
     void clean() {
         bzero(m_data, m_size); 
+    }
+    
+    uint8_t* data() {
+        return m_data;
+    }
+    
+    size_t length() {
+        return m_size;
     }
 };
 
@@ -54,6 +66,14 @@ class DynamicBuffer: public BufferBase
         delete[] m_data;
     }
 
+    uint8_t* data() {
+        return m_data;
+    }
+    
+    size_t length() {
+        return m_size;
+    }
+    
     void clean() { 
         bzero(m_data, m_size); 
     }

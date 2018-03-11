@@ -26,3 +26,8 @@ extern "C" {
 }
 
 typedef IUINT32 ConvID;
+
+#ifdef __APPLE__
+#define fwrite_unlocked fwrite
+#define fflush_unlocked fflush
+#endif

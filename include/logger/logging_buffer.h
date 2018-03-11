@@ -31,10 +31,6 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
         }
     }
 
-    const char *data() const { 
-        return (const char *)m_data; 
-    }
-
     int length() const { 
         return used;
     }
@@ -49,6 +45,10 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
 
     void add(size_t len) { 
         used += len; 
+    }
+    
+    void reset() {
+        used = 0;
     }
 
     void clean() { 

@@ -1,11 +1,58 @@
 #include "logger/log_file.h"
-
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
 #include "wyutils.h"
 
 using namespace wynet;
+using namespace std;
+
+AppendFile::AppendFile(string &filename):
+    m_fp(::fopen(filename.c_str(), "ae")), // 'e' for O_CLOEXEC
+    m_writtenBytes(0)
+{
+  assert(m_fp);
+  ::setbuffer(m_fp, m_buffer, sizeof m_buffer);
+  // posix_fadvise POSIX_FADV_DONTNEED ?
+}
+
+AppendFile::~AppendFile()
+{
+  ::fclose(m_fp);
+}
+
+void AppendFile::append(const char *logline, const size_t len)
+{
+  size_t n = write(logline, len);
+  size_t remain = len - n;
+  while (remain > 0)
+  {
+    size_t x = write(logline + n, remain);
+    if (x == 0)
+    {
+      int err = ferror(m_fp);
+      if (err)
+      {
+        fprintf(stderr, "AppendFile::append() failed %s\n", strerror(err));
+      }
+      break;
+    }
+    n += x;
+    remain = len - n; // remain -= x
+  }
+
+  m_writtenBytes += len;
+}
+
+void AppendFile::flush()
+{
+  ::fflush(m_fp);
+}
+
+size_t AppendFile::write(const char *logline, size_t len)
+{
+  return ::fwrite_unlocked(logline, 1, len, m_fp);
+}
 
 LogFile::LogFile(const string &basename,
                  off_t rollSize,
@@ -96,7 +143,7 @@ bool LogFile::rollFile()
     m_lastRoll = now;
     m_lastFlush = now;
     m_startOfPeriod = start;
-    m_file.reset(new FileUtil::AppendFile(filename));
+    m_file.reset(new AppendFile(filename));
     return true;
   }
   return false;
