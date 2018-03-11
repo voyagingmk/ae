@@ -18,16 +18,16 @@ Exception::Exception(const string &msg)
   fillStackTrace();
 }
 
-Exception::~Exception() throw()
+Exception::~Exception() noexcept
 {
 }
 
-const char *Exception::what() const throw()
+const char *Exception::what() const noexcept
 {
   return m_message.c_str();
 }
 
-const char *Exception::stackTrace() const throw()
+const char *Exception::stackTrace() const noexcept
 {
   return m_stack.c_str();
 }
