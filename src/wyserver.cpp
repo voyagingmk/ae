@@ -83,7 +83,7 @@ Server::~Server()
     net = nullptr;
     log_info("[Server] destoryed.");
 }
-    
+
 void Server::CloseConnect(UniqID clientId)
 {
     auto it = connDict.find(clientId);
@@ -96,18 +96,19 @@ void Server::CloseConnect(UniqID clientId)
 
 void Server::CloseConnectByFd(int connfdTcp, bool force)
 {
-    if (force) {
+    if (force)
+    {
         struct linger l;
-        l.l_onoff = 1;        /* cause RST to be sent on close() */
+        l.l_onoff = 1; /* cause RST to be sent on close() */
         l.l_linger = 0;
         Setsockopt(connfdTcp, SOL_SOCKET, SO_LINGER, &l, sizeof(l));
     }
     _onTcpDisconnected(connfdTcp);
 }
 
-void Server::SendByTcp(UniqID clientId, const uint8_t *data, size_t len)
+void Server::SendByTcp(UniqID clientId, const uint8_t *m_data, size_t len)
 {
-    protocol::UserPacket *p = (protocol::UserPacket *)data;
+    protocol::UserPacket *p = (protocol::UserPacket *)m_data;
     PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
     SendByTcp(clientId, header);
 }
@@ -165,7 +166,8 @@ void Server::_onTcpConnected(int connfdTcp)
 void Server::_onTcpDisconnected(int connfdTcp)
 {
     int ret = close(connfdTcp);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         log_error("[Server][tcp] close err %d", ret);
     }
     aeDeleteFileEvent(net->aeloop, connfdTcp, AE_READABLE);
@@ -205,7 +207,7 @@ void Server::_onTcpMessage(int connfdTcp)
         if (ret == 1)
         {
             BufferRef &bufRef = sockBuffer.bufRef;
-            PacketHeader *header = (PacketHeader *)(bufRef->buffer);
+            PacketHeader *header = (PacketHeader *)(bufRef->m_data);
             Protocol protocol = static_cast<Protocol>(header->getProtocol());
             switch (protocol)
             {
@@ -215,7 +217,7 @@ void Server::_onTcpMessage(int connfdTcp)
             }
             case Protocol::UserPacket:
             {
-                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->buffer + header->getHeaderLength());
+                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->m_data + header->getHeaderLength());
                 size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
                 // log_debug("getHeaderLength: %d", header->getHeaderLength());
                 if (onTcpRecvUserData)

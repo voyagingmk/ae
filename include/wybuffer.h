@@ -8,31 +8,55 @@
 #include "mutex.h"
 #include "condition.h"
 
-
 namespace wynet
 {
 
 const size_t MaxBufferSize = 1024 * 1024 * 256; // 256 MB
 
-class Buffer: public Noncopyable
+
+class BufferBase : public Noncopyable 
+{
+  protected:
+    BufferBase() {}
+  public:
+    void clean() {}
+
+};
+
+template<size_t BUF_SIZE>
+class StaticBuffer: public BufferBase
 {
   public:
-    uint8_t *buffer;
-    size_t size;
+    uint8_t m_data[BUF_SIZE];
+    size_t m_size;
+
+
+};
+
+
+class DynamicBuffer: public BufferBase
+{
+  public:
+    uint8_t *m_data;
+    size_t m_size;
 
   public:
-    Buffer()
+    DynamicBuffer(size_t s = 0xff)
     {
-        size = 0xff;
-        buffer = new uint8_t[size]{0};
+        m_size = s;
+        m_data = new uint8_t[m_size];
     }
-    ~Buffer()
+    ~DynamicBuffer()
     {
-        size = 0;
-        delete[] buffer;
+        m_size = 0;
+        delete[] m_data;
     }
 
-    // keep old data
+    void clean() { 
+        bzero(m_data, m_size); 
+    }
+
+    // keep old m_data
     uint8_t *expand(size_t n)
     {
         return reserve(n, true);
@@ -44,32 +68,32 @@ class Buffer: public Noncopyable
         {
             return nullptr;
         }
-        if (!buffer || n > size)
+        if (!m_data || n > m_size)
         {
-            size_t oldSize = size;
-            while (n > size)
+            size_t oldSize = m_size;
+            while (n > m_size)
             {
-                size = size << 1;
+                m_size = m_size << 1;
             }
-            uint8_t *newBuffer = new uint8_t[size]{0};
+            uint8_t *newBuffer = new uint8_t[m_size]{0};
             if (keep)
             {
-                memcpy(newBuffer, buffer, oldSize);
+                memcpy(newBuffer, m_data, oldSize);
             }
-            delete[] buffer;
-            buffer = newBuffer;
+            delete[] m_data;
+            m_data = newBuffer;
         }
-        return buffer;
+        return m_data;
     }
 };
-    
-    
-class BufferSet: public Noncopyable
+
+class BufferSet : public Noncopyable
 {
-    std::vector<std::shared_ptr<Buffer>> buffers;
+    std::vector<std::shared_ptr<DynamicBuffer>> buffers;
     UniqIDGenerator uniqIDGen;
     MutexLock m_mutex;
     Condition m_cond;
+
   public:
     static BufferSet &dynamicSingleton()
     {
@@ -83,9 +107,8 @@ class BufferSet: public Noncopyable
         return gBufferSet;
     }
 
-    BufferSet():
-        m_mutex(),
-        m_cond(m_mutex)
+    BufferSet() : m_mutex(),
+                  m_cond(m_mutex)
     {
     }
 
@@ -94,7 +117,7 @@ class BufferSet: public Noncopyable
         UniqID uid = uniqIDGen.getNewID();
         if (uid > buffers.size())
         {
-            buffers.push_back(std::make_shared<Buffer>());
+            buffers.push_back(std::make_shared<DynamicBuffer>());
         }
         return uid;
     }
@@ -104,7 +127,7 @@ class BufferSet: public Noncopyable
         uniqIDGen.recycleID(uid);
     }
 
-    std::shared_ptr<Buffer> getBuffer(UniqID uid)
+    std::shared_ptr<DynamicBuffer> getBuffer(UniqID uid)
     {
         int32_t idx = uid - 1;
         if (idx < 0 || idx >= buffers.size())
@@ -114,7 +137,7 @@ class BufferSet: public Noncopyable
         return buffers[idx];
     }
 
-    std::shared_ptr<Buffer> getBufferByIdx(int32_t idx)
+    std::shared_ptr<DynamicBuffer> getBufferByIdx(int32_t idx)
     {
         if (idx < 0)
         {
@@ -122,13 +145,13 @@ class BufferSet: public Noncopyable
         }
         while ((idx + 1) > buffers.size())
         {
-            buffers.push_back(std::make_shared<Buffer>());
+            buffers.push_back(std::make_shared<DynamicBuffer>());
         }
         return buffers[idx];
     }
 };
 
-class BufferRef: public Noncopyable
+class BufferRef : public Noncopyable
 {
     UniqID uniqID;
 
@@ -154,7 +177,7 @@ class BufferRef: public Noncopyable
         b.uniqID = 0;
         log_debug("BufferRef moved %d", uniqID);
     }
-    
+
     BufferRef &operator=(BufferRef &&b)
     {
         recycleBuffer();
@@ -164,12 +187,12 @@ class BufferRef: public Noncopyable
         return (*this);
     }
 
-    inline std::shared_ptr<Buffer> operator->()
+    inline std::shared_ptr<DynamicBuffer> operator->()
     {
         return get();
     }
-    
-    std::shared_ptr<Buffer> get()
+
+    std::shared_ptr<DynamicBuffer> get()
     {
         if (!uniqID)
         {

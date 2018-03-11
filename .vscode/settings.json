@@ -26,6 +26,17 @@
         "deque": "cpp",
         "__mutex_base": "cpp",
         "locale": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "atomic": "cpp",
+        "__functional_03": "cpp",
+        "functional": "cpp",
+        "iosfwd": "cpp",
+        "__config": "cpp",
+        "__nullptr": "cpp",
+        "exception": "cpp",
+        "new": "cpp",
+        "stdexcept": "cpp",
+        "typeinfo": "cpp",
+        "ratio": "cpp"
     }
 }
