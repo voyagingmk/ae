@@ -38,6 +38,11 @@
         "stdexcept": "cpp",
         "typeinfo": "cpp",
         "ratio": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "__functional_base": "c",
+        "limits": "c",
+        "system_error": "c",
+        "tuple": "c",
+        "type_traits": "c"
     }
 }

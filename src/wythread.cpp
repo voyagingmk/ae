@@ -91,7 +91,7 @@ struct ThreadData
         m_latch->countDown();
         m_latch = NULL;
 
-        CurrentThread::t_threadName = m_name.empty() ? "Thread" : m_name.c_str();
+        CurrentThread::t_threadName = m_name.empty() ? "thread" : m_name.c_str();
         try
         {
             m_func();
@@ -179,11 +179,12 @@ void Thread::start()
     m_started = true;
     // FIXME: move(m_func)
     ThreadData *data = new ThreadData(m_func, m_name, &m_tid, &m_latch);
-    if (pthread_create(&m_pthreadId, NULL, &startThread, data))
+    int ret = pthread_create(&m_pthreadId, NULL, &startThread, data))
+    if(ret)
     {
         m_started = false;
-        delete data; // or no delete?
-        // LOG_SYSFATAL << "Failed in pthread_create";
+        delete data;
+        fprintf(stderr, "pthread_create failed: %s\n", strerror(ret));
     }
     else
     {
