@@ -35,13 +35,13 @@ class Condition : Noncopyable
         // FIXME: use CLOCK_MONOTONIC or CLOCK_MONOTONIC_RAW to prevent time rewind.
         clock_gettime(CLOCK_REALTIME, &abstime);
 
-        const int64_t kNanoSecondsPerSecond = 1000000000;
+        const int64_t kNanoSecondsPerSecond = 1000 * 1000 * 1000;
         int64_t nanoseconds = static_cast<int64_t>(seconds * kNanoSecondsPerSecond);
 
         abstime.tv_sec += static_cast<time_t>((abstime.tv_nsec + nanoseconds) / kNanoSecondsPerSecond);
         abstime.tv_nsec = static_cast<long>((abstime.tv_nsec + nanoseconds) % kNanoSecondsPerSecond);
 
-        MutexLockGuard<MutexLock> ug(m_mutex);
+        MutexLockGuard<MutexLock> g(m_mutex);
         return ETIMEDOUT == pthread_cond_timedwait(&m_cond, m_mutex.getMutexPointer(), &abstime);
     }
 
