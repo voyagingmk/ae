@@ -32,29 +32,29 @@ class Logger : Noncopyable
     void start()
     {
         m_running = true;
-        m_thread.start();
-        m_latch.wait();
+      //  m_thread.start();
+       // m_latch.wait();
     }
 
     void stop()
     {
         m_running = false;
         m_cond.notify();
-        m_thread.join();
+      //  m_thread.join();
     }
 
   private:
     void threadFunc();
 
-    typedef std::vector<std::unique_ptr<LoggingBuffer>> BufferVector;
-    typedef BufferVector::auto_type BufferPtr;
+    typedef std::unique_ptr<LoggingBuffer> BufferPtr;
+    typedef std::vector<BufferPtr> BufferVector;
 
     const int m_flushInterval;
     bool m_running;
     string m_logtitle;
     off_t m_rollSize;
-    muduo::Thread m_thread;
-    muduo::CountDownLatch m_latch;
+   // Thread m_thread;
+   // CountDownLatch m_latch;
     MutexLock m_mutex;
     Condition m_cond;
     BufferPtr m_curBuffer;

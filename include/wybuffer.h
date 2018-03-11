@@ -23,7 +23,7 @@ class BufferBase : public Noncopyable
 
 };
 
-template<size_t BUF_SIZE>
+template<int BUF_SIZE>
 class StaticBuffer: public BufferBase
 {
   public:

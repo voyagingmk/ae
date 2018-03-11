@@ -7,11 +7,13 @@
 namespace wynet
 {
 
-class LoggingBuffer : public StaticBuffer
+using namespace std;
+
+
+class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
 {
   public:
     LoggingBuffer():
-        StaticBuffer<4 * 1024 * 1024>(),
         used(0)
     {
         setCookie(cookieStart);
@@ -24,7 +26,7 @@ class LoggingBuffer : public StaticBuffer
 
     void append(const char *buf, size_t len)
     {
-        if (implicit_cast<size_t>(leftOpacity()) > len)
+        if (leftOpacity() > len)
         {
             memcpy(m_data + used, buf, len);
             used += len;
@@ -32,7 +34,7 @@ class LoggingBuffer : public StaticBuffer
     }
 
     const char *data() const { 
-        return m_data; 
+        return (const char *)m_data; 
     }
 
     int length() const { 
@@ -40,7 +42,7 @@ class LoggingBuffer : public StaticBuffer
     }
 
     char *current() {
-         return m_data + used;
+         return (char *)m_data + used;
     }
 
     size_t leftOpacity() const { 
@@ -63,12 +65,12 @@ class LoggingBuffer : public StaticBuffer
     }
 
     string toString() const { 
-        return string(m_data, length()); 
+        return string((const char *)m_data, length());
     }
 
   private:
     const char *end() const { 
-        return m_data + m_size; 
+        return (const char *)m_data + m_size; 
     }
 
     static void cookieStart();
@@ -78,6 +80,7 @@ class LoggingBuffer : public StaticBuffer
     void (*m_cookie)();
     size_t used;
 };
+    
 };
 
 #endif
