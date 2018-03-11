@@ -1,34 +1,33 @@
 #include "exception.h"
 
-//#include <cxxabi.h>
 #include <execinfo.h>
 #include <stdlib.h>
 
 using namespace wynet;
 using namespace std;
 
-Exception::Exception(const char* msg)
-  : m_message(msg)
+Exception::Exception(const char *msg)
+    : m_message(msg)
 {
   fillStackTrace();
 }
 
-Exception::Exception(const string& msg)
-  : m_message(msg)
+Exception::Exception(const string &msg)
+    : m_message(msg)
 {
   fillStackTrace();
 }
 
-Exception::~Exception() throw ()
+Exception::~Exception() throw()
 {
 }
 
-const char* Exception::what() const throw()
+const char *Exception::what() const throw()
 {
   return m_message.c_str();
 }
 
-const char* Exception::stackTrace() const throw()
+const char *Exception::stackTrace() const throw()
 {
   return m_stack.c_str();
 }
@@ -36,9 +35,9 @@ const char* Exception::stackTrace() const throw()
 void Exception::fillStackTrace()
 {
   const int len = 200;
-  void* buffer[len];
+  void *buffer[len];
   int nptrs = ::backtrace(buffer, len);
-  char** strings = ::backtrace_symbols(buffer, nptrs);
+  char **strings = ::backtrace_symbols(buffer, nptrs);
   if (strings)
   {
     for (int i = 0; i < nptrs; ++i)
@@ -50,4 +49,3 @@ void Exception::fillStackTrace()
     free(strings);
   }
 }
-

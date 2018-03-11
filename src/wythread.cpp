@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include "exception.h"
 
-
 namespace wynet
 {
 using namespace std;
@@ -99,7 +98,7 @@ struct ThreadData
         m_latch->countDown();
         m_latch = NULL;
 
-        CurrentThread::t_threadName = m_name.empty() ? "muduoThread" : m_name.c_str();
+        CurrentThread::t_threadName = m_name.empty() ? "Thread" : m_name.c_str();
         try
         {
             m_func();

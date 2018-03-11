@@ -9,20 +9,19 @@ namespace wynet
 
 class Exception : public std::exception
 {
- public:
-  explicit Exception(const char* what);
-  explicit Exception(const std::string& what);
-  virtual ~Exception() throw();
-  virtual const char* what() const throw();
-  const char* stackTrace() const throw();
+public:
+  explicit Exception(const char *what);
+  explicit Exception(const std::string &what);
+  virtual ~Exception() noexcept;
+  virtual const char *what() const noexcept;
+  const char *stackTrace() const noexcept;
 
- private:
+private:
   void fillStackTrace();
 
   std::string m_message;
   std::string m_stack;
 };
-
 }
 
 #endif
