@@ -14,17 +14,17 @@ namespace wynet
 using namespace std;
 namespace CurrentThread
 {
-__thread int t_cachedTid = 0;
+__thread int t_tidCached = 0;
 __thread char t_tidString[32];
 __thread int t_tidStringLength = 6;
 __thread const char *t_threadName = "unknown";
 
 void cacheTid()
 {
-    if (t_cachedTid == 0)
+    if (t_tidCached == 0)
     {
-        t_cachedTid = gettid();
-        t_tidStringLength = snprintf(t_tidString, sizeof t_tidString, "%5d ", t_cachedTid);
+        t_tidCached = gettid();
+        t_tidStringLength = snprintf(t_tidString, sizeof t_tidString, "%5d ", t_tidCached);
     }
 }
 
@@ -51,7 +51,7 @@ pid_t gettid()
 
 void afterFork()
 {
-    CurrentThread::t_cachedTid = 0;
+    CurrentThread::t_tidCached = 0;
     CurrentThread::t_threadName = "main";
     CurrentThread::tid();
 }
