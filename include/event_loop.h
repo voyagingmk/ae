@@ -20,8 +20,28 @@ typedef long long TimerId;
 class TimerRef {
     TimerId m_id;
 public:
-    TimerRef(const TimerId _id):
+    explicit TimerRef(const TimerId _id = 0):
         m_id(_id) {
+    }
+    
+    TimerRef(const TimerRef& tr):
+        m_id(tr.m_id) {
+    }
+    
+    TimerRef& operator=(const TimerRef& tr)
+    {
+        m_id = tr.m_id;
+        return *this;
+    }
+    
+    TimerRef(TimerRef && tr):
+        m_id(tr.m_id) {
+    }
+    
+    TimerRef& operator=(TimerRef&& tr)
+    {
+        m_id = tr.m_id;
+        return *this;
     }
     
     TimerId Id() const {

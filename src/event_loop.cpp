@@ -39,6 +39,7 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientD
         std::shared_ptr<EventLoop::TimerData> p = loop->timerData[tr];
         if (!p || !p->onTimerEvent)
         {
+             loop->timerData.erase(tr);
              break;
         }
         int ret = p->onTimerEvent(loop, timerid, p->userData);
@@ -48,7 +49,7 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientD
         }
         return ret;
     } while(0);
-    loop->timerData.erase(timerid);
+    loop->timerId2ref.erase(timerid);
     return AE_NOMORE;
 }
 
