@@ -36,7 +36,8 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clien
     return ret;
 }
 
-EventLoop::EventLoop(int defaultSetsize)
+EventLoop::EventLoop(int defaultSetsize):
+    m_threadId(CurrentThread::tid())
 {
     aeloop = aeCreateEventLoop(defaultSetsize);
 }

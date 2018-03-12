@@ -3,6 +3,7 @@
 
 #include "noncopyable.h"
 #include "common.h"
+#include "wythread.h"
 
 namespace wynet
 {
@@ -30,11 +31,14 @@ class EventLoop : Noncopyable
 
     void deleteFileEvent(int fd, int mask);
 
-    long long createTimer(long long ms, OnTimerEvent onTimerEvent, void *userData);
+    long long createTimer(long long delay, OnTimerEvent onTimerEvent, void *userData);
 
     bool deleteTimer(long long timerid);
 
-  public:
+    bool isInLoopThread() const {
+        return m_threadId == CurrentThread::tid();
+    }
+    
     struct FDData
     {
         FDData() : onFileEvent(nullptr),
@@ -61,6 +65,8 @@ class EventLoop : Noncopyable
     friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
     friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clientData);
 
+    
+    const pid_t m_threadId;
     aeEventLoop *aeloop;
     std::map<int, std::shared_ptr<FDData>> fdData;
     std::map<long long, std::shared_ptr<TimerData>> timerData;
