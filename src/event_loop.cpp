@@ -6,7 +6,6 @@ namespace wynet
     
 int OnlyForWakeup(EventLoop *, long long timerfd, void *userData) {
     const int *ms = (const int *)(userData);
-    printf("wakeup %d\n", *ms);
     return *ms;
 }
 
