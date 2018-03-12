@@ -11,7 +11,7 @@ namespace wynet
 class EventLoop : Noncopyable
 {
   public:
-    typedef void (*OnFileEvent)(EventLoop *, int fd, void *userData);
+    typedef void (*OnFileEvent)(EventLoop *, int fd, void *userData, int mask);
     typedef int (*OnTimerEvent)(EventLoop *, int timerfd, void *userData);
 
     EventLoop(int defaultSetsize = 64);
@@ -33,14 +33,12 @@ public:
     struct FDData
     {
         FDData():
-            onFileReadEvent(nullptr),
+            onFileEvent(nullptr),
             userDataRead(nullptr),
-            onFileWriteEvent(nullptr),
             userDataWrite(nullptr)
         {}
-        OnFileEvent onFileReadEvent;
+        OnFileEvent onFileEvent;
         void *userDataRead;
-        OnFileEvent onFileWriteEvent;
         void *userDataWrite;
     };
     

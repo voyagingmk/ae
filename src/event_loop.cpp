@@ -7,8 +7,14 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int 
 {
     EventLoop* loop = (EventLoop*)(clientData);
     std::shared_ptr<EventLoop::FDData> p = loop->fdData[fd];
-    if ((mask & AE_READABLE) && p->onFileReadEvent) p->onFileReadEvent(loop, fd, p->userDataRead);
-    if ((mask & AE_WRITABLE) && p->onFileWriteEvent) p->onFileWriteEvent(loop, fd, p->userDataWrite);
+    if (p && p->onFileEvent){
+        if (mask & AE_READABLE) {
+            p->onFileEvent(loop, fd, p->userDataRead, mask);
+        }
+        if (mask & AE_WRITABLE) {
+            p->onFileEvent(loop, fd, p->userDataWrite, mask);
+        }
+    }
 }
     
 int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clientData) {
@@ -63,12 +69,11 @@ void EventLoop ::createFileEvent(int fd, int mask, OnFileEvent onFileEvent, void
         fdData.insert({fd, p});
     }
     std::shared_ptr<FDData> p = fdData[fd];
+    p->onFileEvent = onFileEvent;
     if (mask & AE_READABLE) {
-        p->onFileReadEvent = onFileEvent;
         p->userDataRead = userData;
     }
     if (mask & AE_WRITABLE) {
-        p->onFileWriteEvent = onFileEvent;
         p->userDataWrite = userData;
     }
     

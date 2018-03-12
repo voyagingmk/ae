@@ -8,14 +8,14 @@ namespace wynet
 {
 
 void onTcpMessage(EventLoop *eventLoop,
-                  int connfdTcp, void *clientData)
+                  int connfdTcp, void *clientData, int mask)
 {
     log_debug("onTcpMessage connfd=%d", connfdTcp);
     Server *server = (Server *)(clientData);
     server->_onTcpMessage(connfdTcp);
 }
 
-void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, void *clientData)
+void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, void *clientData, int mask)
 {
     Server *server = (Server *)(clientData);
     int sockfd = server->tcpServer.m_sockfd;
@@ -43,7 +43,7 @@ void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, void *clientData)
 }
 
 void OnUdpMessage(EventLoop *eventLoop,
-                  int fd, void *clientData)
+                  int fd, void *clientData, int mask)
 {
     // Server *server = (Server *)(clientData);
     // server->udpServer.Recvfrom();

@@ -7,7 +7,7 @@
 namespace wynet
 {
 
-void OnTcpMessage(EventLoop *loop, int fd, void *clientData)
+void OnTcpMessage(EventLoop *loop, int fd, void *clientData, int mask)
 {
     log_debug("OnTcpMessage fd %d", fd);
     Client *client = (Client *)(clientData);

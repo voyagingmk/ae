@@ -8,7 +8,7 @@ namespace wynet
 
 // http://man7.org/linux/man-pages/man2/connect.2.html
 void OnTcpWritable(EventLoop *eventLoop,
-                   int fd, void *clientData)
+                   int fd, void *clientData, int mask)
 {
     log_debug("OnTcpWritable");
     TCPClient *tcpClient = (TCPClient *)(clientData);
