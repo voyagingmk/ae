@@ -4,7 +4,7 @@ namespace wynet
 {
 std::atomic<TimerId> TimerRef::g_numCreated;
     
-int OnlyForWakeup(EventLoop *, TimerId timerfd, void *userData)
+int OnlyForWakeup(EventLoop *, TimerRef tr, void *userData)
 {
     const int *ms = (const int *)(userData);
     return *ms;
@@ -42,7 +42,7 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientD
              loop->timerData.erase(tr);
              break;
         }
-        int ret = p->onTimerEvent(loop, timerid, p->userData);
+        int ret = p->onTimerEvent(loop, tr, p->userData);
         if (ret == AE_NOMORE)
         {
             break;
@@ -57,7 +57,6 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
                                                                m_wakeupInterval(wakeupInterval),
                                                                m_doingTask(false)
 {
-    printf("EventLoop m_threadId %d\n", m_threadId);
     aeloop = aeCreateEventLoop(defaultSetsize);
 }
 
@@ -146,7 +145,6 @@ bool EventLoop ::deleteTimer(TimerRef tr)
 
 TimerId EventLoop ::createTimer(TimerRef tr, TimerId ms, OnTimerEvent onTimerEvent, void *userData)
 {
-    printf("createTimer %d\n", tr.Id());
     TimerId timerid = aeCreateTimeEvent(aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
     assert(AE_ERR != timerid);
     assert(timerData.find(tr) == timerData.end());
@@ -161,10 +159,8 @@ TimerId EventLoop ::createTimer(TimerRef tr, TimerId ms, OnTimerEvent onTimerEve
 
 void EventLoop::runInLoop(const TaskFunction &cb)
 {
-    printf("EventLoop m_threadId %d %d\n", m_threadId, CurrentThread::tid());
     if (isInLoopThread())
     {
-        printf("runInLoop isInLoopThread\n");
         cb();
     }
     else

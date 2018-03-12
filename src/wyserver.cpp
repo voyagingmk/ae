@@ -8,9 +8,9 @@
 namespace wynet
 {
 
-int testOnTimerEvent(EventLoop *loop, TimerId timerfd, void *userData)
+int testOnTimerEvent(EventLoop *loop, TimerRef tr, void *userData)
 {
-    printf("testOnTimerEvent %lld\n", timerfd);
+    printf("testOnTimerEvent %lld\n", tr.Id());
     return LOOP_EVT_NOMORE;
 }
 

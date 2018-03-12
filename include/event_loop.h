@@ -68,7 +68,7 @@ class EventLoop : Noncopyable
   public:
     typedef std::function<void()> TaskFunction;
     typedef void (*OnFileEvent)(EventLoop *, int fd, void *userData, int mask);
-    typedef int (*OnTimerEvent)(EventLoop *, TimerId timerfd, void *userData);
+    typedef int (*OnTimerEvent)(EventLoop *, TimerRef tr, void *userData);
 
     EventLoop(int wakeupInterval = 10, int defaultSetsize = 64);
 
