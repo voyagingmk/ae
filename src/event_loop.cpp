@@ -1,14 +1,13 @@
 #include "event_loop.h"
 
-
 namespace wynet
 {
-    
-int OnlyForWakeup(EventLoop *, long long timerfd, void *userData) {
+
+int OnlyForWakeup(EventLoop *, TimerId timerfd, void *userData)
+{
     const int *ms = (const int *)(userData);
     return *ms;
 }
-
 
 void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask)
 {
@@ -27,7 +26,7 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int 
     }
 }
 
-int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clientData)
+int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
     std::shared_ptr<EventLoop::TimerData> p = loop->timerData[timerid];
@@ -43,10 +42,9 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clien
     return ret;
 }
 
-EventLoop::EventLoop(int wakeupInterval, int defaultSetsize):
-    m_threadId(CurrentThread::tid()),
-    m_wakeupInterval(wakeupInterval),
-    m_doingTask(false)
+EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(CurrentThread::tid()),
+                                                               m_wakeupInterval(wakeupInterval),
+                                                               m_doingTask(false)
 {
     aeloop = aeCreateEventLoop(defaultSetsize);
 }
@@ -59,7 +57,7 @@ void EventLoop::loop()
 {
     assertInLoopThread();
     aeloop->stop = 0;
-    long long timerid = createTimer(m_wakeupInterval, OnlyForWakeup, (void*)&m_wakeupInterval);
+    TimerId timerid = createTimer(m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
     while (!aeloop->stop)
     {
         if (aeloop->beforesleep != NULL)
@@ -107,9 +105,30 @@ void EventLoop ::deleteFileEvent(int fd, int mask)
     aeDeleteFileEvent(aeloop, fd, mask);
 }
 
-long long EventLoop ::createTimer(long long ms, OnTimerEvent onTimerEvent, void *userData)
+TimerId EventLoop ::createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, void *userData)
 {
-    long long timerid = aeCreateTimeEvent(aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
+    runInLoop([&]() {
+        createTimer(ms, onTimerEvent, userData);
+    });
+}
+
+bool EventLoop ::deleteTimerInLoop(TimerId timerid)
+{
+    runInLoop([&]() {
+        deleteTimer(timerid);
+    });
+}
+
+bool EventLoop ::deleteTimer(TimerId timerid)
+{
+    timerData.erase({timerid});
+    int ret = aeDeleteTimeEvent(aeloop, timerid);
+    return AE_ERR != ret;
+}
+
+TimerId EventLoop ::createTimer(TimerId ms, OnTimerEvent onTimerEvent, void *userData)
+{
+    TimerId timerid = aeCreateTimeEvent(aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
     assert(AE_ERR != timerid);
     if (timerData.find(timerid) == timerData.end())
     {
@@ -122,15 +141,7 @@ long long EventLoop ::createTimer(long long ms, OnTimerEvent onTimerEvent, void 
     return timerid;
 }
 
-bool EventLoop ::deleteTimer(long long timerid)
-{
-    timerData.erase({timerid});
-    int ret = aeDeleteTimeEvent(aeloop, timerid);
-    return AE_ERR != ret;
-}
-    
-
-void EventLoop::runInLoop(const TaskFunction& cb)
+void EventLoop::runInLoop(const TaskFunction &cb)
 {
     if (isInLoopThread())
     {
@@ -142,7 +153,7 @@ void EventLoop::runInLoop(const TaskFunction& cb)
     }
 }
 
-void EventLoop::queueInLoop(const TaskFunction& cb)
+void EventLoop::queueInLoop(const TaskFunction &cb)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_taskFuncQueue.push_back(cb);
@@ -153,22 +164,21 @@ size_t EventLoop::queueSize() const
     MutexLockGuard<MutexLock> lock(m_mutex);
     return m_taskFuncQueue.size();
 }
-    
+
 void EventLoop::processTaskQueue()
 {
     std::vector<TaskFunction> taskFuncQueue;
     m_doingTask = true;
-    
+
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
         taskFuncQueue.swap(m_taskFuncQueue);
     }
-    
+
     for (size_t i = 0; i < taskFuncQueue.size(); ++i)
     {
         taskFuncQueue[i]();
     }
     m_doingTask = false;
 }
-
 };

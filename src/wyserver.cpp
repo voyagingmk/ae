@@ -8,9 +8,9 @@
 namespace wynet
 {
 
-int testOnTimerEvent(EventLoop *loop, long long timerfd, void *userData)
+int testOnTimerEvent(EventLoop *loop, TimerId timerfd, void *userData)
 {
-    printf("testOnTimerEvent %ld\n", timerfd);
+    printf("testOnTimerEvent %lld\n", timerfd);
     return LOOP_EVT_NOMORE;
 }
 
@@ -21,7 +21,7 @@ void onTcpMessage(EventLoop *eventLoop,
     Server *server = (Server *)(clientData);
     server->_onTcpMessage(connfdTcp);
 
-    eventLoop->createTimer(1000, testOnTimerEvent, NULL);
+    eventLoop->createTimerInLoop(1000, testOnTimerEvent, NULL);
 }
 
 void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, void *clientData, int mask)
