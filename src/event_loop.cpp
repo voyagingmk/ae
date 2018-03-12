@@ -3,7 +3,26 @@
 namespace wynet
 {
 
-EventLoop::EventLoop()
+void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask)
+{
+    EventLoop* loop = (EventLoop*)(clientData);
+    if (loop->onFileEvent) {
+        loop->onFileEvent(fd, mask);
+    }
+}
+    
+int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clientData) {
+    EventLoop* loop = (EventLoop*)(clientData);
+    if (loop->onTimerEvent) {
+       return loop->onTimerEvent(timerid);
+    } else {
+        return AE_NOMORE;
+    }
+}
+
+EventLoop::EventLoop():
+    onFileEvent(nullptr),
+    onTimerEvent(nullptr)
 {
     aeloop = aeCreateEventLoop(64);
 }
@@ -28,10 +47,25 @@ void EventLoop::stop()
     aeStop(aeloop);
 }
 
-void EventLoop ::createTimerEvent(long long ms,
-                                  aeTimeProc *proc, void *clientData,
-                                  aeEventFinalizerProc *finalizerProc)
+void EventLoop ::createFileEvent(int fd, int mask)
 {
-    assert(AE_ERR != aeCreateTimeEvent(aeloop, ms, proc, clientData, finalizerProc));
+    int setsize = aeGetSetSize(aeloop) ;
+    while (fd >= setsize) {
+        assert(AE_ERR != aeResizeSetSize(aeloop, setsize << 1));
+    }
+    int ret = aeCreateFileEvent(aeloop, fd, mask, aeOnFileEvent, (void *)this);
+     assert(AE_ERR != ret);
+}
+
+void EventLoop ::deleteFileEvent(int fd, int mask)
+{
+    aeDeleteFileEvent(aeloop, fd, mask);
+}
+    
+long long EventLoop ::createTimerEvent(long long ms)
+{
+    long long timerid = aeCreateTimeEvent(aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
+    assert(AE_ERR != timerid);
+    return timerid;
 }
 };
