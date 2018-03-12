@@ -23,7 +23,7 @@ void OnTcpWritable(EventLoop *eventLoop,
     {
         Client *client = tcpClient->parent;
         // connect ok, remove event
-        client->GetNet()->loop.deleteFileEvent(tcpClient->m_sockfd, AE_WRITABLE);
+        client->GetNet()->loop.deleteFileEvent(tcpClient->m_sockfd, LOOP_EVT_WRITABLE);
         tcpClient->onConnected();
     }
 }
@@ -52,19 +52,19 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
         m_sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (m_sockfd < 0)
             continue; /* ignore this one */
-        
+
         int flags = Fcntl(m_sockfd, F_GETFL, 0);
         Fcntl(m_sockfd, F_SETFL, flags | O_NONBLOCK);
-        
+
         SetSockRecvBufSize(m_sockfd, 32 * 1024);
         SetSockSendBufSize(m_sockfd, 32 * 1024);
 
         i = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
-        
+
         if ((i == -1) && (errno == EINPROGRESS))
         {
-            client->net->loop.createFileEvent(m_sockfd, AE_WRITABLE,
-                              OnTcpWritable, (void *)this);
+            client->net->loop.createFileEvent(m_sockfd, LOOP_EVT_WRITABLE,
+                                              OnTcpWritable, (void *)this);
             break;
         }
         if (i == 0)

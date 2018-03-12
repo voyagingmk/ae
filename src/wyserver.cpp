@@ -6,10 +6,11 @@
 
 namespace wynet
 {
-    
-int testOnTimerEvent(EventLoop * loop, long long timerfd, void *userData) {
+
+int testOnTimerEvent(EventLoop *loop, long long timerfd, void *userData)
+{
     printf("testOnTimerEvent %ld\n", timerfd);
-    return AE_NOMORE;
+    return LOOP_EVT_NOMORE;
 }
 
 void onTcpMessage(EventLoop *eventLoop,
@@ -18,7 +19,7 @@ void onTcpMessage(EventLoop *eventLoop,
     log_debug("onTcpMessage connfd=%d", connfdTcp);
     Server *server = (Server *)(clientData);
     server->_onTcpMessage(connfdTcp);
-    
+
     eventLoop->createTimer(1000, testOnTimerEvent, NULL);
 }
 
@@ -73,19 +74,19 @@ Server::Server(WyNet *net, int tcpPort, int udpPort) : net(net),
              tcpServer.m_sockfd,
              udpServer.m_sockfd);
 
-    net->loop.createFileEvent(tcpServer.m_sockfd, AE_READABLE,
-                      OnTcpNewConnection, (void *)this);
+    net->loop.createFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE,
+                              OnTcpNewConnection, (void *)this);
 
-    net->loop.createFileEvent(udpServer.m_sockfd, AE_READABLE,
-                      OnUdpMessage, (void *)this);
+    net->loop.createFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE,
+                              OnUdpMessage, (void *)this);
 
     LogSocketState(tcpServer.m_sockfd);
 }
 
 Server::~Server()
 {
-    net->loop.deleteFileEvent(tcpServer.m_sockfd, AE_READABLE);
-    net->loop.deleteFileEvent(udpServer.m_sockfd, AE_READABLE);
+    net->loop.deleteFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE);
+    net->loop.deleteFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE);
     net = nullptr;
     log_info("[Server] destoryed.");
 }
@@ -144,8 +145,8 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header)
 
 void Server::_onTcpConnected(int connfdTcp)
 {
-    net->loop.createFileEvent(connfdTcp, AE_READABLE,
-                      onTcpMessage, this);
+    net->loop.createFileEvent(connfdTcp, LOOP_EVT_READABLE,
+                              onTcpMessage, this);
 
     UniqID clientId = clientIdGen.getNewID();
     UniqID convId = convIdGen.getNewID();
@@ -176,7 +177,7 @@ void Server::_onTcpDisconnected(int connfdTcp)
     {
         log_error("[Server][tcp] close err %d", ret);
     }
-    net->loop.deleteFileEvent(connfdTcp, AE_READABLE);
+    net->loop.deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
     if (connfd2cid.find(connfdTcp) != connfd2cid.end())
     {
         UniqID clientId = connfd2cid[connfdTcp];
