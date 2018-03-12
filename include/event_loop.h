@@ -4,6 +4,7 @@
 #include "noncopyable.h"
 #include "common.h"
 #include "wythread.h"
+#include <functional>
 
 namespace wynet
 {
@@ -16,10 +17,11 @@ namespace wynet
 class EventLoop : Noncopyable
 {
   public:
+    typedef std::function<void()> TaskFunction;
     typedef void (*OnFileEvent)(EventLoop *, int fd, void *userData, int mask);
     typedef int (*OnTimerEvent)(EventLoop *, long long timerfd, void *userData);
 
-    EventLoop(int defaultSetsize = 64);
+    EventLoop(int wakeupInterval = 10, int defaultSetsize = 64);
 
     ~EventLoop();
 
@@ -31,6 +33,7 @@ class EventLoop : Noncopyable
 
     void deleteFileEvent(int fd, int mask);
 
+    // must called by owned thread (becaused event loop blocked)
     long long createTimer(long long delay, OnTimerEvent onTimerEvent, void *userData);
 
     bool deleteTimer(long long timerid);
@@ -46,6 +49,12 @@ class EventLoop : Noncopyable
             abort("notInLoopThread");
         }
     }
+    
+    void runInLoop(const TaskFunction& cb);
+    
+    void queueInLoop(const TaskFunction& cb);
+    
+    size_t queueSize() const;
     
     void abort(std::string reason)
     {
@@ -75,14 +84,21 @@ class EventLoop : Noncopyable
     };
 
   private:
-    friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
-    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clientData);
-
+    void processTaskQueue();
+    
     
     const pid_t m_threadId;
     aeEventLoop *aeloop;
     std::map<int, std::shared_ptr<FDData>> fdData;
     std::map<long long, std::shared_ptr<TimerData>> timerData;
+    const int m_wakeupInterval;
+    bool m_doingTask;
+    mutable MutexLock m_mutex;
+    std::vector<TaskFunction> m_taskFuncQueue;
+    
+    friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
+    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clientData);
+
 };
 };
 

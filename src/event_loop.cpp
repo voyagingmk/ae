@@ -1,7 +1,15 @@
 #include "event_loop.h"
 
+
 namespace wynet
 {
+    
+int OnlyForWakeup(EventLoop *, long long timerfd, void *userData) {
+    const int *ms = (const int *)(userData);
+    printf("wakeup %d\n", *ms);
+    return *ms;
+}
+
 
 void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask)
 {
@@ -36,8 +44,10 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clien
     return ret;
 }
 
-EventLoop::EventLoop(int defaultSetsize):
-    m_threadId(CurrentThread::tid())
+EventLoop::EventLoop(int wakeupInterval, int defaultSetsize):
+    m_threadId(CurrentThread::tid()),
+    m_wakeupInterval(wakeupInterval),
+    m_doingTask(false)
 {
     aeloop = aeCreateEventLoop(defaultSetsize);
 }
@@ -50,12 +60,15 @@ void EventLoop::loop()
 {
     assertInLoopThread();
     aeloop->stop = 0;
+    long long timerid = createTimer(m_wakeupInterval, OnlyForWakeup, (void*)&m_wakeupInterval);
     while (!aeloop->stop)
     {
         if (aeloop->beforesleep != NULL)
             aeloop->beforesleep(aeloop);
-        aeProcessEvents(aeloop, AE_ALL_EVENTS | AE_DONT_WAIT | AE_CALL_AFTER_SLEEP);
+        aeProcessEvents(aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
+        processTaskQueue();
     }
+    deleteTimer(timerid);
 }
 
 void EventLoop::stop()
@@ -106,6 +119,7 @@ long long EventLoop ::createTimer(long long ms, OnTimerEvent onTimerEvent, void 
     }
     std::shared_ptr<TimerData> p = timerData[timerid];
     p->onTimerEvent = onTimerEvent;
+    p->userData = userData;
     return timerid;
 }
 
@@ -115,4 +129,47 @@ bool EventLoop ::deleteTimer(long long timerid)
     int ret = aeDeleteTimeEvent(aeloop, timerid);
     return AE_ERR != ret;
 }
+    
+
+void EventLoop::runInLoop(const TaskFunction& cb)
+{
+    if (isInLoopThread())
+    {
+        cb();
+    }
+    else
+    {
+        queueInLoop(cb);
+    }
+}
+
+void EventLoop::queueInLoop(const TaskFunction& cb)
+{
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    m_taskFuncQueue.push_back(cb);
+}
+
+size_t EventLoop::queueSize() const
+{
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    return m_taskFuncQueue.size();
+}
+    
+void EventLoop::processTaskQueue()
+{
+    std::vector<TaskFunction> taskFuncQueue;
+    m_doingTask = true;
+    
+    {
+        MutexLockGuard<MutexLock> lock(m_mutex);
+        taskFuncQueue.swap(m_taskFuncQueue);
+    }
+    
+    for (size_t i = 0; i < taskFuncQueue.size(); ++i)
+    {
+        taskFuncQueue[i]();
+    }
+    m_doingTask = false;
+}
+
 };
