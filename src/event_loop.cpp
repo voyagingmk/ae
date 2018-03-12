@@ -2,7 +2,8 @@
 
 namespace wynet
 {
-
+std::atomic<TimerId> TimerRef::g_numCreated;
+    
 int OnlyForWakeup(EventLoop *, TimerId timerfd, void *userData)
 {
     const int *ms = (const int *)(userData);
@@ -29,23 +30,33 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int 
 int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
-    std::shared_ptr<EventLoop::TimerData> p = loop->timerData[timerid];
-    if (!p || !p->onTimerEvent)
-    {
-        return AE_NOMORE;
-    }
-    int ret = p->onTimerEvent(loop, timerid, p->userData);
-    if (ret == AE_NOMORE)
-    {
-        loop->timerData.erase(timerid);
-    }
-    return ret;
+    TimerRef tr = loop->timerId2ref[timerid];
+    do {
+        if (!tr.validate())
+        {
+            break;
+        }
+        std::shared_ptr<EventLoop::TimerData> p = loop->timerData[tr];
+        if (!p || !p->onTimerEvent)
+        {
+             break;
+        }
+        int ret = p->onTimerEvent(loop, timerid, p->userData);
+        if (ret == AE_NOMORE)
+        {
+            break;
+        }
+        return ret;
+    } while(0);
+    loop->timerData.erase(timerid);
+    return AE_NOMORE;
 }
 
 EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(CurrentThread::tid()),
                                                                m_wakeupInterval(wakeupInterval),
                                                                m_doingTask(false)
 {
+    printf("EventLoop m_threadId %d\n", m_threadId);
     aeloop = aeCreateEventLoop(defaultSetsize);
 }
 
@@ -57,7 +68,7 @@ void EventLoop::loop()
 {
     assertInLoopThread();
     aeloop->stop = 0;
-    TimerId timerid = createTimer(m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
+    TimerRef tr = createTimerInLoop(m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
     while (!aeloop->stop)
     {
         if (aeloop->beforesleep != NULL)
@@ -65,7 +76,7 @@ void EventLoop::loop()
         aeProcessEvents(aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
         processTaskQueue();
     }
-    deleteTimer(timerid);
+    deleteTimerInLoop(tr);
 }
 
 void EventLoop::stop()
@@ -105,46 +116,54 @@ void EventLoop ::deleteFileEvent(int fd, int mask)
     aeDeleteFileEvent(aeloop, fd, mask);
 }
 
-TimerId EventLoop ::createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, void *userData)
+TimerRef EventLoop ::createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, void *userData)
+{
+    TimerRef tr = TimerRef::newTimerRef();
+    runInLoop([&]() {
+        createTimer(tr, ms, onTimerEvent, userData);
+    });
+    return tr;
+}
+
+void EventLoop ::deleteTimerInLoop(TimerRef tr)
 {
     runInLoop([&]() {
-        createTimer(ms, onTimerEvent, userData);
+        deleteTimer(tr);
     });
 }
 
-bool EventLoop ::deleteTimerInLoop(TimerId timerid)
+bool EventLoop ::deleteTimer(TimerRef tr)
 {
-    runInLoop([&]() {
-        deleteTimer(timerid);
-    });
+    std::shared_ptr<TimerData> p = timerData[tr];
+    if (p) {
+        timerData.erase(tr);
+        int ret = aeDeleteTimeEvent(aeloop, p->timerid);
+        return AE_ERR != ret;
+    }
+    return false;
 }
 
-bool EventLoop ::deleteTimer(TimerId timerid)
+TimerId EventLoop ::createTimer(TimerRef tr, TimerId ms, OnTimerEvent onTimerEvent, void *userData)
 {
-    timerData.erase({timerid});
-    int ret = aeDeleteTimeEvent(aeloop, timerid);
-    return AE_ERR != ret;
-}
-
-TimerId EventLoop ::createTimer(TimerId ms, OnTimerEvent onTimerEvent, void *userData)
-{
+    printf("createTimer %d\n", tr.Id());
     TimerId timerid = aeCreateTimeEvent(aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
     assert(AE_ERR != timerid);
-    if (timerData.find(timerid) == timerData.end())
-    {
-        std::shared_ptr<TimerData> p(new TimerData());
-        timerData.insert({timerid, p});
-    }
-    std::shared_ptr<TimerData> p = timerData[timerid];
+    assert(timerData.find(tr) == timerData.end());
+    std::shared_ptr<TimerData> p(new TimerData());
+    timerData.insert({tr, p});
+    timerId2ref.insert({timerid, tr});
     p->onTimerEvent = onTimerEvent;
     p->userData = userData;
+    p->timerid = timerid;
     return timerid;
 }
 
 void EventLoop::runInLoop(const TaskFunction &cb)
 {
+    printf("EventLoop m_threadId %d %d\n", m_threadId, CurrentThread::tid());
     if (isInLoopThread())
     {
+        printf("runInLoop isInLoopThread\n");
         cb();
     }
     else

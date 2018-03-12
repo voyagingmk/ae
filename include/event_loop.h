@@ -16,6 +16,33 @@ namespace wynet
 
 typedef long long TimerId;
 
+    
+class TimerRef {
+    TimerId m_id;
+public:
+    TimerRef(const TimerId _id):
+        m_id(_id) {
+    }
+    
+    TimerId Id() const {
+        return m_id;
+    }
+    
+    bool validate() const {
+        return m_id > 0;
+    }
+    
+    bool operator < (const TimerRef& tr) const {
+        return m_id < tr.m_id;
+    }
+    
+    static TimerRef newTimerRef() {
+        TimerId _id = ++g_numCreated;
+        return TimerRef(_id);
+    }
+    static std::atomic<TimerId> g_numCreated;
+};
+    
 class EventLoop : Noncopyable
 {
   public:
@@ -35,9 +62,9 @@ class EventLoop : Noncopyable
 
     void deleteFileEvent(int fd, int mask);
 
-    TimerId createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, void *userData);
+    TimerRef createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, void *userData);
 
-    bool deleteTimerInLoop(TimerId timerid);
+    void deleteTimerInLoop(TimerRef tr);
 
     bool isInLoopThread() const
     {
@@ -78,24 +105,27 @@ class EventLoop : Noncopyable
     struct TimerData
     {
         TimerData() : onTimerEvent(nullptr),
-                      userData(nullptr)
+                      userData(nullptr),
+                      timerid(0)
         {
         }
         OnTimerEvent onTimerEvent;
         void *userData;
+        TimerId timerid;
     };
 
   private:
     void processTaskQueue();
 
-    TimerId createTimer(TimerId delay, OnTimerEvent onTimerEvent, void *userData);
+    TimerId createTimer(TimerRef tr, TimerId delay, OnTimerEvent onTimerEvent, void *userData);
 
-    bool deleteTimer(TimerId timerid);
+    bool deleteTimer(TimerRef tr);
 
     const pid_t m_threadId;
     aeEventLoop *aeloop;
     std::map<int, std::shared_ptr<FDData>> fdData;
-    std::map<TimerId, std::shared_ptr<TimerData>> timerData;
+    std::map<TimerRef, std::shared_ptr<TimerData>> timerData;
+    std::map<TimerId, TimerRef> timerId2ref;
     const int m_wakeupInterval;
     bool m_doingTask;
     mutable MutexLock m_mutex;
