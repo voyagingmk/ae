@@ -6,6 +6,11 @@
 
 namespace wynet
 {
+    
+int testOnTimerEvent(EventLoop * loop, long long timerfd, void *userData) {
+    printf("testOnTimerEvent %ld\n", timerfd);
+    return AE_NOMORE;
+}
 
 void onTcpMessage(EventLoop *eventLoop,
                   int connfdTcp, void *clientData, int mask)
@@ -13,6 +18,8 @@ void onTcpMessage(EventLoop *eventLoop,
     log_debug("onTcpMessage connfd=%d", connfdTcp);
     Server *server = (Server *)(clientData);
     server->_onTcpMessage(connfdTcp);
+    
+    eventLoop->createTimer(1000, testOnTimerEvent, NULL);
 }
 
 void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, void *clientData, int mask)

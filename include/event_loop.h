@@ -11,7 +11,7 @@ class EventLoop : Noncopyable
 {
   public:
     typedef void (*OnFileEvent)(EventLoop *, int fd, void *userData, int mask);
-    typedef int (*OnTimerEvent)(EventLoop *, int timerfd, void *userData);
+    typedef int (*OnTimerEvent)(EventLoop *, long long timerfd, void *userData);
 
     EventLoop(int defaultSetsize = 64);
 
