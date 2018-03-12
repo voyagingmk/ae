@@ -39,6 +39,19 @@ class EventLoop : Noncopyable
         return m_threadId == CurrentThread::tid();
     }
     
+    void assertInLoopThread()
+    {
+        if (!isInLoopThread())
+        {
+            abort("notInLoopThread");
+        }
+    }
+    
+    void abort(std::string reason)
+    {
+        printf("EventLoop abort. %s. m_threadId %d curThreadId %d", reason.c_str(), m_threadId, CurrentThread::tid());
+    }
+    
     struct FDData
     {
         FDData() : onFileEvent(nullptr),

@@ -48,6 +48,7 @@ EventLoop::~EventLoop()
 
 void EventLoop::loop()
 {
+    assertInLoopThread();
     aeloop->stop = 0;
     while (!aeloop->stop)
     {
