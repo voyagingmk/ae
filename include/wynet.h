@@ -7,13 +7,14 @@
 #include "wyserver.h"
 #include "wyclient.h"
 #include "mutex.h"
+#include "event_loop.h"
 
 namespace wynet
 {
 class WyNet
 {
   public:
-    aeEventLoop *aeloop;
+    EventLoop loop;
     typedef std::map<UniqID, Server *> Servers;
     typedef std::map<UniqID, Client *> Clients;
     Servers servers;
@@ -30,12 +31,6 @@ class WyNet
     void Loop();
 
     void StopLoop();
-
-    aeEventLoop *GetAeLoop()
-    {
-        return aeloop;
-    }
-
     UniqID AddServer(Server *server);
     bool DestroyServer(UniqID serverId);
 

@@ -7,8 +7,8 @@ namespace wynet
 {
 
 // http://man7.org/linux/man-pages/man2/connect.2.html
-void OnTcpWritable(struct aeEventLoop *eventLoop,
-                   int fd, void *clientData, int mask)
+void OnTcpWritable(EventLoop *eventLoop,
+                   int fd, void *clientData)
 {
     log_debug("OnTcpWritable");
     TCPClient *tcpClient = (TCPClient *)(clientData);
@@ -23,7 +23,7 @@ void OnTcpWritable(struct aeEventLoop *eventLoop,
     {
         Client *client = tcpClient->parent;
         // connect ok, remove event
-        aeDeleteFileEvent(client->GetNet()->aeloop, tcpClient->m_sockfd, AE_WRITABLE);
+        client->GetNet()->loop.deleteFileEvent(tcpClient->m_sockfd, AE_WRITABLE);
         tcpClient->onConnected();
     }
 }
@@ -63,7 +63,7 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
         
         if ((i == -1) && (errno == EINPROGRESS))
         {
-            aeCreateFileEvent(client->net->aeloop, m_sockfd, AE_WRITABLE,
+            client->net->loop.createFileEvent(m_sockfd, AE_WRITABLE,
                               OnTcpWritable, (void *)this);
             break;
         }

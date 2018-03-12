@@ -7,16 +7,15 @@
 namespace wynet
 {
 
-void onTcpMessage(struct aeEventLoop *eventLoop,
-                  int connfdTcp, void *clientData, int mask)
+void onTcpMessage(EventLoop *eventLoop,
+                  int connfdTcp, void *clientData)
 {
     log_debug("onTcpMessage connfd=%d", connfdTcp);
     Server *server = (Server *)(clientData);
     server->_onTcpMessage(connfdTcp);
 }
 
-void OnTcpNewConnection(struct aeEventLoop *eventLoop,
-                        int listenfdTcp, void *clientData, int mask)
+void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, void *clientData)
 {
     Server *server = (Server *)(clientData);
     int sockfd = server->tcpServer.m_sockfd;
@@ -43,8 +42,8 @@ void OnTcpNewConnection(struct aeEventLoop *eventLoop,
     server->_onTcpConnected(connfdTcp);
 }
 
-void OnUdpMessage(struct aeEventLoop *eventLoop,
-                  int fd, void *clientData, int mask)
+void OnUdpMessage(EventLoop *eventLoop,
+                  int fd, void *clientData)
 {
     // Server *server = (Server *)(clientData);
     // server->udpServer.Recvfrom();
@@ -67,10 +66,10 @@ Server::Server(WyNet *net, int tcpPort, int udpPort) : net(net),
              tcpServer.m_sockfd,
              udpServer.m_sockfd);
 
-    aeCreateFileEvent(net->aeloop, tcpServer.m_sockfd, AE_READABLE,
+    net->loop.createFileEvent(tcpServer.m_sockfd, AE_READABLE,
                       OnTcpNewConnection, (void *)this);
 
-    aeCreateFileEvent(net->aeloop, udpServer.m_sockfd, AE_READABLE,
+    net->loop.createFileEvent(udpServer.m_sockfd, AE_READABLE,
                       OnUdpMessage, (void *)this);
 
     LogSocketState(tcpServer.m_sockfd);
@@ -78,8 +77,8 @@ Server::Server(WyNet *net, int tcpPort, int udpPort) : net(net),
 
 Server::~Server()
 {
-    aeDeleteFileEvent(net->aeloop, tcpServer.m_sockfd, AE_READABLE);
-    aeDeleteFileEvent(net->aeloop, udpServer.m_sockfd, AE_READABLE);
+    net->loop.deleteFileEvent(tcpServer.m_sockfd, AE_READABLE);
+    net->loop.deleteFileEvent(udpServer.m_sockfd, AE_READABLE);
     net = nullptr;
     log_info("[Server] destoryed.");
 }
@@ -138,7 +137,7 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header)
 
 void Server::_onTcpConnected(int connfdTcp)
 {
-    aeCreateFileEvent(net->aeloop, connfdTcp, AE_READABLE,
+    net->loop.createFileEvent(connfdTcp, AE_READABLE,
                       onTcpMessage, this);
 
     UniqID clientId = clientIdGen.getNewID();
@@ -170,7 +169,7 @@ void Server::_onTcpDisconnected(int connfdTcp)
     {
         log_error("[Server][tcp] close err %d", ret);
     }
-    aeDeleteFileEvent(net->aeloop, connfdTcp, AE_READABLE);
+    net->loop.deleteFileEvent(connfdTcp, AE_READABLE);
     if (connfd2cid.find(connfdTcp) != connfd2cid.end())
     {
         UniqID clientId = connfd2cid[connfdTcp];

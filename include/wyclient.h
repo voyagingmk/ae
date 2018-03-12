@@ -7,6 +7,7 @@
 #include "wyudpclient.h"
 #include "wyconnection.h"
 #include "noncopyable.h"
+#include "event_loop.h"
 
 namespace wynet
 {
@@ -59,8 +60,7 @@ private:
     
     void _onTcpDisconnected();
     
-    friend void OnTcpMessage(struct aeEventLoop *eventLoop,
-                      int fd, void *clientData, int mask);
+    friend void OnTcpMessage(EventLoop *loop, int fd, void *clientData);
 };
 };
 

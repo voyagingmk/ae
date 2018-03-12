@@ -4,15 +4,17 @@
 #include "noncopyable.h"
 #include "common.h"
 
+
 namespace wynet
 {
+
 class EventLoop : Noncopyable
 {
   public:
-    typedef void (*OnFileEvent)(int filefd, int mask);
-    typedef int (*OnTimerEvent)(int timerfd);
-    
-    EventLoop();
+    typedef void (*OnFileEvent)(EventLoop *, int fd, void *userData);
+    typedef int (*OnTimerEvent)(EventLoop *, int timerfd, void *userData);
+
+    EventLoop(int defaultSetsize = 64);
     
     ~EventLoop();
 
@@ -20,19 +22,46 @@ class EventLoop : Noncopyable
 
     void stop();
     
-    void createFileEvent(int fd, int mask);
+    void createFileEvent(int fd, int mask, OnFileEvent onFileEvent, void *userData);
 
     void deleteFileEvent(int fd, int mask);
     
-    long long createTimerEvent(long long ms);
+    long long createTimerEvent(long long ms, OnTimerEvent onTimerEvent, void *userData);
+
 public:
-    OnFileEvent onFileEvent;
-    OnTimerEvent onTimerEvent;
+    
+    struct FDData
+    {
+        FDData():
+            onFileReadEvent(nullptr),
+            userDataRead(nullptr),
+            onFileWriteEvent(nullptr),
+            userDataWrite(nullptr)
+        {}
+        OnFileEvent onFileReadEvent;
+        void *userDataRead;
+        OnFileEvent onFileWriteEvent;
+        void *userDataWrite;
+    };
+    
+    struct TimerData
+    {
+        TimerData():
+            onTimerEvent(nullptr),
+            userData(nullptr)
+        {}
+        OnTimerEvent onTimerEvent;
+        void *userData;
+    };
+    
+
 private:
-    friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int filefd, void *clientData, int mask);
+    friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
     friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, long long timerid, void *clientData);
     
     aeEventLoop *aeloop;
+    std::map<int, std::shared_ptr<FDData>> fdData;
+    std::map<long long, std::shared_ptr<TimerData>> timerData;
 };
 };
 

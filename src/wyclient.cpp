@@ -7,8 +7,7 @@
 namespace wynet
 {
 
-void OnTcpMessage(struct aeEventLoop *eventLoop,
-                  int fd, void *clientData, int mask)
+void OnTcpMessage(EventLoop *loop, int fd, void *clientData)
 {
     log_debug("OnTcpMessage fd %d", fd);
     Client *client = (Client *)(clientData);
@@ -44,8 +43,7 @@ void Client::SendByTcp(PacketHeader *header)
 
 void Client::_onTcpConnected()
 {
-    aeCreateFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE,
-                      OnTcpMessage, (void *)this);
+    net->loop.createFileEvent(tcpClient.m_sockfd, AE_READABLE, OnTcpMessage, (void *)this);
     LogSocketState(tcpClient.m_sockfd);
     if (onTcpConnected)
         onTcpConnected(this);
@@ -53,7 +51,7 @@ void Client::_onTcpConnected()
 
 void Client::_onTcpDisconnected()
 {
-    aeDeleteFileEvent(net->aeloop, tcpClient.m_sockfd, AE_READABLE | AE_WRITABLE);
+    net->loop.deleteFileEvent(tcpClient.m_sockfd, AE_READABLE | AE_WRITABLE);
     if (onTcpDisconnected)
         onTcpDisconnected(this);
 }

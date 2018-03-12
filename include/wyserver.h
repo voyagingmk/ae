@@ -11,6 +11,7 @@ namespace wynet
 {
 
 class WyNet;
+class EventLoop;
     
 class Server: public Noncopyable
 {
@@ -56,11 +57,11 @@ private:
     
     void _onTcpDisconnected(int connfdTcp);
     
-    friend void onTcpMessage(struct aeEventLoop *eventLoop,
-                      int connfdTcp, void *clientData, int mask);
+    friend void onTcpMessage(EventLoop *eventLoop,
+                      int connfdTcp, void *clientData);
     
-    friend void OnTcpNewConnection(struct aeEventLoop *eventLoop,
-                                   int listenfdTcp, void *clientData, int mask);
+    friend void OnTcpNewConnection(EventLoop *eventLoop,
+                                   int listenfdTcp, void *clientData);
 };
 };
 

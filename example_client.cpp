@@ -6,7 +6,6 @@ WyNet net;
 void Stop(int signo)
 {
     net.StopLoop();
-    log_info("Stop. %d", net.aeloop->stop);
 }
 
 void OnTcpConnected(Client *client)
