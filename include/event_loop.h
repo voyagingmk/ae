@@ -10,6 +10,7 @@ namespace wynet
 #define LOOP_EVT_NONE AE_NONE
 #define LOOP_EVT_READABLE AE_READABLE
 #define LOOP_EVT_WRITABLE AE_WRITABLE
+#define LOOP_EVT_NOMORE AE_NOMORE
     
 class EventLoop : Noncopyable
 {
