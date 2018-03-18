@@ -16,11 +16,11 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int 
     std::shared_ptr<EventLoop::FDData> p = loop->fdData[fd];
     if (p && p->onFileEvent)
     {
-        if (mask & AE_READABLE)
+        if (mask & LOOP_EVT_READABLE)
         {
             p->onFileEvent(loop, fd, p->userDataRead, mask);
         }
-        if (mask & AE_WRITABLE)
+        if (mask & LOOP_EVT_WRITABLE)
         {
             p->onFileEvent(loop, fd, p->userDataWrite, mask);
         }
