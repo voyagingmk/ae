@@ -32,6 +32,21 @@ typedef IUINT32 ConvID;
 #define fflush_unlocked fflush
 #endif
 
+#define WYNET_CACHELINE_SIZE 64
+
+#ifdef _MSC_VER
+# define WYNET_CACHELINE_ALIGNMENT __declspec(align(WYNET_CACHELINE_SIZE))
+#endif
+
+#ifdef __GNUC__
+# define WYNET_CACHELINE_ALIGNMENT __attribute__((aligned(WYNET_CACHELINE_SIZE)))
+#endif
+
+#ifndef WYNET_CACHELINE_ALIGNMENT
+# define WYNET_CACHELINE_ALIGNMENT
+#endif
+
+
 
 #define G_LIKELY(expr) (__builtin_expect ( !!(expr), 1))
 #define G_UNLIKELY(expr) (__builtin_expect ( !!(expr), 0))
