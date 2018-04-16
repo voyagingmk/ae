@@ -8,8 +8,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
-SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -stdlib=libc++ -O0 -Wall -g2 -ggdb")  
-SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -stdlib=libc++ -O3 -Wall")  
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}  -O0 -Wall -g2 -ggdb")  
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")  
 
 #if(MACOSX)
 #    MESSAGE(STATUS "It is MACOSX")  
