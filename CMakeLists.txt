@@ -7,6 +7,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(MACOSX TRUE)
 endif()
 
+set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set (BUILD_SHARED_LIBS false)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(CMAKE_BUILD_TYPE Debug)
 
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
@@ -25,9 +30,6 @@ if(UNIX)
     SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
 endif()
 
-set (CMAKE_CXX_STANDARD 11)
-set (CMAKE_CXX_STANDARD_REQUIRED ON)
-set (BUILD_SHARED_LIBS false)
 
 FILE(GLOB_RECURSE MY_SOURCERS
     src/wykcp.cpp
