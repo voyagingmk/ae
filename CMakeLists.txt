@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 2.8.0)
 
 
 project(wynet VERSION 0.0.0)
@@ -79,7 +79,7 @@ SET(HEADERS
   )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
+find_package( Threads )
 
 add_executable(example_server example_server.cpp  ${MY_SOURCERS} ${HEADERS})
 
@@ -101,9 +101,9 @@ target_include_directories(
     external
     )
 
-target_link_libraries(example_server Threads::Threads)
+target_link_libraries(example_server ${CMAKE_THREAD_LIBS_INIT})
 
-target_link_libraries(example_client Threads::Threads)
+target_link_libraries(example_client ${CMAKE_THREAD_LIBS_INIT})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
