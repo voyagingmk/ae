@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 
 
-project(wynet VERSION 0.0.0)
+project(wynet LANGUAGES C CXX VERSION 0.0.0)
 
 set(CMAKE_BUILD_TYPE Debug)
 SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")  
