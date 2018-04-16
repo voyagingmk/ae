@@ -19,6 +19,7 @@
 #define LOG_USE_COLOR 1
 
 extern "C" {
+#include <pthread.h>
 #include "log.h"
 #include "wrapsock.h"
 #include "error.h"
