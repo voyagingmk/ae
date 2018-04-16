@@ -65,7 +65,7 @@ void Logger::threadFunc()
         assert(buffersToWrite.empty());
 
         {
-            MutexLockGuard<MutexLock> lock(mutex);
+            MutexLockGuard<MutexLock> lock(m_mutex);
             if (m_fulledBuffers.empty()) // unusual usage!
             {
                 m_cond.waitForSeconds(m_flushInterval);
