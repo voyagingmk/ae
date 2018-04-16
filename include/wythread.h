@@ -1,55 +1,12 @@
 #ifndef WY_THREAD_H
 #define WY_THREAD_H
 
-#include <atomic>
-#include <functional>
-#include <string>
-#include <stdint.h>
-#include <pthread.h>
 #include "common.h"
 #include "noncopyable.h"
 #include "count_down_latch.h"
 
 namespace wynet
 {
-
-namespace CurrentThread
-{
-extern __thread int t_tidCached;
-extern __thread char t_tidString[32];
-extern __thread int t_tidStringLength;
-extern __thread const char *t_threadName;
-
-pid_t gettid();
-
-void cacheTid();
-
-inline int tid()
-{
-  if (G_UNLIKELY(t_tidCached == 0))
-  {
-    cacheTid();
-  }
-  return t_tidCached;
-}
-
-inline const char *tidString()
-{
-  return t_tidString;
-}
-
-inline int tidStringLength()
-{
-  return t_tidStringLength;
-}
-
-inline const char *name()
-{
-  return t_threadName;
-}
-
-bool isMainThread();
-};
 
 class Thread : Noncopyable
 {

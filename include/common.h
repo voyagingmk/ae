@@ -13,13 +13,18 @@
 #include <set>
 #include <algorithm>
 #include <memory>
+#include <errno.h>
+#include <pthread.h>
+#include <assert.h>
+#include <atomic>
+#include <functional>
+#include <stdint.h>
 
 #define DEBUG_MODE 1
 
 #define LOG_USE_COLOR 1
 
 extern "C" {
-#include <pthread.h>
 #include "log.h"
 #include "wrapsock.h"
 #include "error.h"

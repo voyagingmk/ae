@@ -1,8 +1,7 @@
 #ifndef WY_CONDITION_H
 #define WY_CONDITION_H
 
-#include <pthread.h>
-#include <errno.h>
+#include "common.h"
 #include "noncopyable.h"
 #include "mutex.h"
 

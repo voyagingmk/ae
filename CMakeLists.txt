@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
-project(wynet LANGUAGES CXX VERSION 0.0.0)
+project(wynet LANGUAGES C CXX VERSION 0.0.0)
 
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -10,7 +10,7 @@ endif()
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (BUILD_SHARED_LIBS false)
-set(CMAKE_CXX_EXTENSIONS OFF)
+# set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -31,7 +31,7 @@ if(UNIX)
 endif()
 
 
-FILE(GLOB_RECURSE MY_SOURCERS
+FILE(GLOB MY_SOURCERS
     src/wykcp.cpp
     src/wynet.cpp
     src/wyserver.cpp
@@ -43,6 +43,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     src/wyutils.cpp
     src/event_loop.cpp
     src/uniqid.cpp
+    src/wythreadbase.cpp
     src/wythread.cpp
     src/exception.cpp
     src/count_down_latch.cpp
@@ -57,7 +58,7 @@ FILE(GLOB_RECURSE MY_SOURCERS
     external/log.c
     external/error.c)
 
-SET(HEADERS
+FILE(GLOB MY_HEADERS
     include/protocol_define.h
     include/protocol.h
     include/wynet.h
@@ -77,6 +78,7 @@ SET(HEADERS
     include/common.h
     include/mutex.h
     include/condition.h
+    include/wythreadbase.h
     include/wythread.h
     include/exception.h
     include/count_down_latch.h
@@ -95,9 +97,9 @@ SET(HEADERS
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package( Threads )
 
-add_executable(example_server example_server.cpp  ${MY_SOURCERS} ${HEADERS})
+add_executable(example_server example_server.cpp  ${MY_SOURCERS} ${MY_HEADERS})
 
-add_executable(example_client example_client.cpp  ${MY_SOURCERS} ${HEADERS})
+add_executable(example_client example_client.cpp  ${MY_SOURCERS} ${MY_HEADERS})
 
 target_include_directories(
     example_server
@@ -119,9 +121,9 @@ target_compile_features(example_server PRIVATE cxx_range_for)
 
 target_compile_features(example_client PRIVATE cxx_range_for)
 
-target_link_libraries(example_server ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(example_server PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
-target_link_libraries(example_client ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(example_client PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

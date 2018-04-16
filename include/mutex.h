@@ -2,8 +2,7 @@
 #define WY_MUTEX_H
 
 #include "noncopyable.h"
-#include <assert.h>
-#include <pthread.h>
+#include "wythreadbase.h"
 
 namespace wynet
 {
@@ -56,9 +55,7 @@ class MutexLock2 : public MutexLock
 
     bool isLockedByThisThread() const
     {
-        uint64_t tid;
-        pthread_threadid_np(NULL, &tid);
-        return m_tid == tid;
+        return m_tid == CurrentThread::gettid();
     }
 
     void lock()
@@ -80,7 +77,7 @@ class MutexLock2 : public MutexLock
 
     void setTid()
     {
-        pthread_threadid_np(NULL, &m_tid);
+        m_tid = static_cast<uint64_t>(CurrentThread::gettid());
     }
 
     uint64_t m_tid;
