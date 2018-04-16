@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
-project(wynet LANGUAGES C CXX VERSION 0.0.0)
+project(wynet LANGUAGES CXX VERSION 0.0.0)
 
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
