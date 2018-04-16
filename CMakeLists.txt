@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
+project(wynet LANGUAGES C CXX VERSION 0.0.0)
 
-project(wynet LANGUAGES CXX VERSION 0.0.0)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(MACOSX TRUE)
+endif()
 
 set(CMAKE_BUILD_TYPE Debug)
 SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")  
 SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")  
 
-if(UNIX)
-    MESSAGE(STATUS "It is UNIX-like OS")  
+if(MACOSX)
+    MESSAGE(STATUS "It is MACOSX")  
     SET (CMAKE_C_COMPILER             "/usr/bin/clang")
     SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
 endif()
