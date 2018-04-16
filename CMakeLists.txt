@@ -13,7 +13,7 @@ if(UNIX)
     SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
 endif()
 
-set (CMAKE_CXX_STANDARD 11)
+set (CXX_STANDARD_REQUIRED 11)
 set (BUILD_SHARED_LIBS false)
 
 
