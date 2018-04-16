@@ -37,7 +37,7 @@ class MutexLock : Noncopyable
         pthread_mutex_unlock(&m_mutex);
     }
 
-    pthread_mutex_t *getMutexPointer()
+    pthread_mutex_t *getRawPointer()
     {
         return &m_mutex;
     }

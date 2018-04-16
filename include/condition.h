@@ -4,6 +4,7 @@
 #include "common.h"
 #include "noncopyable.h"
 #include "mutex.h"
+#include "clock_time.h"
 
 namespace wynet
 {
@@ -25,23 +26,16 @@ class Condition : Noncopyable
     void wait()
     {
         MutexLockGuard<MutexLock> g(m_mutex);
-        pthread_cond_wait(&m_cond, m_mutex.getMutexPointer());
+        pthread_cond_wait(&m_cond, m_mutex.getRawPointer());
     }
 
     bool waitForSeconds(double seconds)
     {
-        struct timespec abstime;
-        // FIXME: use CLOCK_MONOTONIC or CLOCK_MONOTONIC_RAW to prevent time rewind.
-        clock_gettime(CLOCK_REALTIME, &abstime);
-
-        const int64_t kNanoSecondsPerSecond = 1000 * 1000 * 1000;
-        int64_t nanoseconds = static_cast<int64_t>(seconds * kNanoSecondsPerSecond);
-
-        abstime.tv_sec += static_cast<time_t>((abstime.tv_nsec + nanoseconds) / kNanoSecondsPerSecond);
-        abstime.tv_nsec = static_cast<long>((abstime.tv_nsec + nanoseconds) % kNanoSecondsPerSecond);
-
+        ClockTime nowtime(ClockTime::getNowTime());
+        ClockTime duration(seconds);
+        nowtime += duration;
         MutexLockGuard<MutexLock> g(m_mutex);
-        return ETIMEDOUT == pthread_cond_timedwait(&m_cond, m_mutex.getMutexPointer(), &abstime);
+        return ETIMEDOUT == pthread_cond_timedwait(&m_cond, m_mutex.getRawPointer(), &nowtime.ts);
     }
 
     void notify()

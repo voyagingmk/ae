@@ -9,7 +9,7 @@ namespace wynet
 {
 // 多线程离散倒计时器
 // 给定初始count，每次调用countDown，count减1，为0时发送通知wait的线程
-// wait会进入
+// Condition和CountDownLatch用的同一个mutex
 class CountDownLatch : Noncopyable
 {
 public:
