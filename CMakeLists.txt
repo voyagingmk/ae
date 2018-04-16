@@ -16,7 +16,6 @@ endif()
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (BUILD_SHARED_LIBS false)
-target_compile_features(wynet PRIVATE cxx_range_for)
 
 FILE(GLOB_RECURSE MY_SOURCERS
     src/wykcp.cpp
@@ -101,6 +100,10 @@ target_include_directories(
     src
     external
     )
+
+target_compile_features(example_server PRIVATE cxx_range_for)
+
+target_compile_features(example_client PRIVATE cxx_range_for)
 
 target_link_libraries(example_server ${CMAKE_THREAD_LIBS_INIT})
 
