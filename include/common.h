@@ -19,6 +19,7 @@
 #include <atomic>
 #include <functional>
 #include <stdint.h>
+#include <sys/syscall.h>
 
 #define DEBUG_MODE 1
 
