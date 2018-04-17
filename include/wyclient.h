@@ -17,10 +17,10 @@ class Test;
 
 class Client: public Noncopyable 
 {
-    WyNet *net;
-    ConnectionForClient conn;
-    TCPClient tcpClient;
-    UDPClient *udpClient;
+    WyNet *m_net;
+    ConnectionForClient m_conn;
+    TCPClient m_tcpClient;
+    UDPClient *m_udpClient;
     
 public:
     friend class TCPClient;
@@ -41,15 +41,15 @@ public:
     void sendByTcp(PacketHeader *header);
     
     const TCPClient& GetTcpClient() const {
-        return tcpClient;
+        return m_tcpClient;
     }
     
     const UDPClient* GetUdpClient() const {
-        return udpClient;
+        return m_udpClient;
     }
     
     WyNet* GetNet() const {
-        return net;
+        return m_net;
     }
 
 private:

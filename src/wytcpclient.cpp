@@ -63,7 +63,7 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
 
         if ((i == -1) && (errno == EINPROGRESS))
         {
-            client->net->getLoop().createFileEvent(m_sockfd, LOOP_EVT_WRITABLE,
+            client->GetNet()->getLoop().createFileEvent(m_sockfd, LOOP_EVT_WRITABLE,
                                               OnTcpWritable, (void *)this);
             break;
         }

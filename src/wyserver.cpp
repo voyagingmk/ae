@@ -27,7 +27,7 @@ void onTcpMessage(EventLoop *eventLoop,
 void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, void *clientData, int mask)
 {
     Server *server = (Server *)(clientData);
-    int sockfd = server->tcpServer.m_sockfd;
+    int sockfd = server->m_tcpServer.m_sockfd;
     assert(sockfd == listenfdTcp);
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
@@ -55,49 +55,49 @@ void OnUdpMessage(EventLoop *eventLoop,
                   int fd, void *clientData, int mask)
 {
     // Server *server = (Server *)(clientData);
-    // server->udpServer.Recvfrom();
+    // server->m_udpServer.Recvfrom();
 }
 
-Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : net(net),
-                                                             tcpPort(tcpPortArg),
-                                                             udpPort(udpPortArg),
-                                                             tcpServer(tcpPort),
-                                                             udpServer(udpPort),
+Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : m_net(net),
+                                                             m_tcpPort(tcpPortArg),
+                                                             m_udpPort(udpPortArg),
+                                                             m_tcpServer(m_tcpPort),
+                                                             m_udpServer(m_udpPort),
                                                              onTcpConnected(nullptr),
                                                              onTcpDisconnected(nullptr),
                                                              onTcpRecvUserData(nullptr)
 {
 
-    convIdGen.setRecycleThreshold(2 << 15);
-    convIdGen.setRecycleEnabled(true);
+    m_convIdGen.setRecycleThreshold(2 << 15);
+    m_convIdGen.setRecycleEnabled(true);
 
     log_info("[Server] created, tcp sockfd: %d, udp sockfd: %d",
-             tcpServer.m_sockfd,
-             udpServer.m_sockfd);
+             m_tcpServer.m_sockfd,
+             m_udpServer.m_sockfd);
 
-    net->getLoop().createFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE,
+    m_net->getLoop().createFileEvent(m_tcpServer.m_sockfd, LOOP_EVT_READABLE,
                                    OnTcpNewConnection, (void *)this);
 
-    if (udpServer.valid())
+    if (m_udpServer.valid())
     {
-        net->getLoop().createFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE,
+        m_net->getLoop().createFileEvent(m_udpServer.m_sockfd, LOOP_EVT_READABLE,
                                        OnUdpMessage, (void *)this);
     }
-    LogSocketState(tcpServer.m_sockfd);
+    LogSocketState(m_tcpServer.m_sockfd);
 }
 
 Server::~Server()
 {
-    net->getLoop().deleteFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE);
-    net->getLoop().deleteFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE);
-    net = nullptr;
+    m_net->getLoop().deleteFileEvent(m_tcpServer.m_sockfd, LOOP_EVT_READABLE);
+    m_net->getLoop().deleteFileEvent(m_udpServer.m_sockfd, LOOP_EVT_READABLE);
+    m_net = nullptr;
     log_info("[Server] destoryed.");
 }
 
 void Server::closeConnect(UniqID clientId)
 {
-    auto it = connDict.find(clientId);
-    if (it == connDict.end())
+    auto it = m_connDict.find(clientId);
+    if (it == m_connDict.end())
     {
         return;
     }
@@ -126,8 +126,8 @@ void Server::sendByTcp(UniqID clientId, const uint8_t *m_data, size_t len)
 void Server::sendByTcp(UniqID clientId, PacketHeader *header)
 {
     assert(header != nullptr);
-    auto it = connDict.find(clientId);
-    if (it == connDict.end())
+    auto it = m_connDict.find(clientId);
+    if (it == m_connDict.end())
     {
         return;
     }
@@ -148,27 +148,28 @@ void Server::sendByTcp(UniqID clientId, PacketHeader *header)
 
 void Server::_onTcpConnected(int connfdTcp)
 {
-    net->getLoop().createFileEvent(connfdTcp, LOOP_EVT_READABLE,
+    m_net->getLoop().createFileEvent(connfdTcp, LOOP_EVT_READABLE,
                                    onTcpMessage, this);
 
-    UniqID clientId = clientIdGen.getNewID();
-    UniqID convId = convIdGen.getNewID();
-    connDict[clientId] = std::make_shared<SerConn>();
-    PtrSerConn conn = connDict[clientId];
+    UniqID clientId = m_clientIdGen.getNewID();
+    UniqID convId = m_convIdGen.getNewID();
+    m_connDict[clientId] = std::make_shared<SerConn>();
+    PtrSerConn conn = m_connDict[clientId];
     conn->connfdTcp = connfdTcp;
     uint16_t password = random();
     conn->key = (password << 16) | convId;
-    connfd2cid[connfdTcp] = clientId;
-    convId2cid[convId] = clientId;
+    m_connfd2cid[connfdTcp] = clientId;
+    m_cconvId2cid[convId] = clientId;
 
     protocol::TcpHandshake handshake;
     handshake.clientId = clientId;
-    handshake.udpPort = udpPort;
+    handshake.udpPort = m_udpPort;
     handshake.key = conn->key;
     sendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
 
     log_info("[Server][tcp] connected, clientId: %d, connfdTcp: %d, key: %d", clientId, connfdTcp, handshake.key);
     LogSocketState(connfdTcp);
+    // TODO 做完连接合法性验证再回调
     if (onTcpConnected)
         onTcpConnected(this, clientId);
 }
@@ -180,14 +181,14 @@ void Server::_onTcpDisconnected(int connfdTcp)
     {
         log_error("[Server][tcp] close err %d", ret);
     }
-    net->getLoop().deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
-    if (connfd2cid.find(connfdTcp) != connfd2cid.end())
+    m_net->getLoop().deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
+    if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
     {
-        UniqID clientId = connfd2cid[connfdTcp];
-        connfd2cid.erase(connfdTcp);
-        PtrSerConn conn = connDict[clientId];
-        convId2cid.erase(conn->convId());
-        connDict.erase(clientId);
+        UniqID clientId = m_connfd2cid[connfdTcp];
+        m_connfd2cid.erase(connfdTcp);
+        PtrSerConn conn = m_connDict[clientId];
+        m_cconvId2cid.erase(conn->convId());
+        m_connDict.erase(clientId);
         log_info("[Server][tcp] closed, clientId: %d connfdTcp: %d", clientId, connfdTcp);
         if (onTcpDisconnected)
             onTcpDisconnected(this, clientId);
@@ -196,8 +197,8 @@ void Server::_onTcpDisconnected(int connfdTcp)
 
 void Server::_onTcpMessage(int connfdTcp)
 {
-    UniqID clientId = connfd2cid[connfdTcp];
-    PtrSerConn conn = connDict[clientId];
+    UniqID clientId = m_connfd2cid[connfdTcp];
+    PtrSerConn conn = m_connDict[clientId];
     SockBuffer &sockBuffer = conn->buf;
     do
     {

@@ -14,9 +14,9 @@ void OnTcpMessage(EventLoop *loop, int fd, void *clientData, int mask)
     client->_onTcpMessage();
 }
 
-Client::Client(WyNet *net, const char *host, int tcpPort) : net(net),
-                                                            tcpClient(this, host, tcpPort),
-                                                            udpClient(nullptr),
+Client::Client(WyNet *net, const char *host, int tcpPort) : m_net(net),
+                                                            m_tcpClient(this, host, tcpPort),
+                                                            m_udpClient(nullptr),
                                                             onTcpConnected(nullptr),
                                                             onTcpDisconnected(nullptr),
                                                             onTcpRecvUserData(nullptr)
@@ -25,50 +25,50 @@ Client::Client(WyNet *net, const char *host, int tcpPort) : net(net),
 
 Client::~Client()
 {
-    log_info("[Client] close tcp sockfd %d", tcpClient.m_sockfd);
-    tcpClient.Close();
+    log_info("[Client] close tcp sockfd %d", m_tcpClient.m_sockfd);
+    m_tcpClient.Close();
 }
 
 void Client::sendByTcp(const uint8_t *data, size_t len)
 {
     protocol::UserPacket *p = (protocol::UserPacket *)data;
     PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
-    tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
+    m_tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
 
 void Client::sendByTcp(PacketHeader *header)
 {
-    tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
+    m_tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
 
 void Client::_onTcpConnected()
 {
-    net->getLoop().createFileEvent(tcpClient.m_sockfd, LOOP_EVT_READABLE, OnTcpMessage, (void *)this);
-    LogSocketState(tcpClient.m_sockfd);
+    m_net->getLoop().createFileEvent(m_tcpClient.m_sockfd, LOOP_EVT_READABLE, OnTcpMessage, (void *)this);
+    LogSocketState(m_tcpClient.m_sockfd);
     if (onTcpConnected)
         onTcpConnected(this);
 }
 
 void Client::_onTcpDisconnected()
 {
-    net->getLoop().deleteFileEvent(tcpClient.m_sockfd, LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    m_net->getLoop().deleteFileEvent(m_tcpClient.m_sockfd, LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (onTcpDisconnected)
         onTcpDisconnected(this);
 }
 
 void Client::_onTcpMessage()
 {
-    SockBuffer &sockBuffer = tcpClient.buf;
+    SockBuffer &sockBuffer = m_tcpClient.buf;
     // validate packet
     do
     {
         int nreadTotal = 0;
-        int ret = sockBuffer.readIn(tcpClient.m_sockfd, &nreadTotal);
+        int ret = sockBuffer.readIn(m_tcpClient.m_sockfd, &nreadTotal);
         log_debug("readIn ret %d nreadTotal %d", ret, nreadTotal);
         if (ret <= 0)
         {
             // has error or has closed
-            tcpClient.Close();
+            m_tcpClient.Close();
             return;
         }
         if (ret == 2)
@@ -85,13 +85,13 @@ void Client::_onTcpMessage()
             case Protocol::TcpHandshake:
             {
                 protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->m_data + header->getHeaderLength());
-                conn.key = handShake->key;
-                conn.udpPort = handShake->udpPort;
-                conn.clientId = handShake->clientId;
+                m_conn.key = handShake->key;
+                m_conn.udpPort = handShake->udpPort;
+                m_conn.clientId = handShake->clientId;
                 log_info("clientId %d, udpPort %d convId %d passwd %d",
                          handShake->clientId, handShake->udpPort,
-                         conn.convId(),
-                         conn.passwd());
+                         m_conn.convId(),
+                         m_conn.passwd());
                 break;
             }
             case Protocol::UserPacket:

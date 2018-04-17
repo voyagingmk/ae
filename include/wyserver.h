@@ -15,17 +15,17 @@ class EventLoop;
 
 class Server : public Noncopyable
 {
-  WyNet *net;
-  int tcpPort;
-  int udpPort;
-  TCPServer tcpServer;
-  UDPServer udpServer;
-  std::map<UniqID, PtrSerConn> connDict;
-  std::map<int, UniqID> connfd2cid;
-  std::map<ConvID, UniqID> convId2cid;
+  WyNet *m_net;
+  int m_tcpPort;
+  int m_udpPort;
+  TCPServer m_tcpServer;
+  UDPServer m_udpServer;
+  std::map<UniqID, PtrSerConn> m_connDict;
+  std::map<int, UniqID> m_connfd2cid;
+  std::map<ConvID, UniqID> m_cconvId2cid;
 
-  UniqIDGenerator clientIdGen;
-  UniqIDGenerator convIdGen;
+  UniqIDGenerator m_clientIdGen;
+  UniqIDGenerator m_convIdGen;
 
 public:
   typedef void (*OnTcpConnected)(Server *, UniqID clientId);
