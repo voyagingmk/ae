@@ -1,9 +1,9 @@
-#include "event_loop.h"
+#include "eventloop.h"
 
 namespace wynet
 {
 std::atomic<TimerId> TimerRef::g_numCreated;
-    
+
 int OnlyForWakeup(EventLoop *, TimerRef tr, void *userData)
 {
     const int *ms = (const int *)(userData);
@@ -31,7 +31,8 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientD
 {
     EventLoop *loop = (EventLoop *)(clientData);
     TimerRef tr = loop->timerId2ref[timerid];
-    do {
+    do
+    {
         if (!tr.validate())
         {
             break;
@@ -39,8 +40,8 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientD
         std::shared_ptr<EventLoop::TimerData> p = loop->timerData[tr];
         if (!p || !p->onTimerEvent)
         {
-             loop->timerData.erase(tr);
-             break;
+            loop->timerData.erase(tr);
+            break;
         }
         int ret = p->onTimerEvent(loop, tr, p->userData);
         if (ret == AE_NOMORE)
@@ -48,7 +49,7 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientD
             break;
         }
         return ret;
-    } while(0);
+    } while (0);
     loop->timerId2ref.erase(timerid);
     return AE_NOMORE;
 }
@@ -135,7 +136,8 @@ void EventLoop ::deleteTimerInLoop(TimerRef tr)
 bool EventLoop ::deleteTimer(TimerRef tr)
 {
     std::shared_ptr<TimerData> p = timerData[tr];
-    if (p) {
+    if (p)
+    {
         timerData.erase(tr);
         int ret = aeDeleteTimeEvent(aeloop, p->timerid);
         return AE_ERR != ret;

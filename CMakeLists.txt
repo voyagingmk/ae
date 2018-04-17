@@ -74,7 +74,8 @@ FILE(GLOB MY_HEADERS
     include/wytcpserver.h
     include/uniqid.h
     include/wyutils.h
-    include/event_loop.h
+    include/eventloop.h
+    include/eventloop_threadpool.h
     include/common.h
     include/mutex.h
     include/condition.h
