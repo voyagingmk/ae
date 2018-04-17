@@ -10,7 +10,7 @@ namespace wynet
 {
 class EventLoop;
 
-class TcpConnection: public Noncopyable, FDRef
+class TcpConnection: public Noncopyable, public FDRef
 {
   public:
     EventLoop* m_loop;
@@ -67,7 +67,7 @@ class TcpConnectionForServer : public TcpConnection
     void onTcpMessage();
 
     friend void OnTcpMessage(EventLoop *eventLoop,
-                           int connfdTcp, void *clientData, int mask);
+                           int connfdTcp, std::weak_ptr<FDRef> fdRef, int mask);
 };
 
 class TcpConnectionForClient : public TcpConnection

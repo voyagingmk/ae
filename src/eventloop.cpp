@@ -17,11 +17,11 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int 
 {
     EventLoop *loop = (EventLoop *)(clientData);
     EventLoop::FDData& p = loop->m_fdData[fd];
-    if (p && p->onFileEvent)
+    if (p.onFileEvent)
     {
         if ((mask & LOOP_EVT_READABLE) || (mask & LOOP_EVT_WRITABLE) )
         {
-            p->onFileEvent(loop, fd, p->fdRef, mask);
+            p.onFileEvent(loop, fd, p.fdRef, mask);
         }
     }
 }
@@ -78,7 +78,7 @@ void EventLoop::loop()
 {
     assertInLoopThread();
     m_aeloop->stop = 0;
-    TimerRef tr = createTimerInLoop(m_wakeupInterval, OnlyForWakeup, nullptr, (void *)&m_wakeupInterval);
+    TimerRef tr = createTimerInLoop(m_wakeupInterval, OnlyForWakeup, std::weak_ptr<FDRef>(), (void *)&m_wakeupInterval);
     while (!m_aeloop->stop)
     {
         if (m_aeloop->beforesleep != NULL)
@@ -109,7 +109,7 @@ void EventLoop ::createFileEvent(int fd, int mask, OnFileEvent onFileEvent, std:
     }
     int ret = aeCreateFileEvent(m_aeloop, fd, mask, aeOnFileEvent, (void *)this);
     assert(AE_ERR != ret);
-    m_fdData[fd] = { onFileEvent, fdRef };
+    m_fdData[fd] = FDData(onFileEvent, fdRef);
 }
 
 void EventLoop ::deleteFileEvent(int fd, int mask)
@@ -128,7 +128,7 @@ TimerRef EventLoop ::createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, st
 {
     TimerRef tr = TimerRef::newTimerRef();
     runInLoop([&]() {
-        createTimer(tr, ms, onTimerEvent, data);
+        createTimer(tr, ms, onTimerEvent, fdRef, data);
     });
     return tr;
 }

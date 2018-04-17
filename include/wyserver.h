@@ -50,7 +50,7 @@ public:
   WyNet* getNet() const {
       return m_net;
   }
-  TCPServer& getTCPServer() const {
+  TCPServer& getTCPServer() {
     return m_tcpServer;
   }
 
@@ -64,10 +64,10 @@ private:
   void _onTcpDisconnected(int connfdTcp);
 
   friend void OnTcpNewConnection(EventLoop *eventLoop,
-                                 int listenfdTcp, void *clientData, int mask);
+                                 int listenfdTcp, std::weak_ptr<FDRef> fdRef, int mask);
 
   friend void OnUdpMessage(EventLoop *eventLoop,
-                           int fd, void *clientData, int mask);
+                           int fd, std::weak_ptr<FDRef> fdRef, int mask);
 };
 };
 

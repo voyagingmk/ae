@@ -8,10 +8,14 @@ namespace wynet
 
 // http://man7.org/linux/man-pages/man2/connect.2.html
 void OnTcpWritable(EventLoop *eventLoop,
-                   int fd, void *clientData, int mask)
+                   int fd, std::weak_ptr<FDRef> fdRef, int mask)
 {
     log_debug("OnTcpWritable");
-    TCPClient *tcpClient = (TCPClient *)(clientData);
+    std::shared_ptr<FDRef> sfdRef = fdRef.lock();
+    if (!sfdRef) {
+        return;
+    }
+    std::shared_ptr<TCPClient> tcpClient = std::dynamic_pointer_cast<TCPClient>(sfdRef);
     int error;
     socklen_t len;
     len = sizeof(error);
@@ -64,7 +68,7 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
         if ((i == -1) && (errno == EINPROGRESS))
         {
             client->getNet()->getLoop().createFileEvent(m_sockfd, LOOP_EVT_WRITABLE,
-                                              OnTcpWritable, (void *)this);
+                                              OnTcpWritable, shared_from_this());
             break;
         }
         if (i == 0)
