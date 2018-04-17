@@ -121,6 +121,7 @@ class EventLoop : Noncopyable
     class FDData
     {
     public:
+        FDData() {}
         FDData(OnFileEvent _evt, std::weak_ptr<FDRef> _fdRef):
             onFileEvent(_evt),
             fdRef(_fdRef)

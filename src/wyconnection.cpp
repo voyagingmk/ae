@@ -24,7 +24,7 @@ void OnTcpMessage(EventLoop *eventLoop,
     
     conn->onTcpMessage();
 
-    eventLoop->createTimerInLoop(1000, testOnTimerEvent, nullptr, nullptr);
+    eventLoop->createTimerInLoop(1000, testOnTimerEvent, std::weak_ptr<FDRef>(), nullptr);
 }
 
 void TcpConnectionForServer::onConnectEstablished() {
