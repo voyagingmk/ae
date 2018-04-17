@@ -59,6 +59,12 @@ class ConnectionForClient : public Connection
     int udpPort;
     uint32_t clientId;
 };
+
+
+
+typedef ConnectionForServer SerConn;
+typedef std::shared_ptr<SerConn> PtrSerConn;
+
 };
 
 #endif

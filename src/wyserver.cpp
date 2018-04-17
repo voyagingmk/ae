@@ -101,7 +101,7 @@ void Server::closeConnect(UniqID clientId)
     {
         return;
     }
-    _closeConnectByFd(it->second.connfdTcp, true);
+    _closeConnectByFd(it->second->connfdTcp, true);
 }
 
 void Server::_closeConnectByFd(int connfdTcp, bool force)
@@ -131,8 +131,8 @@ void Server::sendByTcp(UniqID clientId, PacketHeader *header)
     {
         return;
     }
-    ConnectionForServer &conn = it->second;
-    int ret = send(conn.connfdTcp, (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
+    PtrSerConn conn = it->second;
+    int ret = send(conn->connfdTcp, (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
     if (ret < 0)
     {
         // should never EMSGSIZE ENOBUFS
@@ -142,7 +142,7 @@ void Server::sendByTcp(UniqID clientId, PacketHeader *header)
         }
         // close the client
         log_error("[Server][tcp] sendByTcp err %d", errno);
-        _closeConnectByFd(conn.connfdTcp, true);
+        _closeConnectByFd(conn->connfdTcp, true);
     }
 }
 
@@ -153,18 +153,18 @@ void Server::_onTcpConnected(int connfdTcp)
 
     UniqID clientId = clientIdGen.getNewID();
     UniqID convId = convIdGen.getNewID();
-    connDict[clientId] = ConnectionForServer();
-    ConnectionForServer &conn = connDict[clientId];
-    conn.connfdTcp = connfdTcp;
+    connDict[clientId] = std::make_shared<SerConn>();
+    PtrSerConn conn = connDict[clientId];
+    conn->connfdTcp = connfdTcp;
     uint16_t password = random();
-    conn.key = (password << 16) | convId;
+    conn->key = (password << 16) | convId;
     connfd2cid[connfdTcp] = clientId;
     convId2cid[convId] = clientId;
 
     protocol::TcpHandshake handshake;
     handshake.clientId = clientId;
     handshake.udpPort = udpPort;
-    handshake.key = conn.key;
+    handshake.key = conn->key;
     sendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
 
     log_info("[Server][tcp] connected, clientId: %d, connfdTcp: %d, key: %d", clientId, connfdTcp, handshake.key);
@@ -185,8 +185,8 @@ void Server::_onTcpDisconnected(int connfdTcp)
     {
         UniqID clientId = connfd2cid[connfdTcp];
         connfd2cid.erase(connfdTcp);
-        ConnectionForServer &conn = connDict[clientId];
-        convId2cid.erase(conn.convId());
+        PtrSerConn conn = connDict[clientId];
+        convId2cid.erase(conn->convId());
         connDict.erase(clientId);
         log_info("[Server][tcp] closed, clientId: %d connfdTcp: %d", clientId, connfdTcp);
         if (onTcpDisconnected)
@@ -197,8 +197,8 @@ void Server::_onTcpDisconnected(int connfdTcp)
 void Server::_onTcpMessage(int connfdTcp)
 {
     UniqID clientId = connfd2cid[connfdTcp];
-    ConnectionForServer &conn = connDict[clientId];
-    SockBuffer &sockBuffer = conn.buf;
+    PtrSerConn conn = connDict[clientId];
+    SockBuffer &sockBuffer = conn->buf;
     do
     {
         int nreadTotal = 0;

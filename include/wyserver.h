@@ -20,7 +20,7 @@ class Server : public Noncopyable
   int udpPort;
   TCPServer tcpServer;
   UDPServer udpServer;
-  std::map<UniqID, ConnectionForServer> connDict;
+  std::map<UniqID, PtrSerConn> connDict;
   std::map<int, UniqID> connfd2cid;
   std::map<ConvID, UniqID> convId2cid;
 
