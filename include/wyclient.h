@@ -18,7 +18,7 @@ class Test;
 class Client: public Noncopyable 
 {
     WyNet *m_net;
-    ConnectionForClient m_conn;
+    TcpConnectionForClient m_conn;
     TCPClient m_tcpClient;
     UDPClient *m_udpClient;
     

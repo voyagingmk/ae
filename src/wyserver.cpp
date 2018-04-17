@@ -175,12 +175,17 @@ void Server::_onTcpConnected(int connfdTcp)
     // TODO 做完连接合法性验证再回调
     if (onTcpConnected)
         onTcpConnected(this, clientId);
-    ioLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));
+    ioLoop->runInLoop(std::bind(&TcpConnection::onConnectEstablished, conn));
 }
 
 void Server::_onTcpDisconnected(int connfdTcp)
 {
-
+    int ret = close(connfdTcp);
+    if (ret < 0)
+    {
+        log_error("[Server][tcp] close err %d", ret);
+    }
+    m_net->getLoop().deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
     if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
     {
         UniqID clientId = m_connfd2cid[connfdTcp];

@@ -9,13 +9,13 @@
 namespace wynet
 {
 
-class Connection: public Noncopyable 
+class TcpConnection: public Noncopyable 
 {
   public:
     uint32_t key;
     KCPObject *kcpObj;
 
-    Connection() : key(0),
+    TcpConnection() : key(0),
                    kcpObj(nullptr)
     {
     }
@@ -30,7 +30,7 @@ class Connection: public Noncopyable
         return key >> 16;
     }
     
-    Connection& operator=(Connection && c) {
+    TcpConnection& operator=(TcpConnection && c) {
         key = c.key;
         kcpObj = c.kcpObj;
         c.key = 0;
@@ -39,12 +39,12 @@ class Connection: public Noncopyable
     }
 };
 
-class ConnectionForServer : public Connection
+class TcpConnectionForServer : public TcpConnection
 {
   public:
     int connfdTcp;
     SockBuffer buf;
-    ConnectionForServer& operator=(ConnectionForServer && c) {
+    TcpConnectionForServer& operator=(TcpConnectionForServer && c) {
         connfdTcp = c.connfdTcp;
         buf = std::move(c.buf);
         c.connfdTcp = 0;
@@ -53,7 +53,7 @@ class ConnectionForServer : public Connection
     void onConnectEstablished();
 };
 
-class ConnectionForClient : public Connection
+class TcpConnectionForClient : public TcpConnection
 {
   public:
     int udpPort;
@@ -62,11 +62,11 @@ class ConnectionForClient : public Connection
 
 
 
-typedef ConnectionForServer SerConn;
+typedef TcpConnectionForServer SerConn;
 
-typedef ConnectionForClient CliConn;
+typedef TcpConnectionForClient CliConn;
 
-typedef std::shared_ptr<Connection> PtrConn;
+typedef std::shared_ptr<TcpConnection> PtrConn;
 
 typedef std::shared_ptr<SerConn> PtrSerConn;
 

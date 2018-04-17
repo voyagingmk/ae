@@ -10,7 +10,7 @@
 
 只做connect，connect成功后创建Connection。单线程。
 
-## Connection
+## TcpConnection
 
 处理连接通讯。
 
