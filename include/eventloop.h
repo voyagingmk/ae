@@ -150,9 +150,9 @@ class EventLoop : Noncopyable
 
     const pid_t m_threadId;
     aeEventLoop *m_aeloop;
-    std::map<int, std::shared_ptr<FDData>> fdData;
-    std::map<TimerRef, std::shared_ptr<TimerData>> timerData;
-    std::map<TimerId, TimerRef> timerId2ref;
+    std::map<int, std::shared_ptr<FDData>> m_fdData;
+    std::map<TimerRef, std::shared_ptr<TimerData>> m_timerData;
+    std::map<TimerId, TimerRef> m_timerId2ref;
     const int m_wakeupInterval;
     bool m_doingTask;
     mutable MutexLock m_mutex;

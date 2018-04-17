@@ -16,7 +16,7 @@ int OnlyForWakeup(EventLoop *, TimerRef tr, void *userData)
 void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask)
 {
     EventLoop *loop = (EventLoop *)(clientData);
-    std::shared_ptr<EventLoop::FDData> p = loop->fdData[fd];
+    std::shared_ptr<EventLoop::FDData> p = loop->m_fdData[fd];
     if (p && p->onFileEvent)
     {
         if (mask & LOOP_EVT_READABLE)
@@ -33,17 +33,17 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int 
 int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
-    TimerRef tr = loop->timerId2ref[timerid];
+    TimerRef tr = loop->m_timerId2ref[timerid];
     do
     {
         if (!tr.validate())
         {
             break;
         }
-        std::shared_ptr<EventLoop::TimerData> p = loop->timerData[tr];
+        std::shared_ptr<EventLoop::TimerData> p = loop->m_timerData[tr];
         if (!p || !p->onTimerEvent)
         {
-            loop->timerData.erase(tr);
+            loop->m_timerData.erase(tr);
             break;
         }
         int ret = p->onTimerEvent(loop, tr, p->userData);
@@ -53,7 +53,7 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientD
         }
         return ret;
     } while (0);
-    loop->timerId2ref.erase(timerid);
+    loop->m_timerId2ref.erase(timerid);
     return AE_NOMORE;
 }
 
@@ -111,12 +111,12 @@ void EventLoop ::createFileEvent(int fd, int mask, OnFileEvent onFileEvent, void
     }
     int ret = aeCreateFileEvent(m_aeloop, fd, mask, aeOnFileEvent, (void *)this);
     assert(AE_ERR != ret);
-    if (fdData.find(fd) == fdData.end())
+    if (m_fdData.find(fd) == m_fdData.end())
     {
         std::shared_ptr<FDData> p(new FDData());
-        fdData.insert({fd, p});
+        m_fdData.insert({fd, p});
     }
-    std::shared_ptr<FDData> p = fdData[fd];
+    std::shared_ptr<FDData> p = m_fdData[fd];
     p->onFileEvent = onFileEvent;
     if (mask & AE_READABLE)
     {
@@ -151,10 +151,10 @@ void EventLoop ::deleteTimerInLoop(TimerRef tr)
 
 bool EventLoop ::deleteTimer(TimerRef tr)
 {
-    std::shared_ptr<TimerData> p = timerData[tr];
+    std::shared_ptr<TimerData> p = m_timerData[tr];
     if (p)
     {
-        timerData.erase(tr);
+        m_timerData.erase(tr);
         int ret = aeDeleteTimeEvent(m_aeloop, p->timerid);
         return AE_ERR != ret;
     }
@@ -165,10 +165,10 @@ TimerId EventLoop ::createTimer(TimerRef tr, TimerId ms, OnTimerEvent onTimerEve
 {
     TimerId timerid = aeCreateTimeEvent(m_aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
     assert(AE_ERR != timerid);
-    assert(timerData.find(tr) == timerData.end());
+    assert(m_timerData.find(tr) == m_timerData.end());
     std::shared_ptr<TimerData> p(new TimerData());
-    timerData.insert({tr, p});
-    timerId2ref.insert({timerid, tr});
+    m_timerData.insert({tr, p});
+    m_timerId2ref.insert({timerid, tr});
     p->onTimerEvent = onTimerEvent;
     p->userData = userData;
     p->timerid = timerid;
