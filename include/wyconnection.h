@@ -54,13 +54,10 @@ class TcpConnection: public Noncopyable, public FDRef
 class TcpConnectionForServer : public TcpConnection
 {
   public:
-    int connfdTcp;
     uint32_t clientId;
     SockBuffer buf;
     TcpConnectionForServer& operator=(TcpConnectionForServer && c) {
-        connfdTcp = c.connfdTcp;
         buf = std::move(c.buf);
-        c.connfdTcp = 0;
         return *this;
     }
     void onConnectEstablished();

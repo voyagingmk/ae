@@ -87,7 +87,7 @@ void Server::closeConnect(UniqID clientId)
     {
         return;
     }
-    _closeConnectByFd(it->second->connfdTcp, true);
+    _closeConnectByFd(it->second->fd(), true);
 }
 
 void Server::_closeConnectByFd(int connfdTcp, bool force)
@@ -118,7 +118,7 @@ void Server::sendByTcp(UniqID clientId, PacketHeader *header)
         return;
     }
     PtrSerConn conn = it->second;
-    int ret = send(conn->connfdTcp, (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
+    int ret = send(conn->fd(), (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
     if (ret < 0)
     {
         // should never EMSGSIZE ENOBUFS
@@ -128,7 +128,7 @@ void Server::sendByTcp(UniqID clientId, PacketHeader *header)
         }
         // close the client
         log_error("[Server][tcp] sendByTcp err %d", errno);
-        _closeConnectByFd(conn->connfdTcp, true);
+        _closeConnectByFd(conn->fd(), true);
     }
 }
 
@@ -142,7 +142,7 @@ void Server::_onTcpConnected(int connfdTcp)
     m_connDict[clientId] = std::make_shared<SerConn>();
     PtrSerConn conn = m_connDict[clientId];
     conn->clientId = clientId;
-    conn->connfdTcp = connfdTcp;
+    conn->setfd(connfdTcp);
     conn->setEventLoop(ioLoop);
     conn->setKey((password << 16) | convId);
     m_connfd2cid[connfdTcp] = clientId;

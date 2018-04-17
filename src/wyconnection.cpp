@@ -37,7 +37,7 @@ void TcpConnectionForServer::onConnectEstablished() {
     sendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
     log_info("[Server][tcp] connected, clientId: %d, connfdTcp: %d, key: %d", clientId, connfdTcp, handshake.key);
     */
-    LogSocketState(connfdTcp);
+    LogSocketState(fd());
 }
 
 void TcpConnectionForServer::onTcpMessage() {
