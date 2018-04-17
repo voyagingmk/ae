@@ -58,6 +58,5 @@ void EventLoopThread::threadFunc()
     }
 
     loop.loop();
-    //assert(exiting_);
-    m_loop = NULL;
+    m_loop = NULL; // TODO
 }

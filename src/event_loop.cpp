@@ -2,6 +2,9 @@
 
 namespace wynet
 {
+
+// thread local
+__thread EventLoop *t_ThreadLoop = nullptr;
 std::atomic<TimerId> TimerRef::g_numCreated;
 
 int OnlyForWakeup(EventLoop *, TimerRef tr, void *userData)
@@ -58,6 +61,14 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
                                                                m_wakeupInterval(wakeupInterval),
                                                                m_doingTask(false)
 {
+    if (t_ThreadLoop)
+    {
+        log_fatal("Create 2 EventLoop For 1 thread?");
+    }
+    else
+    {
+        t_ThreadLoop = this;
+    }
     aeloop = aeCreateEventLoop(defaultSetsize);
 }
 
