@@ -148,6 +148,7 @@ void Server::sendByTcp(UniqID clientId, PacketHeader *header)
 
 void Server::_onTcpConnected(int connfdTcp)
 {
+    m_net->getLoop().assertInLoopThread();
     m_net->getLoop().createFileEvent(connfdTcp, LOOP_EVT_READABLE,
                                    onTcpMessage, this);
 
