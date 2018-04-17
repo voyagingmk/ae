@@ -6,7 +6,7 @@ WyNet net;
 
 void Stop(int signo)
 {
-    net.StopLoop();
+    net.stopLoop();
 }
 
 void OnTcpConnected(Server *server, UniqID clientId)
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     server->onTcpConnected = &OnTcpConnected;
     server->onTcpDisconnected = &OnTcpDisconnected;
     server->onTcpRecvUserData = &OnTcpRecvUserData;
-    net.AddServer(server);
-    net.Loop();
+    net.addServer(server);
+    net.startLoop();
     return 0;
 }

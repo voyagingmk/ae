@@ -16,28 +16,33 @@ namespace wynet
 class WyNet
 {
 public:
-  EventLoop loop;
   typedef std::map<UniqID, Server *> Servers;
   typedef std::map<UniqID, Client *> Clients;
-  Servers servers;
-  Clients clients;
-  UniqIDGenerator serverIdGen;
-  UniqIDGenerator clientIdGen;
-  MutexLock mutexLock;
 
 public:
   WyNet();
 
   ~WyNet();
 
-  void Loop();
+  void startLoop();
 
-  void StopLoop();
-  UniqID AddServer(Server *server);
-  bool DestroyServer(UniqID serverId);
+  void stopLoop();
 
-  UniqID AddClient(Client *client);
-  bool DestroyClient(UniqID serverId);
+  EventLoop &getLoop();
+
+  UniqID addServer(Server *server);
+  bool destroyServer(UniqID serverId);
+
+  UniqID addClient(Client *client);
+  bool destroyClient(UniqID serverId);
+
+private:
+  EventLoop m_loop;
+  Servers m_servers;
+  Clients m_clients;
+  UniqIDGenerator m_serverIdGen;
+  UniqIDGenerator m_clientIdGen;
+  MutexLock m_mutexLock;
 };
 };
 

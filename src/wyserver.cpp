@@ -75,21 +75,21 @@ Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : net(net),
              tcpServer.m_sockfd,
              udpServer.m_sockfd);
 
-    net->loop.createFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE,
-                              OnTcpNewConnection, (void *)this);
+    net->getLoop().createFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE,
+                                   OnTcpNewConnection, (void *)this);
 
     if (udpServer.valid())
     {
-        net->loop.createFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE,
-                                  OnUdpMessage, (void *)this);
+        net->getLoop().createFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE,
+                                       OnUdpMessage, (void *)this);
     }
     LogSocketState(tcpServer.m_sockfd);
 }
 
 Server::~Server()
 {
-    net->loop.deleteFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE);
-    net->loop.deleteFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE);
+    net->getLoop().deleteFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE);
+    net->getLoop().deleteFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE);
     net = nullptr;
     log_info("[Server] destoryed.");
 }
@@ -148,8 +148,8 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header)
 
 void Server::_onTcpConnected(int connfdTcp)
 {
-    net->loop.createFileEvent(connfdTcp, LOOP_EVT_READABLE,
-                              onTcpMessage, this);
+    net->getLoop().createFileEvent(connfdTcp, LOOP_EVT_READABLE,
+                                   onTcpMessage, this);
 
     UniqID clientId = clientIdGen.getNewID();
     UniqID convId = convIdGen.getNewID();
@@ -180,7 +180,7 @@ void Server::_onTcpDisconnected(int connfdTcp)
     {
         log_error("[Server][tcp] close err %d", ret);
     }
-    net->loop.deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
+    net->getLoop().deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
     if (connfd2cid.find(connfdTcp) != connfd2cid.end())
     {
         UniqID clientId = connfd2cid[connfdTcp];

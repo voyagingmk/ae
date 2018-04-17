@@ -9,68 +9,68 @@ WyNet::WyNet()
 
 WyNet::~WyNet()
 {
-    while (!servers.empty())
+    while (!m_servers.empty())
     {
-        UniqID serverId = servers.begin()->first;
-        DestroyServer(serverId);
+        UniqID serverId = m_servers.begin()->first;
+        destroyServer(serverId);
     }
-    while (!clients.empty())
+    while (!m_clients.empty())
     {
-        UniqID clientId = clients.begin()->first;
-        DestroyClient(clientId);
+        UniqID clientId = m_clients.begin()->first;
+        destroyClient(clientId);
     }
     log_info("WyNet destroyed.");
 }
 
-UniqID WyNet::AddServer(Server *s)
+UniqID WyNet::addServer(Server *s)
 {
-    UniqID serverId = serverIdGen.getNewID();
-    servers[serverId] = s;
+    UniqID serverId = m_serverIdGen.getNewID();
+    m_servers[serverId] = s;
     return serverId;
 }
 
-bool WyNet::DestroyServer(UniqID serverId)
+bool WyNet::destroyServer(UniqID serverId)
 {
-    Servers::iterator it = servers.find(serverId);
-    if (it == servers.end())
+    Servers::iterator it = m_servers.find(serverId);
+    if (it == m_servers.end())
     {
         return false;
     }
     Server *server = it->second;
-    servers.erase(it);
+    m_servers.erase(it);
     delete server;
-    serverIdGen.recycleID(serverId);
+    m_serverIdGen.recycleID(serverId);
     return true;
 }
 
-UniqID WyNet::AddClient(Client *s)
+UniqID WyNet::addClient(Client *s)
 {
-    UniqID clientId = clientIdGen.getNewID();
-    clients[clientId] = s;
+    UniqID clientId = m_clientIdGen.getNewID();
+    m_clients[clientId] = s;
     return clientId;
 }
 
-bool WyNet::DestroyClient(UniqID clientId)
+bool WyNet::destroyClient(UniqID clientId)
 {
-    Clients::iterator it = clients.find(clientId);
-    if (it == clients.end())
+    Clients::iterator it = m_clients.find(clientId);
+    if (it == m_clients.end())
     {
         return false;
     }
     Client *client = it->second;
-    clients.erase(it);
+    m_clients.erase(it);
     delete client;
-    serverIdGen.recycleID(clientId);
+    m_serverIdGen.recycleID(clientId);
     return true;
 }
 
-void WyNet::StopLoop()
+void WyNet::stopLoop()
 {
-    loop.stop();
+    m_loop.stop();
 }
 
-void WyNet::Loop()
+void WyNet::startLoop()
 {
-     loop.loop();
+    m_loop.loop();
 }
 };

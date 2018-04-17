@@ -43,7 +43,7 @@ void Client::SendByTcp(PacketHeader *header)
 
 void Client::_onTcpConnected()
 {
-    net->loop.createFileEvent(tcpClient.m_sockfd, LOOP_EVT_READABLE, OnTcpMessage, (void *)this);
+    net->getLoop().createFileEvent(tcpClient.m_sockfd, LOOP_EVT_READABLE, OnTcpMessage, (void *)this);
     LogSocketState(tcpClient.m_sockfd);
     if (onTcpConnected)
         onTcpConnected(this);
@@ -51,7 +51,7 @@ void Client::_onTcpConnected()
 
 void Client::_onTcpDisconnected()
 {
-    net->loop.deleteFileEvent(tcpClient.m_sockfd, LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    net->getLoop().deleteFileEvent(tcpClient.m_sockfd, LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (onTcpDisconnected)
         onTcpDisconnected(this);
 }

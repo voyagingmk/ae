@@ -5,19 +5,19 @@ WyNet net;
 
 void Stop(int signo)
 {
-    net.StopLoop();
+    net.stopLoop();
 }
 
 void OnTcpConnected(Client *client)
 {
     log_info("OnTcpConnected: %d", client->GetTcpClient().m_sockfd);
-    client->SendByTcp((const uint8_t*)"hello", 5);
+    client->SendByTcp((const uint8_t *)"hello", 5);
 }
 
 void OnTcpDisconnected(Client *client)
 {
     log_info("OnTcpDisconnected: %d", client->GetTcpClient().m_sockfd);
-    net.StopLoop();
+    net.stopLoop();
 }
 
 int main(int argc, char **argv)
@@ -34,8 +34,8 @@ int main(int argc, char **argv)
     Client *client = new Client(&net, "127.0.0.1", 9998);
     client->onTcpConnected = &OnTcpConnected;
     client->onTcpDisconnected = &OnTcpDisconnected;
-    net.AddClient(client);
-    net.Loop();
+    net.addClient(client);
+    net.startLoop();
     log_info("exit");
     return 0;
 }
