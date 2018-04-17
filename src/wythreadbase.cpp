@@ -33,7 +33,7 @@ pid_t mainThreadId()
 #if __APPLE__
     return g_mainThreadId;
 #else
-    ::getpid();
+    return ::getpid();
 #endif
 }
 
@@ -42,11 +42,8 @@ bool isMainThread()
 #if __APPLE__
     return tid() == g_mainThreadId;
 #else
-    // https://linux.die.net/man/2/gettid
-    // In a single-threaded process, the thread ID is equal to the process ID
-    printf("a\n");
+    //  only work for Linux
     return tid() == mainThreadId();
-    printf("b\n");
 #endif
 }
 
