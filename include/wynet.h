@@ -39,6 +39,10 @@ public:
   UniqID addClient(Client *client);
   bool destroyClient(UniqID serverId);
 
+  PtrThreadPool getThreadPool() { 
+      return m_threadPool; 
+  }
+
 private:
   EventLoop m_loop;
   Servers m_servers;
@@ -46,6 +50,7 @@ private:
   UniqIDGenerator m_serverIdGen;
   UniqIDGenerator m_clientIdGen;
   MutexLock m_mutexLock;
+  PtrThreadPool m_threadPool;
 };
 };
 

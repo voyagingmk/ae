@@ -4,7 +4,8 @@ namespace wynet
 {
 
 WyNet::WyNet()
-{
+{ 
+    m_threadPool = std::make_shared<EventLoopThreadPool>(&m_loop, "WyNet");
 }
 
 WyNet::~WyNet()

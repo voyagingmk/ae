@@ -22,8 +22,7 @@ class Server : public Noncopyable
   UDPServer m_udpServer;
   std::map<UniqID, PtrSerConn> m_connDict;
   std::map<int, UniqID> m_connfd2cid;
-  std::map<ConvID, UniqID> m_cconvId2cid;
-
+  std::map<ConvID, UniqID> m_convId2cid;
   UniqIDGenerator m_clientIdGen;
   UniqIDGenerator m_convIdGen;
 
@@ -51,6 +50,7 @@ public:
   WyNet* getNet() const {
       return m_net;
   }
+
 private:
   void _closeConnectByFd(int connfdTcp, bool force = false);
 

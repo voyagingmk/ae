@@ -9,7 +9,6 @@
 namespace wynet
 {
 
-// for server only
 class Connection: public Noncopyable 
 {
   public:
@@ -51,6 +50,7 @@ class ConnectionForServer : public Connection
         c.connfdTcp = 0;
         return *this;
     }
+    void onConnectEstablished();
 };
 
 class ConnectionForClient : public Connection
@@ -63,6 +63,7 @@ class ConnectionForClient : public Connection
 
 
 typedef ConnectionForServer SerConn;
+
 typedef ConnectionForClient CliConn;
 
 typedef std::shared_ptr<Connection> PtrConn;

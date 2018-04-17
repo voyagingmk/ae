@@ -50,6 +50,8 @@ class EventLoopThreadPool : Noncopyable
     std::vector<EventLoopThread *> m_threads;
     std::vector<EventLoop *> m_loops;
 };
+
+typedef std::shared_ptr<EventLoopThreadPool> PtrThreadPool;
 };
 
 #endif
