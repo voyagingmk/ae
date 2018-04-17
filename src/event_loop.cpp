@@ -4,7 +4,7 @@ namespace wynet
 {
 
 // thread local
-__thread EventLoop *t_ThreadLoop = nullptr;
+__thread EventLoop *t_threadLoop = nullptr;
 std::atomic<TimerId> TimerRef::g_numCreated;
 
 int OnlyForWakeup(EventLoop *, TimerRef tr, void *userData)
@@ -61,19 +61,21 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
                                                                m_wakeupInterval(wakeupInterval),
                                                                m_doingTask(false)
 {
-    if (t_ThreadLoop)
+    if (t_threadLoop)
     {
         log_fatal("Create 2 EventLoop For 1 thread?");
     }
     else
     {
-        t_ThreadLoop = this;
+        t_threadLoop = this;
     }
     aeloop = aeCreateEventLoop(defaultSetsize);
 }
 
 EventLoop::~EventLoop()
 {
+    aeDeleteEventLoop(aeloop);
+    t_threadLoop = nullptr;
 }
 
 void EventLoop::loop()
@@ -93,8 +95,11 @@ void EventLoop::loop()
 
 void EventLoop::stop()
 {
-    aeStop(aeloop);
-    log_info("EventLoop stop");
+    if (!aeloop->stop)
+    {
+        aeStop(aeloop);
+        log_info("EventLoop stop");
+    }
 }
 
 void EventLoop ::createFileEvent(int fd, int mask, OnFileEvent onFileEvent, void *userData)
@@ -209,5 +214,10 @@ void EventLoop::processTaskQueue()
         taskFuncQueue[i]();
     }
     m_doingTask = false;
+}
+
+EventLoop *EventLoop::getCurrentThreadLoop()
+{
+    return t_threadLoop;
 }
 };
