@@ -47,7 +47,7 @@ void Client::sendByTcp(PacketHeader *header)
 
 void Client::_onTcpConnected()
 {
-    m_net->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
+    m_net->getLoop().createFileEvent(m_tcpClient.shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
     LogSocketState(m_tcpClient.sockfd());
     if (onTcpConnected)
         onTcpConnected(this);
