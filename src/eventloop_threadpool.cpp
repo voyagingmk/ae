@@ -32,8 +32,8 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb)
 
     for (int i = 0; i < m_numThreads; ++i)
     {
-        char nameBuf[m_name.size() + sizeof(int)];
-        snprintf(nameBuf, sizeof nameBuf, "%s%d", m_name.c_str(), i);
+        char nameBuf[m_name.size() + 1 + sizeof(int)];
+        snprintf(nameBuf, sizeof nameBuf, "%s_%d", m_name.c_str(), i);
         EventLoopThread *t = new EventLoopThread(cb, nameBuf);
         m_threads.push_back(t);
         m_loops.push_back(t->startLoop());

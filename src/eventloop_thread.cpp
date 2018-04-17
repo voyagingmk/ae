@@ -29,11 +29,11 @@ EventLoopThread::~EventLoopThread()
 EventLoop *EventLoopThread::startLoop()
 {
     assert(!m_thread.isStarted());
-    m_thread.start();
+    m_thread.start(); // 启动线程
 
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
-        while (m_loop == NULL)
+        while (m_loop == NULL) // 线程此时还没执行threadFunc，进入等待
         {
             m_cond.wait();
         }
@@ -52,7 +52,7 @@ void EventLoopThread::threadFunc()
     }
 
     {
-        MutexLockGuard<MutexLock> lock(m_mutex);
+        MutexLockGuard<MutexLock> lock(m_mutex); // 和startLoop里的lock的竞争
         m_loop = &loop;
         m_cond.notify();
     }
