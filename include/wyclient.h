@@ -40,15 +40,15 @@ public:
     
     void sendByTcp(PacketHeader *header);
     
-    const TCPClient& GetTcpClient() const {
+    const TCPClient& getTcpClient() const {
         return m_tcpClient;
     }
     
-    const UDPClient* GetUdpClient() const {
+    const UDPClient* getUdpClient() const {
         return m_udpClient;
     }
     
-    WyNet* GetNet() const {
+    WyNet* getNet() const {
         return m_net;
     }
 

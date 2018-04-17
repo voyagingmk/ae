@@ -23,7 +23,7 @@ void OnTcpWritable(EventLoop *eventLoop,
     {
         Client *client = tcpClient->parent;
         // connect ok, remove event
-        client->GetNet()->getLoop().deleteFileEvent(tcpClient->m_sockfd, LOOP_EVT_WRITABLE);
+        client->getNet()->getLoop().deleteFileEvent(tcpClient->m_sockfd, LOOP_EVT_WRITABLE);
         tcpClient->onConnected();
     }
 }
@@ -63,7 +63,7 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
 
         if ((i == -1) && (errno == EINPROGRESS))
         {
-            client->GetNet()->getLoop().createFileEvent(m_sockfd, LOOP_EVT_WRITABLE,
+            client->getNet()->getLoop().createFileEvent(m_sockfd, LOOP_EVT_WRITABLE,
                                               OnTcpWritable, (void *)this);
             break;
         }

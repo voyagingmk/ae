@@ -10,13 +10,13 @@ void Stop(int signo)
 
 void OnTcpConnected(Client *client)
 {
-    log_info("OnTcpConnected: %d", client->GetTcpClient().m_sockfd);
+    log_info("OnTcpConnected: %d", client->getTcpClient().m_sockfd);
     client->sendByTcp((const uint8_t *)"hello", 5);
 }
 
 void OnTcpDisconnected(Client *client)
 {
-    log_info("OnTcpDisconnected: %d", client->GetTcpClient().m_sockfd);
+    log_info("OnTcpDisconnected: %d", client->getTcpClient().m_sockfd);
     net.stopLoop();
 }
 

@@ -36,6 +36,7 @@ public:
   OnTcpDisconnected onTcpDisconnected;
   OnTcpRecvUserData onTcpRecvUserData;
 
+public:
   Server(WyNet *net, int tcpPort, int udpPort = 0);
 
   ~Server();
@@ -47,6 +48,9 @@ public:
 
   void sendByTcp(UniqID clientId, PacketHeader *header);
 
+  WyNet* getNet() const {
+      return m_net;
+  }
 private:
   void _closeConnectByFd(int connfdTcp, bool force = false);
 
