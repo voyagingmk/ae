@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     signal(SIGINT, Stop);
 
     log_info("aeGetApiName: %s", aeGetApiName());
-    Client *client = new Client(&net, "127.0.0.1", 9998);
+    std::shared_ptr<Client> client = std::make_shared<Client>(&net, "127.0.0.1", 9998);
     client->onTcpConnected = &OnTcpConnected;
     client->onTcpDisconnected = &OnTcpDisconnected;
     net.addClient(client);

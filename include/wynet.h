@@ -16,8 +16,8 @@ namespace wynet
 class WyNet
 {
 public:
-  typedef std::map<UniqID, Server *> Servers;
-  typedef std::map<UniqID, Client *> Clients;
+  typedef std::map<UniqID, std::shared_ptr<Server>> Servers;
+  typedef std::map<UniqID, std::shared_ptr<Client>> Clients;
 
 public:
   WyNet();
@@ -33,14 +33,15 @@ public:
     return m_loop;
   }
 
-  UniqID addServer(Server *server);
+  UniqID addServer(std::shared_ptr<Server> s);
   bool destroyServer(UniqID serverId);
 
-  UniqID addClient(Client *client);
+  UniqID addClient(std::shared_ptr<Client> c);
   bool destroyClient(UniqID serverId);
 
-  PtrThreadPool getThreadPool() { 
-      return m_threadPool; 
+  PtrThreadPool getThreadPool()
+  {
+    return m_threadPool;
   }
 
 private:

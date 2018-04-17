@@ -4,7 +4,7 @@ namespace wynet
 {
 
 WyNet::WyNet()
-{ 
+{
     m_threadPool = std::make_shared<EventLoopThreadPool>(&m_loop, "WyNet");
 }
 
@@ -23,10 +23,10 @@ WyNet::~WyNet()
     log_info("WyNet destroyed.");
 }
 
-UniqID WyNet::addServer(Server *s)
+UniqID WyNet::addServer(std::shared_ptr<Server> server)
 {
     UniqID serverId = m_serverIdGen.getNewID();
-    m_servers[serverId] = s;
+    m_servers[serverId] = server;
     return serverId;
 }
 
@@ -37,14 +37,13 @@ bool WyNet::destroyServer(UniqID serverId)
     {
         return false;
     }
-    Server *server = it->second;
+    std::shared_ptr<Server> server = it->second;
     m_servers.erase(it);
-    delete server;
     m_serverIdGen.recycleID(serverId);
     return true;
 }
 
-UniqID WyNet::addClient(Client *s)
+UniqID WyNet::addClient(std::shared_ptr<Client> s)
 {
     UniqID clientId = m_clientIdGen.getNewID();
     m_clients[clientId] = s;
@@ -58,9 +57,8 @@ bool WyNet::destroyClient(UniqID clientId)
     {
         return false;
     }
-    Client *client = it->second;
+    std::shared_ptr<Client> client = it->second;
     m_clients.erase(it);
-    delete client;
     m_serverIdGen.recycleID(clientId);
     return true;
 }
