@@ -6,6 +6,14 @@ namespace wynet
 
 UDPServer::UDPServer(int port)
 {
+    if (port > 0)
+    {
+        init(port);
+    }
+}
+
+void UDPServer::init(int port)
+{
     int n;
     const int on = 1;
     struct addrinfo hints, *res, *ressave;

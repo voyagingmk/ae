@@ -78,9 +78,11 @@ Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : net(net),
     net->loop.createFileEvent(tcpServer.m_sockfd, LOOP_EVT_READABLE,
                               OnTcpNewConnection, (void *)this);
 
-    net->loop.createFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE,
-                              OnUdpMessage, (void *)this);
-
+    if (udpServer.valid())
+    {
+        net->loop.createFileEvent(udpServer.m_sockfd, LOOP_EVT_READABLE,
+                                  OnUdpMessage, (void *)this);
+    }
     LogSocketState(tcpServer.m_sockfd);
 }
 

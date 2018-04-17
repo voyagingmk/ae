@@ -11,8 +11,13 @@ class UDPServer : public SocketBase
 {
 public:
   UDPServer(int port);
+
   ~UDPServer();
+
   void Recvfrom();
+
+private:
+  void init(int port);
 };
 };
 

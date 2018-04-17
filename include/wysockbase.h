@@ -151,7 +151,11 @@ class SockBuffer : public Noncopyable
 class SocketBase
 {
   protected:
-    SocketBase() {}
+    SocketBase() : m_socklen(0),
+                   m_sockfd(0),
+                   m_family(0)
+    {
+    }
 
   public:
     sockaddr_in6 m_sockaddr;
@@ -159,6 +163,7 @@ class SocketBase
     int m_sockfd;
     int m_family;
     SockBuffer buf;
+    bool valid() { return m_sockfd > 0; }
     bool isIPv4() { return m_family == PF_INET; }
     bool isIPv6() { return m_family == PF_INET6; }
 };
