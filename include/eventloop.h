@@ -149,7 +149,7 @@ class EventLoop : Noncopyable
     bool deleteTimer(TimerRef tr);
 
     const pid_t m_threadId;
-    aeEventLoop *aeloop;
+    aeEventLoop *m_aeloop;
     std::map<int, std::shared_ptr<FDData>> fdData;
     std::map<TimerRef, std::shared_ptr<TimerData>> timerData;
     std::map<TimerId, TimerRef> timerId2ref;

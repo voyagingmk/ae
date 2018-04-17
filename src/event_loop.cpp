@@ -69,25 +69,25 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
     {
         t_threadLoop = this;
     }
-    aeloop = aeCreateEventLoop(defaultSetsize);
+    m_aeloop = aeCreateEventLoop(defaultSetsize);
 }
 
 EventLoop::~EventLoop()
 {
-    aeDeleteEventLoop(aeloop);
+    aeDeleteEventLoop(m_aeloop);
     t_threadLoop = nullptr;
 }
 
 void EventLoop::loop()
 {
     assertInLoopThread();
-    aeloop->stop = 0;
+    m_aeloop->stop = 0;
     TimerRef tr = createTimerInLoop(m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
-    while (!aeloop->stop)
+    while (!m_aeloop->stop)
     {
-        if (aeloop->beforesleep != NULL)
-            aeloop->beforesleep(aeloop);
-        aeProcessEvents(aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
+        if (m_aeloop->beforesleep != NULL)
+            m_aeloop->beforesleep(m_aeloop);
+        aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
         processTaskQueue();
     }
     deleteTimerInLoop(tr);
@@ -95,21 +95,21 @@ void EventLoop::loop()
 
 void EventLoop::stop()
 {
-    if (!aeloop->stop)
+    if (!m_aeloop->stop)
     {
-        aeStop(aeloop);
+        aeStop(m_aeloop);
         log_info("EventLoop stop");
     }
 }
 
 void EventLoop ::createFileEvent(int fd, int mask, OnFileEvent onFileEvent, void *userData)
 {
-    int setsize = aeGetSetSize(aeloop);
+    int setsize = aeGetSetSize(m_aeloop);
     while (fd >= setsize)
     {
-        assert(AE_ERR != aeResizeSetSize(aeloop, setsize << 1));
+        assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize << 1));
     }
-    int ret = aeCreateFileEvent(aeloop, fd, mask, aeOnFileEvent, (void *)this);
+    int ret = aeCreateFileEvent(m_aeloop, fd, mask, aeOnFileEvent, (void *)this);
     assert(AE_ERR != ret);
     if (fdData.find(fd) == fdData.end())
     {
@@ -130,7 +130,7 @@ void EventLoop ::createFileEvent(int fd, int mask, OnFileEvent onFileEvent, void
 
 void EventLoop ::deleteFileEvent(int fd, int mask)
 {
-    aeDeleteFileEvent(aeloop, fd, mask);
+    aeDeleteFileEvent(m_aeloop, fd, mask);
 }
 
 TimerRef EventLoop ::createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, void *userData)
@@ -155,7 +155,7 @@ bool EventLoop ::deleteTimer(TimerRef tr)
     if (p)
     {
         timerData.erase(tr);
-        int ret = aeDeleteTimeEvent(aeloop, p->timerid);
+        int ret = aeDeleteTimeEvent(m_aeloop, p->timerid);
         return AE_ERR != ret;
     }
     return false;
@@ -163,7 +163,7 @@ bool EventLoop ::deleteTimer(TimerRef tr)
 
 TimerId EventLoop ::createTimer(TimerRef tr, TimerId ms, OnTimerEvent onTimerEvent, void *userData)
 {
-    TimerId timerid = aeCreateTimeEvent(aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
+    TimerId timerid = aeCreateTimeEvent(m_aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
     assert(AE_ERR != timerid);
     assert(timerData.find(tr) == timerData.end());
     std::shared_ptr<TimerData> p(new TimerData());
