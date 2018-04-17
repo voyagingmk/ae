@@ -63,7 +63,13 @@ class ConnectionForClient : public Connection
 
 
 typedef ConnectionForServer SerConn;
+typedef ConnectionForClient CliConn;
+
+typedef std::shared_ptr<Connection> PtrConn;
+
 typedef std::shared_ptr<SerConn> PtrSerConn;
+
+typedef std::shared_ptr<CliConn> PtrCliConn;
 
 };
 
