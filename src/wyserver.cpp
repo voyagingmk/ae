@@ -139,6 +139,7 @@ void Server::_onTcpConnected(int connfdTcp)
     UniqID convId = m_convIdGen.getNewID();
     m_connDict[clientId] = std::make_shared<SerConn>();
     PtrSerConn conn = m_connDict[clientId];
+    conn->clientId = clientId;
     conn->connfdTcp = connfdTcp;
     conn->setEventLoop(ioLoop);
     conn->setKey((password << 16) | convId);

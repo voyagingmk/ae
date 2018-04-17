@@ -44,6 +44,7 @@ FILE(GLOB MY_SOURCERS
     src/eventloop.cpp
     src/eventloop_thread.cpp
     src/eventloop_threadpool.cpp
+    src/wyconnection.cpp
     src/uniqid.cpp
     src/wythreadbase.cpp
     src/wythread.cpp

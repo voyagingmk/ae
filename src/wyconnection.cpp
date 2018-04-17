@@ -1,4 +1,8 @@
 #include "wyconnection.h"
+#include "wyutils.h"
+#include "eventloop.h"
+#include "protocol.h"
+#include "protocol_define.h"
 
 using namespace wynet;
 
@@ -8,12 +12,12 @@ int testOnTimerEvent(EventLoop *loop, TimerRef tr, void *userData)
     return LOOP_EVT_NOMORE;
 }
 
-void onTcpMessage(EventLoop *eventLoop,
+void OnTcpMessage(EventLoop *eventLoop,
                   int connfdTcp, void *clientData, int mask)
 {
     log_debug("onTcpMessage connfd=%d", connfdTcp);
     TcpConnectionForServer *conn = (TcpConnectionForServer *)(clientData);
-    server->_onTcpMessage(connfdTcp);
+    conn->onTcpMessage();
 
     eventLoop->createTimerInLoop(1000, testOnTimerEvent, NULL);
 }
@@ -21,12 +25,18 @@ void onTcpMessage(EventLoop *eventLoop,
 void TcpConnectionForServer::onConnectEstablished() {
         
     m_loop->createFileEvent(connfdTcp, LOOP_EVT_READABLE,
-                                   onTcpMessage, this);
+                                   OnTcpMessage, this);
+    /*
     protocol::TcpHandshake handshake;
     handshake.clientId = clientId;
     handshake.udpPort = m_udpPort;
     handshake.key = conn->key;
     sendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
     log_info("[Server][tcp] connected, clientId: %d, connfdTcp: %d, key: %d", clientId, connfdTcp, handshake.key);
+    */
     LogSocketState(connfdTcp);
+}
+
+void TcpConnectionForServer::onTcpMessage() {
+
 }

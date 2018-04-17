@@ -130,7 +130,26 @@ void EventLoop ::createFileEvent(int fd, int mask, OnFileEvent onFileEvent, void
 
 void EventLoop ::deleteFileEvent(int fd, int mask)
 {
+    int setsize = aeGetSetSize(m_aeloop);
+    if (fd >= setsize) {
+        log_warn("deleteFileEvent fd >= setsize  %d %d\n", fd, setsize);
+    }
     aeDeleteFileEvent(m_aeloop, fd, mask);
+    if (m_fdData.find(fd) != m_fdData.end()) {
+        std::shared_ptr<FDData> p = m_fdData[fd];
+        p->onFileEvent = nullptr;
+        if (mask & AE_READABLE)
+        {
+            p->userDataRead = nullptr;
+        }
+        if (mask & AE_WRITABLE)
+        {
+            p->userDataWrite = nullptr;
+        }
+        if (!p->userDataRead && !p->userDataRead) {
+            m_fdData.erase(fd);
+        }
+    }
 }
 
 TimerRef EventLoop ::createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, void *userData)
