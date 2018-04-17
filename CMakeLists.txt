@@ -41,7 +41,7 @@ FILE(GLOB MY_SOURCERS
     src/wyudpclient.cpp
     src/wyudpserver.cpp
     src/wyutils.cpp
-    src/event_loop.cpp
+    src/eventloop.cpp
     src/eventloop_thread.cpp
     src/eventloop_threadpool.cpp
     src/uniqid.cpp
