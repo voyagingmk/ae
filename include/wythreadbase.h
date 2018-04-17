@@ -8,7 +8,7 @@ namespace wynet
 
 namespace CurrentThread
 {
-extern __thread int t_tidCached;
+extern __thread pid_t t_tidCached;
 extern __thread char t_tidString[32];
 extern __thread int t_tidStringLength;
 extern __thread const char *t_threadName;
@@ -17,7 +17,7 @@ pid_t gettid();
 
 void cacheTid();
 
-inline int tid()
+inline pid_t tid()
 {
     if (G_UNLIKELY(t_tidCached == 0))
     {
@@ -25,6 +25,8 @@ inline int tid()
     }
     return t_tidCached;
 }
+
+pid_t mainThreadId();
 
 inline const char *tidString()
 {
