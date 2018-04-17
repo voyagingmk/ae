@@ -19,7 +19,7 @@ void OnTcpWritable(EventLoop *eventLoop,
     int error;
     socklen_t len;
     len = sizeof(error);
-    if (getsockopt(tcpClient->m_sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+    if (getsockopt(tcpClient->sockfd(), SOL_SOCKET, SO_ERROR, &error, &len) < 0)
     {
         // close it
     }
@@ -27,7 +27,7 @@ void OnTcpWritable(EventLoop *eventLoop,
     {
         Client *client = tcpClient->parent;
         // connect ok, remove event
-        client->getNet()->getLoop().deleteFileEvent(tcpClient->m_sockfd, LOOP_EVT_WRITABLE);
+        client->getNet()->getLoop().deleteFileEvent(tcpClient->sockfd(), LOOP_EVT_WRITABLE);
         tcpClient->onConnected();
     }
 }
@@ -53,28 +53,28 @@ TCPClient::TCPClient(Client *client, const char *host, int port)
     int i;
     do
     {
-        m_sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        if (m_sockfd < 0)
+        setSockfd(socket(res->ai_family, res->ai_socktype, res->ai_protocol));
+        if (sockfd() < 0)
             continue; /* ignore this one */
 
-        int flags = Fcntl(m_sockfd, F_GETFL, 0);
-        Fcntl(m_sockfd, F_SETFL, flags | O_NONBLOCK);
+        int flags = Fcntl(sockfd(), F_GETFL, 0);
+        Fcntl(sockfd(), F_SETFL, flags | O_NONBLOCK);
 
-        SetSockRecvBufSize(m_sockfd, 32 * 1024);
-        SetSockSendBufSize(m_sockfd, 32 * 1024);
+        SetSockRecvBufSize(sockfd(), 32 * 1024);
+        SetSockSendBufSize(sockfd(), 32 * 1024);
 
-        i = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
+        i = connect(sockfd(), res->ai_addr, res->ai_addrlen);
 
         if ((i == -1) && (errno == EINPROGRESS))
         {
-            client->getNet()->getLoop().createFileEvent(m_sockfd, LOOP_EVT_WRITABLE,
+            client->getNet()->getLoop().createFileEvent(sockfd(), LOOP_EVT_WRITABLE,
                                               OnTcpWritable, shared_from_this());
             break;
         }
         if (i == 0)
             break; /* success */
 
-        ::Close(m_sockfd); /* ignore this one */
+        ::Close(sockfd()); /* ignore this one */
     } while ((res = res->ai_next) != NULL);
 
     if (res == NULL) /* errno set from final connect() */
@@ -99,7 +99,7 @@ void TCPClient::Close()
     }
     log_info("tcp client closed");
     connected = false;
-    close(m_sockfd);
+    close(sockfd());
     parent->_onTcpDisconnected();
 }
 
@@ -109,7 +109,7 @@ void TCPClient::Recvfrom()
 
 void TCPClient::Send(uint8_t *data, size_t len)
 {
-    int ret = send(m_sockfd, data, len, 0);
+    int ret = send(sockfd(), data, len, 0);
     if (ret < 0)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
@@ -118,7 +118,7 @@ void TCPClient::Send(uint8_t *data, size_t len)
         }
         Close();
     }
-    // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
+    // Sendto(sockfd(), data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 
 void TCPClient::onConnected()

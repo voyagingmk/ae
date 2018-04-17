@@ -55,7 +55,7 @@ TCPServer::TCPServer(int port)
     
 	Listen(listenfd, LISTENQ);
 
-	m_sockfd = listenfd;
+	setSockfd(listenfd);
 	m_family = res->ai_family;
 	memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
 	m_socklen = res->ai_addrlen; /* return size of protocol address */
@@ -68,6 +68,6 @@ TCPServer::TCPServer(int port)
 
 TCPServer::~TCPServer()
 {
-	close(m_sockfd);
+	close(sockfd());
 }
 };

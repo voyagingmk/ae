@@ -9,7 +9,7 @@ namespace wynet
 
 class Client;
     
-class TCPClient : public SocketBase, FDRef
+class TCPClient : public SocketBase
 {
 public:
     sockaddr_in m_serSockaddr;

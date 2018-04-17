@@ -10,7 +10,7 @@ UDPClient::UDPClient(const char *host, int port)
     sprintf(buf, "%d", port);
     const char *serv = (char *)&buf;
 
-    int sockfd, n;
+    int fd, n;
     struct addrinfo hints, *res, *ressave;
 
     bzero(&hints, sizeof(struct addrinfo));
@@ -26,8 +26,8 @@ UDPClient::UDPClient(const char *host, int port)
     {
         if (res->ai_family == PF_INET || res->ai_family == PF_INET6)
         {
-            sockfd = Socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-            if (sockfd >= 0)
+            fd = Socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+            if (fd >= 0)
                 break; /* success */
         }
     } while ((res = res->ai_next) != NULL);
@@ -38,22 +38,22 @@ UDPClient::UDPClient(const char *host, int port)
     memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
     m_socklen = res->ai_addrlen;
     freeaddrinfo(ressave);
-    m_sockfd = sockfd;
+    setSockfd(fd);
     m_family = res->ai_family;
 
-    Connect(m_sockfd, (struct sockaddr *)&m_sockaddr, m_socklen);
+    Connect(sockfd(), (struct sockaddr *)&m_sockaddr, m_socklen);
     char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
     log_info("connected: %s", str);
 }
 
 UDPClient::~UDPClient()
 {
-    close(m_sockfd);
+    close(sockfd());
 }
 
 void UDPClient::Send(const char *data, size_t len)
 {
-    ::Send(m_sockfd, data, len, 0);
-    // Sendto(m_sockfd, data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
+    ::Send(sockfd(), data, len, 0);
+    // Sendto(sockfd(), data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 };

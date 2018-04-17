@@ -148,11 +148,16 @@ class SockBuffer : public Noncopyable
     }
 };
 
-class SocketBase
+class FDRef: public std::enable_shared_from_this<FDRef> {
+public:
+    virtual ~FDRef() {}
+    int m_fd;
+};
+
+class SocketBase: public FDRef
 {
   protected:
     SocketBase() : m_socklen(0),
-                   m_sockfd(0),
                    m_family(0)
     {
     }
@@ -160,20 +165,17 @@ class SocketBase
   public:
     sockaddr_in6 m_sockaddr;
     socklen_t m_socklen;
-    int m_sockfd;
     int m_family;
     SockBuffer buf;
-    bool valid() { return m_sockfd > 0; }
+
+    void setSockfd(int fd) { m_fd = fd; }
+    int sockfd() { return m_fd; }
+    bool valid() { return m_fd > 0; }
     bool isIPv4() { return m_family == PF_INET; }
     bool isIPv6() { return m_family == PF_INET6; }
 };
 
 
-class FDRef: public std::enable_shared_from_this<FDRef> {
-public:
-    virtual ~FDRef() {}
-    int m_fd;
-};
 
 };
 

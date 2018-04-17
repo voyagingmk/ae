@@ -16,7 +16,7 @@ void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, std::weak_ptr<FDR
     }
     std::shared_ptr<Server> server = std::dynamic_pointer_cast<Server>(sfdRef);
 
-    int sockfd = server->getTCPServer().m_sockfd;
+    int sockfd = server->getTCPServer().sockfd();
     assert(sockfd == listenfdTcp);
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
@@ -61,24 +61,24 @@ Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : m_net(net),
     m_convIdGen.setRecycleEnabled(true);
 
     log_info("[Server] created, tcp sockfd: %d, udp sockfd: %d",
-             m_tcpServer.m_sockfd,
-             m_udpServer.m_sockfd);
+             m_tcpServer.sockfd(),
+             m_udpServer.sockfd());
 
-    m_net->getLoop().createFileEvent(m_tcpServer.m_sockfd, LOOP_EVT_READABLE,
+    m_net->getLoop().createFileEvent(m_tcpServer.sockfd(), LOOP_EVT_READABLE,
                                    OnTcpNewConnection, shared_from_this());
 
     if (m_udpServer.valid())
     {
-        m_net->getLoop().createFileEvent(m_udpServer.m_sockfd, LOOP_EVT_READABLE,
+        m_net->getLoop().createFileEvent(m_udpServer.sockfd(), LOOP_EVT_READABLE,
                                        OnUdpMessage, shared_from_this());
     }
-    LogSocketState(m_tcpServer.m_sockfd);
+    LogSocketState(m_tcpServer.sockfd());
 }
 
 Server::~Server()
 {
-    m_net->getLoop().deleteFileEvent(m_tcpServer.m_sockfd, LOOP_EVT_READABLE);
-    m_net->getLoop().deleteFileEvent(m_udpServer.m_sockfd, LOOP_EVT_READABLE);
+    m_net->getLoop().deleteFileEvent(m_tcpServer.sockfd(), LOOP_EVT_READABLE);
+    m_net->getLoop().deleteFileEvent(m_udpServer.sockfd(), LOOP_EVT_READABLE);
     m_net = nullptr;
     log_info("[Server] destoryed.");
 }

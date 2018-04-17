@@ -29,7 +29,7 @@ Client::Client(WyNet *net, const char *host, int tcpPort) : m_net(net),
 
 Client::~Client()
 {
-    log_info("[Client] close tcp sockfd %d", m_tcpClient.m_sockfd);
+    log_info("[Client] close tcp sockfd %d", m_tcpClient.sockfd());
     m_tcpClient.Close();
 }
 
@@ -47,15 +47,15 @@ void Client::sendByTcp(PacketHeader *header)
 
 void Client::_onTcpConnected()
 {
-    m_net->getLoop().createFileEvent(m_tcpClient.m_sockfd, LOOP_EVT_READABLE, OnTcpMessage,  shared_from_this());
-    LogSocketState(m_tcpClient.m_sockfd);
+    m_net->getLoop().createFileEvent(m_tcpClient.sockfd(), LOOP_EVT_READABLE, OnTcpMessage,  shared_from_this());
+    LogSocketState(m_tcpClient.sockfd());
     if (onTcpConnected)
         onTcpConnected(this);
 }
 
 void Client::_onTcpDisconnected()
 {
-    m_net->getLoop().deleteFileEvent(m_tcpClient.m_sockfd, LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    m_net->getLoop().deleteFileEvent(m_tcpClient.sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (onTcpDisconnected)
         onTcpDisconnected(this);
 }
@@ -67,7 +67,7 @@ void Client::_onTcpMessage()
     do
     {
         int nreadTotal = 0;
-        int ret = sockBuffer.readIn(m_tcpClient.m_sockfd, &nreadTotal);
+        int ret = sockBuffer.readIn(m_tcpClient.sockfd(), &nreadTotal);
         log_debug("readIn ret %d nreadTotal %d", ret, nreadTotal);
         if (ret <= 0)
         {
