@@ -44,7 +44,9 @@ bool isMainThread()
 #else
     // https://linux.die.net/man/2/gettid
     // In a single-threaded process, the thread ID is equal to the process ID
+    printf("a\n");
     return tid() == mainThreadId();
+    printf("b\n");
 #endif
 }
 
