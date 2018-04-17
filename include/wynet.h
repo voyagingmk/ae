@@ -28,7 +28,10 @@ public:
 
   void stopLoop();
 
-  EventLoop &getLoop();
+  EventLoop &getLoop()
+  {
+    return m_loop;
+  }
 
   UniqID addServer(Server *server);
   bool destroyServer(UniqID serverId);
