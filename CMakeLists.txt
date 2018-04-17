@@ -42,6 +42,8 @@ FILE(GLOB MY_SOURCERS
     src/wyudpserver.cpp
     src/wyutils.cpp
     src/event_loop.cpp
+    src/eventloop_thread.cpp
+    src/eventloop_threadpool.cpp
     src/uniqid.cpp
     src/wythreadbase.cpp
     src/wythread.cpp
@@ -75,6 +77,7 @@ FILE(GLOB MY_HEADERS
     include/uniqid.h
     include/wyutils.h
     include/eventloop.h
+    include/eventloop_thread.h
     include/eventloop_threadpool.h
     include/common.h
     include/mutex.h

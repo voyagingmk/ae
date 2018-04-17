@@ -1,5 +1,5 @@
-#ifndef WY_EVENT_LOOP_H
-#define WY_EVENT_LOOP_H
+#ifndef WY_EVENTLOOP_H
+#define WY_EVENTLOOP_H
 
 #include "noncopyable.h"
 #include "common.h"
@@ -16,53 +16,58 @@ namespace wynet
 
 typedef long long TimerId;
 
-    
-class TimerRef {
+class TimerRef
+{
     TimerId m_id;
-public:
-    explicit TimerRef(const TimerId _id = 0):
-        m_id(_id) {
+
+  public:
+    explicit TimerRef(const TimerId _id = 0) : m_id(_id)
+    {
     }
-    
-    TimerRef(const TimerRef& tr):
-        m_id(tr.m_id) {
+
+    TimerRef(const TimerRef &tr) : m_id(tr.m_id)
+    {
     }
-    
-    TimerRef& operator=(const TimerRef& tr)
+
+    TimerRef &operator=(const TimerRef &tr)
     {
         m_id = tr.m_id;
         return *this;
     }
-    
-    TimerRef(TimerRef && tr):
-        m_id(tr.m_id) {
+
+    TimerRef(TimerRef &&tr) : m_id(tr.m_id)
+    {
     }
-    
-    TimerRef& operator=(TimerRef&& tr)
+
+    TimerRef &operator=(TimerRef &&tr)
     {
         m_id = tr.m_id;
         return *this;
     }
-    
-    TimerId Id() const {
+
+    TimerId Id() const
+    {
         return m_id;
     }
-    
-    bool validate() const {
+
+    bool validate() const
+    {
         return m_id > 0;
     }
-    
-    bool operator < (const TimerRef& tr) const {
+
+    bool operator<(const TimerRef &tr) const
+    {
         return m_id < tr.m_id;
     }
-    
-    static TimerRef newTimerRef() {
+
+    static TimerRef newTimerRef()
+    {
         TimerId _id = ++g_numCreated;
         return TimerRef(_id);
     }
     static std::atomic<TimerId> g_numCreated;
 };
-    
+
 class EventLoop : Noncopyable
 {
   public:
