@@ -169,10 +169,10 @@ class SocketBase: public FDRef
     SockBuffer buf;
 
     void setSockfd(int fd) { m_fd = fd; }
-    int sockfd() { return m_fd; }
-    bool valid() { return m_fd > 0; }
-    bool isIPv4() { return m_family == PF_INET; }
-    bool isIPv6() { return m_family == PF_INET6; }
+    int sockfd() const { return m_fd; }
+    bool valid() const { return m_fd > 0; }
+    bool isIPv4() const { return m_family == PF_INET; }
+    bool isIPv6() const { return m_family == PF_INET6; }
 };
 
 
