@@ -8,6 +8,8 @@
 #include "wyclient.h"
 #include "mutex.h"
 #include "eventloop.h"
+#include "eventloop_thread.h"
+#include "eventloop_threadpool.h"
 
 namespace wynet
 {
