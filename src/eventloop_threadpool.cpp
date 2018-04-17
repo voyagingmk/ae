@@ -5,9 +5,9 @@
 
 using namespace wynet;
 
-EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string &nameArg)
+EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string &name)
     : m_baseLoop(baseLoop),
-      m_name(nameArg),
+      m_name(name),
       m_started(false),
       m_numThreads(0),
       m_next(0)
@@ -16,14 +16,12 @@ EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string 
 
 EventLoopThreadPool::~EventLoopThreadPool()
 {
-    // Don't delete loop, it's stack variable
 }
 
 void EventLoopThreadPool::start(const ThreadInitCallback &cb)
 {
     assert(!m_started);
     m_baseLoop->assertInLoopThread();
-
     m_started = true;
 
     for (int i = 0; i < m_numThreads; ++i)

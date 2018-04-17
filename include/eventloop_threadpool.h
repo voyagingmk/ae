@@ -16,7 +16,9 @@ class EventLoopThreadPool : Noncopyable
     typedef std::function<void(EventLoop *)> ThreadInitCallback;
 
     EventLoopThreadPool(EventLoop *baseLoop, const std::string &nameArg);
+
     ~EventLoopThreadPool();
+
     void setThreadNum(int n)
     {
         m_numThreads = n;
@@ -32,7 +34,7 @@ class EventLoopThreadPool : Noncopyable
 
     std::vector<EventLoop *> getAllLoops();
 
-    bool started() const
+    bool isStarted() const
     {
         return m_started;
     }
