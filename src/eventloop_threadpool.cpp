@@ -26,9 +26,9 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb)
 
     for (int i = 0; i < m_numThreads; ++i)
     {
-        char buf[m_name.size() + 32];
-        snprintf(buf, sizeof buf, "%s%d", m_name.c_str(), i);
-        EventLoopThread *t = new EventLoopThread(cb, buf);
+        char nameBuf[m_name.size() + sizeof(int)];
+        snprintf(nameBuf, sizeof nameBuf, "%s%d", m_name.c_str(), i);
+        EventLoopThread *t = new EventLoopThread(cb, nameBuf);
         m_threads.push_back(t);
         m_loops.push_back(t->startLoop());
     }
@@ -42,19 +42,14 @@ EventLoop *EventLoopThreadPool::getNextLoop()
 {
     m_baseLoop->assertInLoopThread();
     assert(m_started);
-    EventLoop *loop = m_baseLoop;
-
-    if (!m_loops.empty())
+    if (m_loops.empty())
     {
-        // round-robin
-        loop = m_loops[m_next];
-        ++m_next;
-        if ((size_t)(m_next) >= m_loops.size())
-        {
-            m_next = 0;
-        }
+        return m_baseLoop;
     }
-    return loop;
+    EventLoop *nextLoop = m_loops[m_next];
+    ++m_next;
+    m_next = (size_t)(m_next) % m_loops.size();
+    return nextLoop;
 }
 
 EventLoop *EventLoopThreadPool::getLoopForHash(size_t hashCode)
