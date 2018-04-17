@@ -167,6 +167,14 @@ class SocketBase
     bool isIPv4() { return m_family == PF_INET; }
     bool isIPv6() { return m_family == PF_INET6; }
 };
+
+
+class FDRef: public std::enable_shared_from_this<FDRef> {
+public:
+    virtual ~FDRef() {}
+    int m_fd;
+};
+
 };
 
 #endif

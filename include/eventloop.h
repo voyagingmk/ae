@@ -4,6 +4,7 @@
 #include "noncopyable.h"
 #include "common.h"
 #include "wythread.h"
+#include "wysockbase.h"
 #include <functional>
 
 namespace wynet
@@ -72,8 +73,8 @@ class EventLoop : Noncopyable
 {
   public:
     typedef std::function<void()> TaskFunction;
-    typedef void (*OnFileEvent)(EventLoop *, int fd, void *userData, int mask);
-    typedef int (*OnTimerEvent)(EventLoop *, TimerRef tr, void *userData);
+    typedef void (*OnFileEvent)(EventLoop *, int fd, std::weak_ptr<FDRef> fdRef, int mask);
+    typedef int (*OnTimerEvent)(EventLoop *, TimerRef tr, std::weak_ptr<FDRef> fdRef, void* data);
 
     EventLoop(int wakeupInterval = 10, int defaultSetsize = 64);
 
@@ -83,11 +84,11 @@ class EventLoop : Noncopyable
 
     void stop();
 
-    void createFileEvent(int fd, int mask, OnFileEvent onFileEvent, void *userData);
+    void createFileEvent(int fd, int mask, OnFileEvent onFileEvent, std::weak_ptr<FDRef> fdRef);
 
     void deleteFileEvent(int fd, int mask);
 
-    TimerRef createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, void *userData);
+    TimerRef createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void* data);
 
     void deleteTimerInLoop(TimerRef tr);
 
@@ -117,40 +118,41 @@ class EventLoop : Noncopyable
         log_fatal("EventLoop abort. %s. m_threadId %d curThreadId %d", reason.c_str(), m_threadId, CurrentThread::tid());
     }
 
-    struct FDData
+    class FDData
     {
-        FDData() : onFileEvent(nullptr),
-                   userDataRead(nullptr),
-                   userDataWrite(nullptr)
+    public:
+        FDData(OnFileEvent _evt, std::weak_ptr<FDRef> _fdRef):
+            onFileEvent(_evt),
+            fdRef(_fdRef)
         {
         }
         OnFileEvent onFileEvent;
-        void *userDataRead;
-        void *userDataWrite;
+        std::weak_ptr<FDRef> fdRef;
     };
 
     struct TimerData
     {
         TimerData() : onTimerEvent(nullptr),
-                      userData(nullptr),
+                      data(nullptr),
                       timerid(0)
         {
         }
         OnTimerEvent onTimerEvent;
-        void *userData;
+        std::weak_ptr<FDRef> fdRef;
+        void* data;
         TimerId timerid;
     };
 
   private:
     void processTaskQueue();
 
-    TimerId createTimer(TimerRef tr, TimerId delay, OnTimerEvent onTimerEvent, void *userData);
+    TimerId createTimer(TimerRef tr, TimerId delay, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void* data);
 
     bool deleteTimer(TimerRef tr);
 
     const pid_t m_threadId;
     aeEventLoop *m_aeloop;
-    std::map<int, std::shared_ptr<FDData>> m_fdData;
+    std::map<int, FDData> m_fdData;
     std::map<TimerRef, std::shared_ptr<TimerData>> m_timerData;
     std::map<TimerId, TimerRef> m_timerId2ref;
     const int m_wakeupInterval;

@@ -6,7 +6,7 @@
 
 using namespace wynet;
 
-int testOnTimerEvent(EventLoop *loop, TimerRef tr, void *userData)
+int testOnTimerEvent(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *data)
 {
     printf("testOnTimerEvent %lld\n", tr.Id());
     return LOOP_EVT_NOMORE;
@@ -19,7 +19,7 @@ void OnTcpMessage(EventLoop *eventLoop,
     TcpConnectionForServer *conn = (TcpConnectionForServer *)(clientData);
     conn->onTcpMessage();
 
-    eventLoop->createTimerInLoop(1000, testOnTimerEvent, NULL);
+    eventLoop->createTimerInLoop(1000, testOnTimerEvent, nullptr, nullptr);
 }
 
 void TcpConnectionForServer::onConnectEstablished() {

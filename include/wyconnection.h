@@ -10,7 +10,7 @@ namespace wynet
 {
 class EventLoop;
 
-class TcpConnection: public Noncopyable 
+class TcpConnection: public Noncopyable, FDRef
 {
   public:
     EventLoop* m_loop;

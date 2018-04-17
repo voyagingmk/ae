@@ -15,7 +15,7 @@ namespace wynet
 class WyNet;
 class Test;
 
-class Client: public Noncopyable 
+class Client: public Noncopyable, FDRef
 {
     WyNet *m_net;
     TcpConnectionForClient m_conn;

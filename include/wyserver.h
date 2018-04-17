@@ -13,7 +13,7 @@ namespace wynet
 class WyNet;
 class EventLoop;
 
-class Server : public Noncopyable
+class Server : public Noncopyable, FDRef
 {
   WyNet *m_net;
   int m_tcpPort;
@@ -49,6 +49,9 @@ public:
 
   WyNet* getNet() const {
       return m_net;
+  }
+  TCPServer& getTCPServer() const {
+    return m_tcpServer;
   }
 
 private:
