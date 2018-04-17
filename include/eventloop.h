@@ -110,7 +110,7 @@ class EventLoop : Noncopyable
 
     size_t queueSize() const;
 
-    EventLoop *getCurrentThreadLoop();
+    static EventLoop *getCurrentThreadLoop();
 
     void abort(std::string reason)
     {
