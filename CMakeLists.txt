@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
-project(wynet LANGUAGES C CXX VERSION 0.0.0)
+project(wynet_project LANGUAGES C CXX VERSION 0.0.0)
 
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -102,6 +102,17 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package( Threads )
 
 
+add_library(wynet STATIC ${MY_SOURCERS} ${MY_HEADERS})
+target_include_directories(
+        wynet
+        PUBLIC
+        include
+        src
+        external
+        )
+install(TARGETS wynet DESTINATION lib)
+
+
 set( project_tests
     test_client
     test_server
@@ -125,7 +136,7 @@ set( EXE_test_eventloopthread_SOURCES
 # For each executable in the list...
 foreach( exe ${project_tests} )
     # declare the target...
-    add_executable( ${exe} ${EXE_${exe}_SOURCES} ${MY_SOURCERS} ${MY_HEADERS} )
+    add_executable( ${exe} ${EXE_${exe}_SOURCES})
     target_include_directories(
         ${exe}
         PUBLIC
@@ -134,7 +145,7 @@ foreach( exe ${project_tests} )
         external
         )
     target_compile_features(${exe} PRIVATE cxx_range_for)
-    target_link_libraries(${exe} PRIVATE ${CMAKE_THREAD_LIBS_INIT})    
+    target_link_libraries(${exe} PRIVATE wynet ${CMAKE_THREAD_LIBS_INIT})    
 endforeach()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
