@@ -8,22 +8,6 @@
 namespace wynet
 {
 
-int testOnTimerEvent(EventLoop *loop, TimerRef tr, void *userData)
-{
-    printf("testOnTimerEvent %lld\n", tr.Id());
-    return LOOP_EVT_NOMORE;
-}
-
-void onTcpMessage(EventLoop *eventLoop,
-                  int connfdTcp, void *clientData, int mask)
-{
-    log_debug("onTcpMessage connfd=%d", connfdTcp);
-    Server *server = (Server *)(clientData);
-    server->_onTcpMessage(connfdTcp);
-
-    eventLoop->createTimerInLoop(1000, testOnTimerEvent, NULL);
-}
-
 void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, void *clientData, int mask)
 {
     Server *server = (Server *)(clientData);
@@ -150,32 +134,19 @@ void Server::_onTcpConnected(int connfdTcp)
 {
     m_net->getLoop().assertInLoopThread();
     EventLoop* ioLoop = m_net->getThreadPool()->getNextLoop();
-    
-    m_net->getLoop().createFileEvent(connfdTcp, LOOP_EVT_READABLE,
-                                   onTcpMessage, this);
-
+    uint16_t password = random();
     UniqID clientId = m_clientIdGen.getNewID();
     UniqID convId = m_convIdGen.getNewID();
     m_connDict[clientId] = std::make_shared<SerConn>();
     PtrSerConn conn = m_connDict[clientId];
     conn->connfdTcp = connfdTcp;
-    uint16_t password = random();
-    conn->key = (password << 16) | convId;
+    conn->setEventLoop(ioLoop);
+    conn->setKey((password << 16) | convId);
     m_connfd2cid[connfdTcp] = clientId;
     m_convId2cid[convId] = clientId;
-
-    protocol::TcpHandshake handshake;
-    handshake.clientId = clientId;
-    handshake.udpPort = m_udpPort;
-    handshake.key = conn->key;
-    sendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
-
-    log_info("[Server][tcp] connected, clientId: %d, connfdTcp: %d, key: %d", clientId, connfdTcp, handshake.key);
-    LogSocketState(connfdTcp);
-    // TODO 做完连接合法性验证再回调
     if (onTcpConnected)
         onTcpConnected(this, clientId);
-    ioLoop->runInLoop(std::bind(&TcpConnection::onConnectEstablished, conn));
+    ioLoop->runInLoop(std::bind(&SerConn::onConnectEstablished, conn));
 }
 
 void Server::_onTcpDisconnected(int connfdTcp)

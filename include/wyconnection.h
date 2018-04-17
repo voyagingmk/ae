@@ -12,12 +12,23 @@ namespace wynet
 class TcpConnection: public Noncopyable 
 {
   public:
+    EventLoop* m_loop;
     uint32_t key;
     KCPObject *kcpObj;
 
-    TcpConnection() : key(0),
-                   kcpObj(nullptr)
+    TcpConnection(): 
+        m_loop(nullptr),
+        key(0),
+        kcpObj(nullptr)
     {
+    }
+
+    void setEventLoop(EventLoop* l) {
+        m_loop = l;
+    }
+
+    void setKey(uint32_t k) {
+        key = k;
     }
 
     ConvID convId()
@@ -51,6 +62,9 @@ class TcpConnectionForServer : public TcpConnection
         return *this;
     }
     void onConnectEstablished();
+
+    friend void onTcpMessage(EventLoop *eventLoop,
+                           int connfdTcp, void *clientData, int mask);
 };
 
 class TcpConnectionForClient : public TcpConnection

@@ -60,9 +60,6 @@ private:
 
   void _onTcpDisconnected(int connfdTcp);
 
-  friend void onTcpMessage(EventLoop *eventLoop,
-                           int connfdTcp, void *clientData, int mask);
-
   friend void OnTcpNewConnection(EventLoop *eventLoop,
                                  int listenfdTcp, void *clientData, int mask);
 
