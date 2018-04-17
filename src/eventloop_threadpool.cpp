@@ -18,6 +18,12 @@ EventLoopThreadPool::~EventLoopThreadPool()
 {
 }
 
+void EventLoopThreadPool::setThreadNum(int n)
+{
+    assert(!m_started);
+    m_numThreads = n;
+}
+
 void EventLoopThreadPool::start(const ThreadInitCallback &cb)
 {
     assert(!m_started);

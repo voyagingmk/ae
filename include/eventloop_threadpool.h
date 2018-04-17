@@ -19,17 +19,14 @@ class EventLoopThreadPool : Noncopyable
 
     ~EventLoopThreadPool();
 
-    void setThreadNum(int n)
-    {
-        m_numThreads = n;
-    }
+    void setThreadNum(int n);
+
     void start(const ThreadInitCallback &cb = ThreadInitCallback());
 
-    // valid after calling start()
-    /// round-robin
+    // must after calling start()
     EventLoop *getNextLoop();
 
-    /// with the same hash code, it will always return the same EventLoop
+    // must after calling start()
     EventLoop *getLoopByHash(size_t hashCode);
 
     std::vector<EventLoop *> getAllLoops();
