@@ -101,33 +101,41 @@ FILE(GLOB MY_HEADERS
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package( Threads )
 
-add_executable(example_server example_server.cpp  ${MY_SOURCERS} ${MY_HEADERS})
 
-add_executable(example_client example_client.cpp  ${MY_SOURCERS} ${MY_HEADERS})
+set( project_tests
+    test_client
+    test_server
+    test_eventloop
+    test_eventloopthread
+   )
 
-target_include_directories(
-    example_server
-    PUBLIC
-    include
-    src
-    external
-    )
-    
-target_include_directories(
-    example_client
-    PUBLIC
-    include
-    src
-    external
-    )
+set( EXE_test_client_SOURCES
+    test/test_client.cpp
+)
+set( EXE_test_server_SOURCES
+    test/test_server.cpp
+)
+set( EXE_test_eventloop_SOURCES
+    test/test_eventloop.cpp
+)
+set( EXE_test_eventloopthread_SOURCES
+    test/test_eventloopthread.cpp
+)
 
-target_compile_features(example_server PRIVATE cxx_range_for)
-
-target_compile_features(example_client PRIVATE cxx_range_for)
-
-target_link_libraries(example_server PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-
-target_link_libraries(example_client PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+# For each executable in the list...
+foreach( exe ${project_tests} )
+    # declare the target...
+    add_executable( ${exe} ${EXE_${exe}_SOURCES} ${MY_SOURCERS} ${MY_HEADERS} )
+    target_include_directories(
+        ${exe}
+        PUBLIC
+        include
+        src
+        external
+        )
+    target_compile_features(${exe} PRIVATE cxx_range_for)
+    target_link_libraries(${exe} PRIVATE ${CMAKE_THREAD_LIBS_INIT})    
+endforeach()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
