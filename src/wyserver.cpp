@@ -58,14 +58,14 @@ void OnUdpMessage(EventLoop *eventLoop,
     // server->udpServer.Recvfrom();
 }
 
-Server::Server(WyNet *net, int tcpPort, int udpPort) : net(net),
-                                                       tcpPort(tcpPort),
-                                                       udpPort(udpPort),
-                                                       tcpServer(tcpPort),
-                                                       udpServer(udpPort),
-                                                       onTcpConnected(nullptr),
-                                                       onTcpDisconnected(nullptr),
-                                                       onTcpRecvUserData(nullptr)
+Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : net(net),
+                                                             tcpPort(tcpPortArg),
+                                                             udpPort(udpPortArg),
+                                                             tcpServer(tcpPort),
+                                                             udpServer(udpPort),
+                                                             onTcpConnected(nullptr),
+                                                             onTcpDisconnected(nullptr),
+                                                             onTcpRecvUserData(nullptr)
 {
 
     convIdGen.setRecycleThreshold(2 << 15);

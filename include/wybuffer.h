@@ -13,42 +13,44 @@ namespace wynet
 
 const size_t MaxBufferSize = 1024 * 1024 * 256; // 256 MB
 
-
-class BufferBase : public Noncopyable 
+class BufferBase : public Noncopyable
 {
   protected:
     BufferBase() {}
+
   public:
-    
     void clean() {}
-    
-    uint8_t* data() {}
-    
-    size_t length() {}
+
+    uint8_t *data() { return nullptr; }
+
+    size_t length() { return 0; }
 };
 
-template<int BUF_SIZE>
-class StaticBuffer: public BufferBase
+template <int BUF_SIZE>
+class StaticBuffer : public BufferBase
 {
   public:
     uint8_t m_data[BUF_SIZE];
     size_t m_size;
+
   public:
-    void clean() {
-        bzero(m_data, m_size); 
+    void clean()
+    {
+        bzero(m_data, m_size);
     }
-    
-    uint8_t* data() {
+
+    uint8_t *data()
+    {
         return m_data;
     }
-    
-    size_t length() {
+
+    size_t length()
+    {
         return m_size;
     }
 };
 
-
-class DynamicBuffer: public BufferBase
+class DynamicBuffer : public BufferBase
 {
   public:
     uint8_t *m_data;
@@ -66,16 +68,19 @@ class DynamicBuffer: public BufferBase
         delete[] m_data;
     }
 
-    uint8_t* data() {
+    uint8_t *data()
+    {
         return m_data;
     }
-    
-    size_t length() {
+
+    size_t length()
+    {
         return m_size;
     }
-    
-    void clean() { 
-        bzero(m_data, m_size); 
+
+    void clean()
+    {
+        bzero(m_data, m_size);
     }
 
     // keep old m_data

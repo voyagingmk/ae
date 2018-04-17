@@ -30,6 +30,7 @@ class ClockTime
         int64_t nanoseconds = ts.tv_nsec + ct.ts.tv_nsec;
         ts.tv_nsec = nanoseconds % kNanoSecondsPerSecond;
         ts.tv_sec = ts.tv_sec + ct.ts.tv_sec + (nanoseconds / kNanoSecondsPerSecond);
+        return *this;
     }
 
     static timespec getNowTime()

@@ -9,26 +9,36 @@ void Stop(int signo)
     net.StopLoop();
 }
 
-
-void OnTcpConnected(Server * server, UniqID clientId)
+void OnTcpConnected(Server *server, UniqID clientId)
 {
     log_debug("[OnTcpConnected] %d", clientId);
 }
 
-void OnTcpDisconnected(Server * server, UniqID clientId)
+void OnTcpDisconnected(Server *server, UniqID clientId)
 {
     log_debug("[OnTcpDisconnected] %d", clientId);
 }
 
-void OnTcpRecvUserData(Server * server, UniqID clientId, uint8_t* p, size_t len) {
-    
-    log_debug("[OnTcpRecvUserData] %d, %s", clientId, (const char*)p);
+void OnTcpRecvUserData(Server *server, UniqID clientId, uint8_t *p, size_t len)
+{
+
+    log_debug("[OnTcpRecvUserData] %d, %s", clientId, (const char *)p);
 }
 
+/*
+static int SocketOutput(const char *buf, int len, ikcpcb *kcp, void *user)
+{
+    SocketBase *s = (SocketBase *)user;
+    assert(s);
+    // s->send(buf, len);
+    return len;
+}
+*/
 
 int main(int argc, char **argv)
 {
-    if (argc > 1) {
+    if (argc > 1)
+    {
         log_set_level((int)(*argv[1]));
     }
     Logger logger("test");

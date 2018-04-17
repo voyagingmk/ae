@@ -46,6 +46,7 @@
         "type_traits": "c",
         "ios": "c",
         "cstddef": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "__string": "cpp"
     }
 }

@@ -8,8 +8,8 @@ namespace wynet
 {
 class UDPClient : public SocketBase
 {
-  sockaddr_in m_serSockaddr;
-  struct hostent *h;
+  // sockaddr_in m_serSockaddr;
+  // struct hostent *h;
 
 public:
   UDPClient(const char *host, int port);

@@ -13,38 +13,30 @@ namespace wynet
 {
 class WyNet
 {
-  public:
-    EventLoop loop;
-    typedef std::map<UniqID, Server *> Servers;
-    typedef std::map<UniqID, Client *> Clients;
-    Servers servers;
-    Clients clients;
-    UniqIDGenerator serverIdGen;
-    UniqIDGenerator clientIdGen;
-    MutexLock mutexLock;
-    
-  public:
-    WyNet();
+public:
+  EventLoop loop;
+  typedef std::map<UniqID, Server *> Servers;
+  typedef std::map<UniqID, Client *> Clients;
+  Servers servers;
+  Clients clients;
+  UniqIDGenerator serverIdGen;
+  UniqIDGenerator clientIdGen;
+  MutexLock mutexLock;
 
-    ~WyNet();
+public:
+  WyNet();
 
-    void Loop();
+  ~WyNet();
 
-    void StopLoop();
-    UniqID AddServer(Server *server);
-    bool DestroyServer(UniqID serverId);
+  void Loop();
 
-    UniqID AddClient(Client *client);
-    bool DestroyClient(UniqID serverId);
+  void StopLoop();
+  UniqID AddServer(Server *server);
+  bool DestroyServer(UniqID serverId);
+
+  UniqID AddClient(Client *client);
+  bool DestroyClient(UniqID serverId);
 };
-
-static int SocketOutput(const char *buf, int len, ikcpcb *kcp, void *user)
-{
-    SocketBase *s = (SocketBase *)user;
-    assert(s);
-    // s->send(buf, len);
-    return len;
-}
 };
 
 #endif
