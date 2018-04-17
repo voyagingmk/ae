@@ -66,8 +66,7 @@ class TcpConnectionForServer : public TcpConnection
     void onConnectEstablished();
     void onTcpMessage();
 
-    friend void OnTcpMessage(EventLoop *eventLoop,
-                           int connfdTcp, std::weak_ptr<FDRef> fdRef, int mask);
+    friend void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 };
 
 class TcpConnectionForClient : public TcpConnection

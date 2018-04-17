@@ -63,11 +63,9 @@ private:
 
   void _onTcpDisconnected(int connfdTcp);
 
-  friend void OnTcpNewConnection(EventLoop *eventLoop,
-                                 int listenfdTcp, std::weak_ptr<FDRef> fdRef, int mask);
+  friend void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 
-  friend void OnUdpMessage(EventLoop *eventLoop,
-                           int fd, std::weak_ptr<FDRef> fdRef, int mask);
+  friend void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 };
 };
 

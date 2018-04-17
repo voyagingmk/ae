@@ -12,14 +12,13 @@ int testOnTimerEvent(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, v
     return LOOP_EVT_NOMORE;
 }
 
-void OnTcpMessage(EventLoop *eventLoop,
-                  int connfdTcp, std::weak_ptr<FDRef> fdRef, int mask)
+void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
-    log_debug("onTcpMessage connfd=%d", connfdTcp);
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
     if (!sfdRef) {
         return;
     }
+    log_debug("onTcpMessage connfd=%d", sfdRef->fd());
     std::shared_ptr<TcpConnectionForServer> conn = std::dynamic_pointer_cast<TcpConnectionForServer>(sfdRef);
     
     conn->onTcpMessage();
@@ -29,8 +28,7 @@ void OnTcpMessage(EventLoop *eventLoop,
 
 void TcpConnectionForServer::onConnectEstablished() {
         
-    m_loop->createFileEvent(connfdTcp, LOOP_EVT_READABLE,
-                                   OnTcpMessage, shared_from_this());
+    m_loop->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
     /*
     protocol::TcpHandshake handshake;
     handshake.clientId = clientId;

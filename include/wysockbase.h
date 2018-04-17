@@ -152,6 +152,7 @@ class FDRef: public std::enable_shared_from_this<FDRef> {
 public:
     virtual ~FDRef() {}
     int m_fd;
+    int fd() const { return m_fd; }
 };
 
 class SocketBase: public FDRef

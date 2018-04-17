@@ -7,13 +7,13 @@
 namespace wynet
 {
 
-void OnTcpMessage(EventLoop *loop, int fd, std::weak_ptr<FDRef> fdRef, int mask)
-{
-    log_debug("OnTcpMessage fd %d", fd);   
+void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
+{ 
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
     if (!sfdRef) {
         return;
     }
+    log_debug("OnTcpMessage fd %d", sfdRef->fd());  
     std::shared_ptr<Client> client = std::dynamic_pointer_cast<Client>(sfdRef);
     client->_onTcpMessage();
 }
@@ -47,7 +47,7 @@ void Client::sendByTcp(PacketHeader *header)
 
 void Client::_onTcpConnected()
 {
-    m_net->getLoop().createFileEvent(m_tcpClient.sockfd(), LOOP_EVT_READABLE, OnTcpMessage,  shared_from_this());
+    m_net->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
     LogSocketState(m_tcpClient.sockfd());
     if (onTcpConnected)
         onTcpConnected(this);

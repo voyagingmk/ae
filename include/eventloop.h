@@ -73,7 +73,7 @@ class EventLoop : Noncopyable
 {
   public:
     typedef std::function<void()> TaskFunction;
-    typedef void (*OnFileEvent)(EventLoop *, int fd, std::weak_ptr<FDRef> fdRef, int mask);
+    typedef void (*OnFileEvent)(EventLoop *, std::weak_ptr<FDRef> fdRef, int mask);
     typedef int (*OnTimerEvent)(EventLoop *, TimerRef tr, std::weak_ptr<FDRef> fdRef, void* data);
 
     EventLoop(int wakeupInterval = 10, int defaultSetsize = 64);
@@ -84,7 +84,7 @@ class EventLoop : Noncopyable
 
     void stop();
 
-    void createFileEvent(int fd, int mask, OnFileEvent onFileEvent, std::weak_ptr<FDRef> fdRef);
+    void createFileEvent(std::shared_ptr<FDRef> fdRef, int mask, OnFileEvent onFileEvent);
 
     void deleteFileEvent(int fd, int mask);
 

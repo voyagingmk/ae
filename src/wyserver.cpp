@@ -8,16 +8,14 @@
 namespace wynet
 {
 
-void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, std::weak_ptr<FDRef> fdRef, int mask)
+void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
     if (!sfdRef) {
         return;
     }
     std::shared_ptr<Server> server = std::dynamic_pointer_cast<Server>(sfdRef);
-
-    int sockfd = server->getTCPServer().sockfd();
-    assert(sockfd == listenfdTcp);
+    int listenfdTcp = server->getTCPServer().sockfd();
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
     int connfdTcp = accept(listenfdTcp, (SA *)&cliAddr, &len);
@@ -40,8 +38,7 @@ void OnTcpNewConnection(EventLoop *eventLoop, int listenfdTcp, std::weak_ptr<FDR
     server->_onTcpConnected(connfdTcp);
 }
 
-void OnUdpMessage(EventLoop *eventLoop,
-                  int fd, std::weak_ptr<FDRef> fdRef, int mask)
+void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
     // Server *server = (Server *)(clientData);
     // server->m_udpServer.Recvfrom();
@@ -64,13 +61,13 @@ Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : m_net(net),
              m_tcpServer.sockfd(),
              m_udpServer.sockfd());
 
-    m_net->getLoop().createFileEvent(m_tcpServer.sockfd(), LOOP_EVT_READABLE,
-                                   OnTcpNewConnection, shared_from_this());
+    m_net->getLoop().createFileEvent(m_tcpServer.shared_from_this(), LOOP_EVT_READABLE,
+                                   OnTcpNewConnection);
 
     if (m_udpServer.valid())
     {
-        m_net->getLoop().createFileEvent(m_udpServer.sockfd(), LOOP_EVT_READABLE,
-                                       OnUdpMessage, shared_from_this());
+        m_net->getLoop().createFileEvent(m_udpServer.shared_from_this(), LOOP_EVT_READABLE,
+                                       OnUdpMessage);
     }
     LogSocketState(m_tcpServer.sockfd());
 }

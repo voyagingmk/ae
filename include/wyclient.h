@@ -60,7 +60,7 @@ private:
     
     void _onTcpDisconnected();
     
-    friend void OnTcpMessage(EventLoop *loop, int fd, std::weak_ptr<FDRef> fdRef, int mask);
+    friend void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask);
 };
 };
 

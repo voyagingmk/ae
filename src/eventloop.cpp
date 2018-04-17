@@ -21,7 +21,7 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int 
     {
         if ((mask & LOOP_EVT_READABLE) || (mask & LOOP_EVT_WRITABLE) )
         {
-            p.onFileEvent(loop, fd, p.fdRef, mask);
+            p.onFileEvent(loop, p.fdRef, mask);
         }
     }
 }
@@ -98,11 +98,12 @@ void EventLoop::stop()
     }
 }
 
-void EventLoop ::createFileEvent(int fd, int mask, OnFileEvent onFileEvent, std::weak_ptr<FDRef> fdRef)
+void EventLoop::createFileEvent(std::shared_ptr<FDRef> fdRef, int mask, OnFileEvent onFileEvent)
 {
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
     
     int setsize = aeGetSetSize(m_aeloop);
+    int fd = fdRef->fd();
     while (fd >= setsize)
     {
         assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize << 1));

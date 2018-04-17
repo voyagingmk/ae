@@ -30,8 +30,7 @@ public:
 
 private:
     
-    friend void OnTcpWritable(struct aeEventLoop *eventLoop,
-                       int fd, void *clientData, int mask);
+    friend void OnTcpWritable(struct aeEventLoop *eventLoop, void *clientData, int mask);
 };
 
 };
