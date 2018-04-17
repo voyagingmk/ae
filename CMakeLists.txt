@@ -116,7 +116,8 @@ install(TARGETS wynet DESTINATION lib)
 set( project_tests
     test_client
     test_server
-    test_eventloop
+    test_eventloop1
+    test_eventloop2
     test_eventloopthread
    )
 
@@ -126,8 +127,12 @@ set( EXE_test_client_SOURCES
 set( EXE_test_server_SOURCES
     test/test_server.cpp
 )
-set( EXE_test_eventloop_SOURCES
-    test/test_eventloop.cpp
+set( EXE_test_eventloop1_SOURCES
+    test/test_eventloop1.cpp
+)
+
+set( EXE_test_eventloop2_SOURCES
+    test/test_eventloop2.cpp
 )
 set( EXE_test_eventloopthread_SOURCES
     test/test_eventloopthread.cpp
