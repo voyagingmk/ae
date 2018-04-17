@@ -46,22 +46,23 @@ EventLoop *EventLoopThreadPool::getNextLoop()
     {
         return m_baseLoop;
     }
+
     EventLoop *nextLoop = m_loops[m_next];
     ++m_next;
     m_next = (size_t)(m_next) % m_loops.size();
     return nextLoop;
 }
 
-EventLoop *EventLoopThreadPool::getLoopForHash(size_t hashCode)
+EventLoop *EventLoopThreadPool::getLoopByHash(size_t hashCode)
 {
     m_baseLoop->assertInLoopThread();
-    EventLoop *loop = m_baseLoop;
-
-    if (!m_loops.empty())
+    assert(m_started);
+    if (m_loops.empty())
     {
-        loop = m_loops[hashCode % m_loops.size()];
+        return m_baseLoop;
     }
-    return loop;
+
+    return m_loops[hashCode % m_loops.size()];
 }
 
 std::vector<EventLoop *> EventLoopThreadPool::getAllLoops()
@@ -72,8 +73,5 @@ std::vector<EventLoop *> EventLoopThreadPool::getAllLoops()
     {
         return std::vector<EventLoop *>(1, m_baseLoop);
     }
-    else
-    {
-        return m_loops;
-    }
+    return m_loops;
 }

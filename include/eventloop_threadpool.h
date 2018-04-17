@@ -30,7 +30,7 @@ class EventLoopThreadPool : Noncopyable
     EventLoop *getNextLoop();
 
     /// with the same hash code, it will always return the same EventLoop
-    EventLoop *getLoopForHash(size_t hashCode);
+    EventLoop *getLoopByHash(size_t hashCode);
 
     std::vector<EventLoop *> getAllLoops();
 
