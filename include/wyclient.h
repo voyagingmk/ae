@@ -36,9 +36,9 @@ public:
 
     ~Client();
 
-    void SendByTcp(const uint8_t *data, size_t len);
+    void sendByTcp(const uint8_t *data, size_t len);
     
-    void SendByTcp(PacketHeader *header);
+    void sendByTcp(PacketHeader *header);
     
     const TCPClient& GetTcpClient() const {
         return tcpClient;

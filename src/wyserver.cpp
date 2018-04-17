@@ -94,17 +94,17 @@ Server::~Server()
     log_info("[Server] destoryed.");
 }
 
-void Server::CloseConnect(UniqID clientId)
+void Server::closeConnect(UniqID clientId)
 {
     auto it = connDict.find(clientId);
     if (it == connDict.end())
     {
         return;
     }
-    CloseConnectByFd(it->second.connfdTcp, true);
+    _closeConnectByFd(it->second.connfdTcp, true);
 }
 
-void Server::CloseConnectByFd(int connfdTcp, bool force)
+void Server::_closeConnectByFd(int connfdTcp, bool force)
 {
     if (force)
     {
@@ -116,14 +116,14 @@ void Server::CloseConnectByFd(int connfdTcp, bool force)
     _onTcpDisconnected(connfdTcp);
 }
 
-void Server::SendByTcp(UniqID clientId, const uint8_t *m_data, size_t len)
+void Server::sendByTcp(UniqID clientId, const uint8_t *m_data, size_t len)
 {
     protocol::UserPacket *p = (protocol::UserPacket *)m_data;
     PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
-    SendByTcp(clientId, header);
+    sendByTcp(clientId, header);
 }
 
-void Server::SendByTcp(UniqID clientId, PacketHeader *header)
+void Server::sendByTcp(UniqID clientId, PacketHeader *header)
 {
     assert(header != nullptr);
     auto it = connDict.find(clientId);
@@ -141,8 +141,8 @@ void Server::SendByTcp(UniqID clientId, PacketHeader *header)
             return;
         }
         // close the client
-        log_error("[Server][tcp] SendByTcp err %d", errno);
-        CloseConnectByFd(conn.connfdTcp, true);
+        log_error("[Server][tcp] sendByTcp err %d", errno);
+        _closeConnectByFd(conn.connfdTcp, true);
     }
 }
 
@@ -165,7 +165,7 @@ void Server::_onTcpConnected(int connfdTcp)
     handshake.clientId = clientId;
     handshake.udpPort = udpPort;
     handshake.key = conn.key;
-    SendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
+    sendByTcp(clientId, SerializeProtocol<protocol::TcpHandshake>(handshake));
 
     log_info("[Server][tcp] connected, clientId: %d, connfdTcp: %d, key: %d", clientId, connfdTcp, handshake.key);
     LogSocketState(connfdTcp);
@@ -207,7 +207,7 @@ void Server::_onTcpMessage(int connfdTcp)
         if (ret <= 0)
         {
             // has error or has closed
-            CloseConnectByFd(connfdTcp, true);
+            _closeConnectByFd(connfdTcp, true);
             return;
         }
         if (ret == 2)

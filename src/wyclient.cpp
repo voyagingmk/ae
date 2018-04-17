@@ -29,14 +29,14 @@ Client::~Client()
     tcpClient.Close();
 }
 
-void Client::SendByTcp(const uint8_t *data, size_t len)
+void Client::sendByTcp(const uint8_t *data, size_t len)
 {
     protocol::UserPacket *p = (protocol::UserPacket *)data;
     PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
     tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
 
-void Client::SendByTcp(PacketHeader *header)
+void Client::sendByTcp(PacketHeader *header)
 {
     tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
