@@ -12,25 +12,32 @@ int testOnTimerEvent(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, v
     return LOOP_EVT_NOMORE;
 }
 
-void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
+void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
     if (!sfdRef)
     {
         return;
     }
-    log_debug("onTcpMessage connfd=%d", sfdRef->fd());
     std::shared_ptr<TcpConnectionForServer> conn = std::dynamic_pointer_cast<TcpConnectionForServer>(sfdRef);
-
-    conn->onTcpMessage();
-
-    eventLoop->createTimerInLoop(1000, testOnTimerEvent, std::weak_ptr<FDRef>(), nullptr);
+    if (mask & LOOP_EVT_READABLE)
+    {
+        log_debug("onReadable connfd=%d", conn->connectFd());
+        conn->onReadable();
+    }
+    if (mask & LOOP_EVT_WRITABLE)
+    {
+        log_debug("onWritable connfd=%d", conn->connectFd());
+        conn->onWritable();
+    }
+    // eventLoop->createTimerInLoop(1000, testOnTimerEvent, std::weak_ptr<FDRef>(), nullptr);
 }
 
 void TcpConnectionForServer::onConnectEstablished()
 {
 
-    getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
+    getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
+
     /*
     protocol::TcpHandshake handshake;
     handshake.connectId = connectId();
@@ -42,7 +49,7 @@ void TcpConnectionForServer::onConnectEstablished()
     LogSocketState(fd());
 }
 
-void TcpConnectionForServer::onTcpMessage()
+void TcpConnectionForServer::onReadable()
 {
     SockBuffer &sockBuf = sockBuffer();
     do
@@ -107,5 +114,10 @@ void TcpConnectionForServer ::close(bool force)
 }
 
 void TcpConnectionForServer::send(const uint8_t *data, size_t len)
+{
+    // getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, OnConnectionEvent);
+}
+
+void TcpConnectionForServer::onWritable()
 {
 }

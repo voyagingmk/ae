@@ -94,7 +94,9 @@ class TcpConnectionForServer : public TcpConnection
 
     void onConnectEstablished();
 
-    void onTcpMessage();
+    void onReadable();
+
+    void onWritable();
 
     void send(const uint8_t *data, size_t len);
 
