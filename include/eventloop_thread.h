@@ -25,6 +25,7 @@ public:
 private:
   void threadMain();
 
+private:
   EventLoop *m_loop;
   bool m_exiting;
   Thread m_thread;

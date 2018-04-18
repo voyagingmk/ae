@@ -13,8 +13,6 @@ class Thread : Noncopyable
 public:
   typedef std::function<void()> ThreadMain;
 
-  explicit Thread(const ThreadMain &, const std::string &name = std::string(""));
-
   explicit Thread(ThreadMain &&, const std::string &name = std::string(""));
 
   ~Thread();
@@ -29,6 +27,12 @@ public:
 
   const std::string &name() const { return m_name; }
 
+  const std::string &setName(const std::string &name)
+  {
+    m_name = name;
+    return m_name;
+  }
+
   static int numCreated() { return m_numCreated; }
 
 private:
@@ -38,7 +42,7 @@ private:
   bool m_joined;
   pthread_t m_pthreadId;
   pid_t m_tid;
-  ThreadMain m_func;
+  ThreadMain &&m_func;
   std::string m_name;
   CountDownLatch m_latch;
 

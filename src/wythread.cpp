@@ -19,16 +19,16 @@ using namespace std;
 struct ThreadData
 {
     typedef Thread::ThreadMain ThreadMain;
-    ThreadMain m_func;
+    ThreadMain &&m_func;
     string m_name;
     pid_t *m_tid;
     CountDownLatch *m_latch;
 
-    ThreadData(const ThreadMain &func,
+    ThreadData(ThreadMain &&func,
                const string &name,
                pid_t *tid,
                CountDownLatch *latch)
-        : m_func(func),
+        : m_func(std::move(func)),
           m_name(name),
           m_tid(tid),
           m_latch(latch)
@@ -80,19 +80,6 @@ void *startThread(void *obj)
     return NULL;
 }
 
-Thread::Thread(const ThreadMain &func, const string &n)
-    : m_started(false),
-      m_joined(false),
-      m_pthreadId(0),
-      m_tid(0),
-      m_func(func),
-      m_name(n),
-      m_latch(1)
-{
-    int num = ++m_numCreated;
-    setDefaultName(num);
-}
-
 Thread::Thread(ThreadMain &&func, const std::string &n)
     : m_started(false),
       m_joined(false),
@@ -118,9 +105,7 @@ void Thread::setDefaultName(int num)
 {
     if (m_name.empty())
     {
-        char buf[32];
-        snprintf(buf, sizeof buf, "Thread-%d", num);
-        m_name = buf;
+        m_name = "Thread-" + std::to_string(num);
     }
 }
 
@@ -128,9 +113,9 @@ void Thread::start()
 {
     assert(!m_started);
     m_started = true;
-    // FIXME: move(m_func)
-    ThreadData *data = new ThreadData(m_func, m_name, &m_tid, &m_latch);
-    int ret = pthread_create(&m_pthreadId, NULL, &startThread, data);
+
+    ThreadData *data = new ThreadData(std::move(m_func), m_name, &m_tid, &m_latch);
+    int ret = pthread_create(&m_pthreadId, NULL, &startThread, (void *)data);
     if (ret)
     {
         m_started = false;
