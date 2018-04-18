@@ -15,8 +15,8 @@ void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int ma
     {
         return;
     }
-    std::shared_ptr<Server> server = std::dynamic_pointer_cast<Server>(sfdRef);
-    int listenfdTcp = server->getTCPServer()->sockfd();
+    std::shared_ptr<TCPServer> tcpServer = std::dynamic_pointer_cast<TCPServer>(sfdRef);
+    int listenfdTcp = tcpServer->sockfd();
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
     int connfdTcp = accept(listenfdTcp, (SA *)&cliAddr, &len);
@@ -36,7 +36,7 @@ void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int ma
         log_error("[Server] Accept err: %d %s", errno, strerror(errno));
         return;
     }
-    server->_onTcpConnected(connfdTcp);
+    //   server->_onTcpConnected(connfdTcp);
 }
 
 void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
