@@ -27,9 +27,9 @@ class Server : public Noncopyable, FDRef
   UniqIDGenerator m_convIdGen;
 
 public:
-  typedef void (*OnTcpConnected)(Server *, UniqID connectId);
-  typedef void (*OnTcpDisconnected)(Server *, UniqID connectId);
-  typedef void (*OnTcpRecvUserData)(Server *, UniqID connectId, uint8_t *, size_t);
+  typedef void (*OnTcpConnected)(Server *, PtrSerConn conn);
+  typedef void (*OnTcpDisconnected)(Server *, PtrSerConn conn);
+  typedef void (*OnTcpRecvUserData)(Server *, PtrSerConn conn, uint8_t *, size_t);
 
   OnTcpConnected onTcpConnected;
   OnTcpDisconnected onTcpDisconnected;
@@ -57,11 +57,11 @@ public:
     return m_tcpServer;
   }
 
+private:
   UniqID refConnection(PtrSerConn conn);
     
   bool unrefConnection(UniqID connectId);
 
-private:
   void _closeConnectByFd(int connfdTcp, bool force = false);
 
   void _onTcpConnected(int connfdTcp);

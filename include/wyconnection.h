@@ -2,6 +2,7 @@
 #define WY_CONNECTION_H
 
 #include "common.h"
+#include "uniqid.h"
 #include "wykcp.h"
 #include "wysockbase.h"
 #include "noncopyable.h"
@@ -14,14 +15,14 @@ class TcpConnection : public Noncopyable, public FDRef
 {
   public:
     EventLoop *m_loop;
-    uint32_t key;
-    KCPObject *kcpObj;
-    uint32_t connectId;
+    uint32_t m_key;
+    KCPObject *m_kcpObj;
+    UniqID m_connectId;
 
     TcpConnection() : m_loop(nullptr),
-                      key(0),
-                      kcpObj(nullptr),
-                      connectId(0)
+                      m_key(0),
+                      m_kcpObj(nullptr),
+                      m_connectId(0)
     {
     }
 
@@ -35,24 +36,29 @@ class TcpConnection : public Noncopyable, public FDRef
         setfd(fd);
     }  
 
-    inline void setConnectId(uint32_t _connectId)
+    inline void setConnectId(UniqID _connectId)
     {
-        connectId = _connectId;
+        m_connectId = _connectId;
     }  
 
     inline void setKey(uint32_t k)
     {
-        key = k;
+        m_key = k;
     }
 
     inline ConvID convId()
     {
-        return key & 0x0000ffff;
+        return m_key & 0x0000ffff;
     }
 
     inline uint16_t passwd()
     {
-        return key >> 16;
+        return m_key >> 16;
+    }
+
+    inline UniqID connectId()
+    {
+        return m_connectId;
     }
 
     inline uint16_t connectFd()
@@ -62,10 +68,10 @@ class TcpConnection : public Noncopyable, public FDRef
 
     TcpConnection &operator=(TcpConnection &&c)
     {
-        key = c.key;
-        kcpObj = c.kcpObj;
-        c.key = 0;
-        c.kcpObj = nullptr;
+        m_key = c.m_key;
+        m_kcpObj = c.m_kcpObj;
+        c.m_key = 0;
+        c.m_kcpObj = nullptr;
         return *this;
     }
 };
@@ -91,7 +97,10 @@ class TcpConnectionForServer : public TcpConnection
 class TcpConnectionForClient : public TcpConnection
 {
   public:
+    void setUdpPort(int _udpPort);
+  public:
     int udpPort;
+    
 };
 
 typedef TcpConnectionForServer SerConn;

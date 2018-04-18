@@ -89,9 +89,9 @@ void Client::_onTcpMessage()
             case Protocol::TcpHandshake:
             {
                 protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->m_data + header->getHeaderLength());
-                m_conn.key = handShake->key;
-                m_conn.udpPort = handShake->udpPort;
-                m_conn.connectId = handShake->connectId;
+                m_conn.setKey(handShake->key);
+                m_conn.setUdpPort(handShake->udpPort);
+                m_conn.setConnectId(handShake->connectId);
                 log_info("TcpHandshake connectId %d, udpPort %d convId %d passwd %d",
                          handShake->connectId, handShake->udpPort,
                          m_conn.convId(),

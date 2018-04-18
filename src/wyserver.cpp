@@ -166,9 +166,9 @@ void Server::_onTcpConnected(int connfdTcp)
     PtrSerConn conn = std::make_shared<SerConn>();
     conn->setConnectFd(connfdTcp);
     conn->setEventLoop(ioLoop);
-    UniqID connectId = refConnection(conn);
+    refConnection(conn);
     if (onTcpConnected)
-        onTcpConnected(this, connectId);
+        onTcpConnected(this, conn);
     ioLoop->runInLoop(std::bind(&SerConn::onConnectEstablished, conn));
 }
 
@@ -183,10 +183,11 @@ void Server::_onTcpDisconnected(int connfdTcp)
     if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
     {
         UniqID connectId = m_connfd2cid[connfdTcp];
+        PtrSerConn conn = m_connDict[connectId];
         unrefConnection(connectId);
         log_info("[Server][tcp] closed, connectId: %d connfdTcp: %d", connectId, connfdTcp);
         if (onTcpDisconnected)
-            onTcpDisconnected(this, connectId);
+            onTcpDisconnected(this, conn);
     }
 }
 
@@ -228,7 +229,7 @@ void Server::_onTcpMessage(int connfdTcp)
                 // log_debug("getHeaderLength: %d", header->getHeaderLength());
                 if (onTcpRecvUserData)
                 {
-                    onTcpRecvUserData(this, connectId, (uint8_t *)p, dataLength);
+                    onTcpRecvUserData(this, conn, (uint8_t *)p, dataLength);
                 }
                 break;
             }
