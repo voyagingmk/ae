@@ -51,10 +51,15 @@ public:
   {
     return m_net;
   }
+
   TCPServer &getTCPServer()
   {
     return m_tcpServer;
   }
+
+  UniqID refConnection(PtrSerConn conn);
+    
+  bool unrefConnection(UniqID connectId);
 
 private:
   void _closeConnectByFd(int connfdTcp, bool force = false);

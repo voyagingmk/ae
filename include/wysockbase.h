@@ -151,9 +151,10 @@ class SockBuffer : public Noncopyable
 class FDRef: public std::enable_shared_from_this<FDRef> {
 public:
     virtual ~FDRef() {}
+    inline void setfd(int fd) { m_fd = fd; }
+    inline int fd() const { return m_fd; }
+public:
     int m_fd;
-    void setfd(int fd) { m_fd = fd; }
-    int fd() const { return m_fd; }
 };
 
 class SocketBase: public FDRef

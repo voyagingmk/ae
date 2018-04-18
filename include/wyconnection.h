@@ -25,29 +25,39 @@ class TcpConnection : public Noncopyable, public FDRef
     {
     }
 
-    void setEventLoop(EventLoop *l)
+    inline void setEventLoop(EventLoop *l)
     {
         m_loop = l;
     }
 
-    void setConnectId(uint32_t _connectId)
+    inline void setConnectFd(int fd)
+    {
+        setfd(fd);
+    }  
+
+    inline void setConnectId(uint32_t _connectId)
     {
         connectId = _connectId;
     }  
 
-    void setKey(uint32_t k)
+    inline void setKey(uint32_t k)
     {
         key = k;
     }
 
-    ConvID convId()
+    inline ConvID convId()
     {
         return key & 0x0000ffff;
     }
 
-    uint16_t passwd()
+    inline uint16_t passwd()
     {
         return key >> 16;
+    }
+
+    inline uint16_t connectFd()
+    {
+        return fd();
     }
 
     TcpConnection &operator=(TcpConnection &&c)

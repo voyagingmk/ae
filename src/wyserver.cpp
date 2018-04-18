@@ -133,21 +133,39 @@ void Server::sendByTcp(UniqID connectId, PacketHeader *header)
     }
 }
 
+
+UniqID Server::refConnection(PtrSerConn conn) {
+    UniqID connectId = m_connectIdGen.getNewID();
+    UniqID convId = m_convIdGen.getNewID();
+    m_connDict[connectId] = conn;
+    conn->setConnectId(connectId);
+    uint16_t password = random();
+    conn->setKey((password << 16) | convId);
+    m_connfd2cid[conn->connectFd()] = connectId;
+    m_convId2cid[convId] = connectId;
+    return connectId;
+}
+
+
+bool Server::unrefConnection(UniqID connectId) {
+    if (m_connDict.find(connectId) == m_connDict.end()) {
+        return false;
+    }
+    PtrSerConn conn = m_connDict[connectId];
+    m_connfd2cid.erase(conn->connectFd());
+    m_convId2cid.erase(conn->convId());
+    m_connDict.erase(connectId);
+}
+
+
 void Server::_onTcpConnected(int connfdTcp)
 {
     m_net->getLoop().assertInLoopThread();
     EventLoop *ioLoop = m_net->getThreadPool()->getNextLoop();
-    uint16_t password = random();
-    UniqID connectId = m_connectIdGen.getNewID();
-    UniqID convId = m_convIdGen.getNewID();
     PtrSerConn conn = std::make_shared<SerConn>();
-    m_connDict[connectId] = conn;
-    conn->setConnectId(connectId);
-    conn->setfd(connfdTcp);
+    conn->setConnectFd(connfdTcp);
     conn->setEventLoop(ioLoop);
-    conn->setKey((password << 16) | convId);
-    m_connfd2cid[connfdTcp] = connectId;
-    m_convId2cid[convId] = connectId;
+    UniqID connectId = refConnection(conn);
     if (onTcpConnected)
         onTcpConnected(this, connectId);
     ioLoop->runInLoop(std::bind(&SerConn::onConnectEstablished, conn));
