@@ -19,19 +19,23 @@ void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
     client->_onTcpMessage();
 }
 
-Client::Client(WyNet *net, const char *host, int tcpPort) : FDRef(0),
-                                                            m_net(net),
-                                                            onTcpConnected(nullptr),
-                                                            onTcpDisconnected(nullptr),
-                                                            onTcpRecvMessage(nullptr)
+Client::Client(WyNet *net) : FDRef(0),
+                             m_net(net),
+                             onTcpConnected(nullptr),
+                             onTcpDisconnected(nullptr),
+                             onTcpRecvMessage(nullptr)
 {
-    m_tcpClient = std::make_shared<TCPClient>(shared_from_this(), host, tcpPort);
 }
 
 Client::~Client()
 {
     log_info("[Client] close tcp sockfd %d", m_tcpClient->sockfd());
     m_tcpClient->Close();
+}
+
+void Client::initTcpClient(const char *host, int tcpPort)
+{
+    m_tcpClient = std::make_shared<TCPClient>(shared_from_this(), host, tcpPort);
 }
 
 void Client::sendByTcp(const uint8_t *data, size_t len)

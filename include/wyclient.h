@@ -39,9 +39,11 @@ class Client : public FDRef
         return FDRef::downcasted_shared_from_this<Client>();
     }
 
-    Client(WyNet *net, const char *host, int tcpPort);
+    Client(WyNet *net);
 
     ~Client();
+
+    void initTcpClient(const char *host, int tcpPort);
 
     void sendByTcp(const uint8_t *data, size_t len);
 
