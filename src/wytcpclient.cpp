@@ -11,7 +11,8 @@ void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
     log_debug("OnTcpWritable");
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-    if (!sfdRef) {
+    if (!sfdRef)
+    {
         return;
     }
     std::shared_ptr<TCPClient> tcpClient = std::dynamic_pointer_cast<TCPClient>(sfdRef);
@@ -31,9 +32,14 @@ void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
     }
 }
 
-TCPClient::TCPClient(PtrClient client, const char *host, int port)
+TCPClient::TCPClient(PtrClient client)
 {
+
     parent = client;
+}
+
+void TCPClient::connect(const char *host, int port)
+{
     int n;
     struct addrinfo hints, *res, *ressave;
 
@@ -49,7 +55,7 @@ TCPClient::TCPClient(PtrClient client, const char *host, int port)
         err_quit("tcp_connect error for %s, %s: %s",
                  host, serv, gai_strerror(n));
     ressave = res;
-    int i;
+    int ret;
     do
     {
         setSockfd(socket(res->ai_family, res->ai_socktype, res->ai_protocol));
@@ -62,15 +68,15 @@ TCPClient::TCPClient(PtrClient client, const char *host, int port)
         SetSockRecvBufSize(sockfd(), 32 * 1024);
         SetSockSendBufSize(sockfd(), 32 * 1024);
 
-        i = connect(sockfd(), res->ai_addr, res->ai_addrlen);
-
-        if ((i == -1) && (errno == EINPROGRESS))
+        ret = ::connect(sockfd(), res->ai_addr, res->ai_addrlen);
+        log_debug("connect: %d\n", ret);
+        if ((ret == -1) && (errno == EINPROGRESS))
         {
-            client->getNet()->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
-                                              OnTcpWritable);
+            parent->getNet()->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
+                                                        OnTcpWritable);
             break;
         }
-        if (i == 0)
+        if (ret == 0)
             break; /* success */
 
         ::Close(sockfd()); /* ignore this one */
@@ -84,7 +90,7 @@ TCPClient::TCPClient(PtrClient client, const char *host, int port)
     m_socklen = res->ai_addrlen; /* return size of protocol address */
 
     freeaddrinfo(ressave);
-    if (i == 0)
+    if (ret == 0)
     {
         onConnected();
     }

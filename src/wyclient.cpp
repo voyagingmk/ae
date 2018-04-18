@@ -29,13 +29,17 @@ Client::Client(WyNet *net) : FDRef(0),
 
 Client::~Client()
 {
-    log_info("[Client] close tcp sockfd %d", m_tcpClient->sockfd());
-    m_tcpClient->Close();
+    if (m_tcpClient)
+    {
+        log_info("[Client] close tcp sockfd %d", m_tcpClient->sockfd());
+        m_tcpClient->Close();
+    }
 }
 
 void Client::initTcpClient(const char *host, int tcpPort)
 {
-    m_tcpClient = std::make_shared<TCPClient>(shared_from_this(), host, tcpPort);
+    m_tcpClient = std::make_shared<TCPClient>(shared_from_this());
+    m_tcpClient->connect(host, tcpPort);
 }
 
 void Client::sendByTcp(const uint8_t *data, size_t len)
