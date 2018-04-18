@@ -47,10 +47,10 @@ bool WyNet::destroyServer(UniqID serverId)
     return true;
 }
 
-UniqID WyNet::addClient(std::shared_ptr<Client> s)
+UniqID WyNet::addClient(std::shared_ptr<Client> c)
 {
     UniqID clientId = m_clientIdGen.getNewID();
-    m_clients[clientId] = s;
+    m_clients[clientId] = c;
     return clientId;
 }
 

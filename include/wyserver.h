@@ -23,13 +23,13 @@ class Server : public Noncopyable, FDRef
   std::map<UniqID, PtrSerConn> m_connDict;
   std::map<int, UniqID> m_connfd2cid;
   std::map<ConvID, UniqID> m_convId2cid;
-  UniqIDGenerator m_clientIdGen;
+  UniqIDGenerator m_connectIdGen;
   UniqIDGenerator m_convIdGen;
 
 public:
-  typedef void (*OnTcpConnected)(Server *, UniqID clientId);
-  typedef void (*OnTcpDisconnected)(Server *, UniqID clientId);
-  typedef void (*OnTcpRecvUserData)(Server *, UniqID clientId, uint8_t *, size_t);
+  typedef void (*OnTcpConnected)(Server *, UniqID connectId);
+  typedef void (*OnTcpDisconnected)(Server *, UniqID connectId);
+  typedef void (*OnTcpRecvUserData)(Server *, UniqID connectId, uint8_t *, size_t);
 
   OnTcpConnected onTcpConnected;
   OnTcpDisconnected onTcpDisconnected;
@@ -41,16 +41,18 @@ public:
   ~Server();
 
   // only use in unusal cases
-  void closeConnect(UniqID clientId);
+  void closeConnect(UniqID connectId);
 
-  void sendByTcp(UniqID clientId, const uint8_t *data, size_t len);
+  void sendByTcp(UniqID connectId, const uint8_t *data, size_t len);
 
-  void sendByTcp(UniqID clientId, PacketHeader *header);
+  void sendByTcp(UniqID connectId, PacketHeader *header);
 
-  WyNet* getNet() const {
-      return m_net;
+  WyNet *getNet() const
+  {
+    return m_net;
   }
-  TCPServer& getTCPServer() {
+  TCPServer &getTCPServer()
+  {
     return m_tcpServer;
   }
 

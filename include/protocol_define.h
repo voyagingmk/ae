@@ -42,14 +42,14 @@ struct TcpHandshake : public ProtocolBase
 {
     ProtoType(TcpHandshake);
     ProtoSize(TcpHandshake);
-    uint32_t clientId;
+    uint32_t connectId;
     uint16_t udpPort;
     uint32_t key;
 };
 
 struct UdpProtocolBase : public ProtocolBase
 {
-    uint32_t clientId;
+    uint32_t connectId;
     uint32_t key;
 };
 

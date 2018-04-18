@@ -9,20 +9,20 @@ void Stop(int signo)
     net.stopLoop();
 }
 
-void OnTcpConnected(Server *server, UniqID clientId)
+void OnTcpConnected(Server *server, UniqID connectId)
 {
-    log_debug("[OnTcpConnected] %d", clientId);
+    log_debug("[OnTcpConnected] %d", connectId);
 }
 
-void OnTcpDisconnected(Server *server, UniqID clientId)
+void OnTcpDisconnected(Server *server, UniqID connectId)
 {
-    log_debug("[OnTcpDisconnected] %d", clientId);
+    log_debug("[OnTcpDisconnected] %d", connectId);
 }
 
-void OnTcpRecvUserData(Server *server, UniqID clientId, uint8_t *p, size_t len)
+void OnTcpRecvUserData(Server *server, UniqID connectId, uint8_t *p, size_t len)
 {
 
-    log_debug("[OnTcpRecvUserData] %d, %s", clientId, (const char *)p);
+    log_debug("[OnTcpRecvUserData] %d, %s", connectId, (const char *)p);
 }
 
 /*

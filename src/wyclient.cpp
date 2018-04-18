@@ -91,9 +91,9 @@ void Client::_onTcpMessage()
                 protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->m_data + header->getHeaderLength());
                 m_conn.key = handShake->key;
                 m_conn.udpPort = handShake->udpPort;
-                m_conn.clientId = handShake->clientId;
-                log_info("clientId %d, udpPort %d convId %d passwd %d",
-                         handShake->clientId, handShake->udpPort,
+                m_conn.connectId = handShake->connectId;
+                log_info("TcpHandshake connectId %d, udpPort %d convId %d passwd %d",
+                         handShake->connectId, handShake->udpPort,
                          m_conn.convId(),
                          m_conn.passwd());
                 break;

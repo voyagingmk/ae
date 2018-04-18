@@ -11,7 +11,8 @@ namespace wynet
 void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-    if (!sfdRef) {
+    if (!sfdRef)
+    {
         return;
     }
     std::shared_ptr<Server> server = std::dynamic_pointer_cast<Server>(sfdRef);
@@ -62,12 +63,12 @@ Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : m_net(net),
              m_udpServer.sockfd());
 
     m_net->getLoop().createFileEvent(m_tcpServer.shared_from_this(), LOOP_EVT_READABLE,
-                                   OnTcpNewConnection);
+                                     OnTcpNewConnection);
 
     if (m_udpServer.valid())
     {
         m_net->getLoop().createFileEvent(m_udpServer.shared_from_this(), LOOP_EVT_READABLE,
-                                       OnUdpMessage);
+                                         OnUdpMessage);
     }
     LogSocketState(m_tcpServer.sockfd());
 }
@@ -80,9 +81,9 @@ Server::~Server()
     log_info("[Server] destoryed.");
 }
 
-void Server::closeConnect(UniqID clientId)
+void Server::closeConnect(UniqID connectId)
 {
-    auto it = m_connDict.find(clientId);
+    auto it = m_connDict.find(connectId);
     if (it == m_connDict.end())
     {
         return;
@@ -102,17 +103,17 @@ void Server::_closeConnectByFd(int connfdTcp, bool force)
     _onTcpDisconnected(connfdTcp);
 }
 
-void Server::sendByTcp(UniqID clientId, const uint8_t *m_data, size_t len)
+void Server::sendByTcp(UniqID connectId, const uint8_t *m_data, size_t len)
 {
     protocol::UserPacket *p = (protocol::UserPacket *)m_data;
     PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
-    sendByTcp(clientId, header);
+    sendByTcp(connectId, header);
 }
 
-void Server::sendByTcp(UniqID clientId, PacketHeader *header)
+void Server::sendByTcp(UniqID connectId, PacketHeader *header)
 {
     assert(header != nullptr);
-    auto it = m_connDict.find(clientId);
+    auto it = m_connDict.find(connectId);
     if (it == m_connDict.end())
     {
         return;
@@ -135,20 +136,20 @@ void Server::sendByTcp(UniqID clientId, PacketHeader *header)
 void Server::_onTcpConnected(int connfdTcp)
 {
     m_net->getLoop().assertInLoopThread();
-    EventLoop* ioLoop = m_net->getThreadPool()->getNextLoop();
+    EventLoop *ioLoop = m_net->getThreadPool()->getNextLoop();
     uint16_t password = random();
-    UniqID clientId = m_clientIdGen.getNewID();
+    UniqID connectId = m_connectIdGen.getNewID();
     UniqID convId = m_convIdGen.getNewID();
-    m_connDict[clientId] = std::make_shared<SerConn>();
-    PtrSerConn conn = m_connDict[clientId];
-    conn->clientId = clientId;
+    PtrSerConn conn = std::make_shared<SerConn>();
+    m_connDict[connectId] = conn;
+    conn->setConnectId(connectId);
     conn->setfd(connfdTcp);
     conn->setEventLoop(ioLoop);
     conn->setKey((password << 16) | convId);
-    m_connfd2cid[connfdTcp] = clientId;
-    m_convId2cid[convId] = clientId;
+    m_connfd2cid[connfdTcp] = connectId;
+    m_convId2cid[convId] = connectId;
     if (onTcpConnected)
-        onTcpConnected(this, clientId);
+        onTcpConnected(this, connectId);
     ioLoop->runInLoop(std::bind(&SerConn::onConnectEstablished, conn));
 }
 
@@ -162,21 +163,21 @@ void Server::_onTcpDisconnected(int connfdTcp)
     m_net->getLoop().deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
     if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
     {
-        UniqID clientId = m_connfd2cid[connfdTcp];
+        UniqID connectId = m_connfd2cid[connfdTcp];
         m_connfd2cid.erase(connfdTcp);
-        PtrSerConn conn = m_connDict[clientId];
+        PtrSerConn conn = m_connDict[connectId];
         m_convId2cid.erase(conn->convId());
-        m_connDict.erase(clientId);
-        log_info("[Server][tcp] closed, clientId: %d connfdTcp: %d", clientId, connfdTcp);
+        m_connDict.erase(connectId);
+        log_info("[Server][tcp] closed, connectId: %d connfdTcp: %d", connectId, connfdTcp);
         if (onTcpDisconnected)
-            onTcpDisconnected(this, clientId);
+            onTcpDisconnected(this, connectId);
     }
 }
 
 void Server::_onTcpMessage(int connfdTcp)
 {
-    UniqID clientId = m_connfd2cid[connfdTcp];
-    PtrSerConn conn = m_connDict[clientId];
+    UniqID connectId = m_connfd2cid[connfdTcp];
+    PtrSerConn conn = m_connDict[connectId];
     SockBuffer &sockBuffer = conn->buf;
     do
     {
@@ -211,7 +212,7 @@ void Server::_onTcpMessage(int connfdTcp)
                 // log_debug("getHeaderLength: %d", header->getHeaderLength());
                 if (onTcpRecvUserData)
                 {
-                    onTcpRecvUserData(this, clientId, (uint8_t *)p, dataLength);
+                    onTcpRecvUserData(this, connectId, (uint8_t *)p, dataLength);
                 }
                 break;
             }
