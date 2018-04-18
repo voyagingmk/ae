@@ -33,11 +33,11 @@ void TcpConnectionForServer::onConnectEstablished()
     m_loop->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
     /*
     protocol::TcpHandshake handshake;
-    handshake.connectId = connectId;
-    handshake.udpPort = m_udpPort;
-    handshake.key = conn->key;
+    handshake.connectId = connectId();
+    handshake.udpPort = udpPort();
+    handshake.key = key();
     sendByTcp(connectId, SerializeProtocol<protocol::TcpHandshake>(handshake));
-    log_info("[Server][tcp] connected, connectId: %d, connfdTcp: %d, key: %d", connectId, connfdTcp, handshake.key);
+    log_info("[Server][tcp] connected, connectId: %d, connfdTcp: %d, key: %d", connectId(), connectFd(), handshake.key);
     */
     LogSocketState(fd());
 }

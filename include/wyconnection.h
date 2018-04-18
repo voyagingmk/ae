@@ -97,9 +97,11 @@ class TcpConnectionForServer : public TcpConnection
 class TcpConnectionForClient : public TcpConnection
 {
   public:
-    void setUdpPort(int _udpPort);
+    void setUdpPort(int udpPort) {
+        m_udpPort = udpPort;
+    }
   public:
-    int udpPort;
+    int m_udpPort;
     
 };
 
