@@ -37,10 +37,11 @@ struct ThreadData
 
     void runInThread()
     {
-        *m_tid = CurrentThread::tid();
-        m_tid = NULL;
-        m_latch->countDown();
-        m_latch = NULL;
+        // 该线程正在运行，即CurrentThread为这个线程
+        *m_tid = CurrentThread::tid(); // 获取线程id，告诉Thread对象
+        m_tid = NULL;                  // 解除引用
+        m_latch->countDown();          // 通知Thread对象，线程已启动
+        m_latch = NULL;                // 解除引用
 
         CurrentThread::t_threadName = m_name.empty() ? "thread" : m_name.c_str();
         try
@@ -115,12 +116,12 @@ void Thread::start()
     m_started = true;
 
     ThreadData *data = new ThreadData(std::move(m_func), m_name, &m_tid, &m_latch);
-    int ret = pthread_create(&m_pthreadId, NULL, &startThread, (void *)data);
-    if (ret)
+    int err = pthread_create(&m_pthreadId, NULL, &startThread, (void *)data);
+    if (err)
     {
         m_started = false;
         delete data;
-        fprintf(stderr, "pthread_create failed: %s\n", strerror(ret));
+        fprintf(stderr, "pthread_create failed: %s\n", strerror(err));
     }
     else
     {
