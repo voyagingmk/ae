@@ -5,6 +5,7 @@
 #include "wybuffer.h"
 #include "protocol.h"
 #include "noncopyable.h"
+#include "multiple_inherit.h"
 
 namespace wynet
 {
@@ -148,7 +149,7 @@ class SockBuffer : public Noncopyable
     }
 };
 
-class FDRef: public std::enable_shared_from_this<FDRef> {
+class FDRef: public inheritable_enable_shared_from_this<FDRef> {
 public:
     virtual ~FDRef() {}
     inline void setfd(int fd) { m_fd = fd; }

@@ -8,17 +8,18 @@ namespace wynet
 {
 
 class Client;
+typedef std::shared_ptr<Client> PtrClient;
     
 class TCPClient : public SocketBase
 {
-public:
+public: 
     sockaddr_in m_serSockaddr;
     struct hostent *h;
-    Client* parent;
+    PtrClient parent;
     bool connected;
 public:
     
-    TCPClient(Client* client, const char *host, int port);
+    TCPClient(PtrClient client, const char *host, int port);
     
     void Close();
     

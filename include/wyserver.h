@@ -12,8 +12,10 @@ namespace wynet
 
 class WyNet;
 class EventLoop;
+class Server;
+typedef std::shared_ptr<Server> PtrServer;
 
-class Server : public Noncopyable, FDRef
+class Server : public FDRef, public Noncopyable
 {
   WyNet *m_net;
   int m_tcpPort;
@@ -27,18 +29,22 @@ class Server : public Noncopyable, FDRef
   UniqIDGenerator m_convIdGen;
 
 public:
-  typedef void (*OnTcpConnected)(Server *, PtrSerConn conn);
-  typedef void (*OnTcpDisconnected)(Server *, PtrSerConn conn);
-  typedef void (*OnTcpRecvUserData)(Server *, PtrSerConn conn, uint8_t *, size_t);
+  typedef void (*OnTcpConnected)(PtrServer, PtrSerConn conn);
+  typedef void (*OnTcpDisconnected)(PtrServer, PtrSerConn conn);
+  typedef void (*OnTcpRecvMessage)(PtrServer, PtrSerConn conn, uint8_t *, size_t);
 
   OnTcpConnected onTcpConnected;
   OnTcpDisconnected onTcpDisconnected;
-  OnTcpRecvUserData onTcpRecvUserData;
+  OnTcpRecvMessage onTcpRecvMessage;
 
 public:
   Server(WyNet *net, int tcpPort, int udpPort = 0);
 
   ~Server();
+
+  std::shared_ptr<Server> shared_from_this() {
+    return FDRef::downcasted_shared_from_this<Server>(); 
+  }
 
   // only use in unusal cases
   void closeConnect(UniqID connectId);
@@ -74,6 +80,8 @@ private:
 
   friend void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 };
+
+
 };
 
 #endif

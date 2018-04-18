@@ -9,20 +9,20 @@ void Stop(int signo)
     net.stopLoop();
 }
 
-void OnTcpConnected(Server *server, PtrSerConn conn)
+void OnTcpConnected(PtrServer server, PtrSerConn conn)
 {
     log_debug("[OnTcpConnected] %d", conn->connectId());
 }
 
-void OnTcpDisconnected(Server *server, PtrSerConn conn)
+void OnTcpDisconnected(PtrServer server, PtrSerConn conn)
 {
     log_debug("[OnTcpDisconnected] %d", conn->connectId());
 }
 
-void OnTcpRecvUserData(Server *server, PtrSerConn conn, uint8_t *p, size_t len)
+void OnTcpRecvMessage(PtrServer server, PtrSerConn conn, uint8_t *p, size_t len)
 {
 
-    log_debug("[OnTcpRecvUserData] %d, %s", conn->connectId(), (const char *)p);
+    log_debug("[OnTcpRecvMessage] %d, %s", conn->connectId(), (const char *)p);
 }
 
 /*
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     std::shared_ptr<Server> server = std::make_shared<Server>(&net, 9998, 9999);
     server->onTcpConnected = &OnTcpConnected;
     server->onTcpDisconnected = &OnTcpDisconnected;
-    server->onTcpRecvUserData = &OnTcpRecvUserData;
+    server->onTcpRecvMessage = &OnTcpRecvMessage;
     net.addServer(server);
     net.startLoop();
     return 0;

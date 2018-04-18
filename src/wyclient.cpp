@@ -19,11 +19,11 @@ void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
 }
 
 Client::Client(WyNet *net, const char *host, int tcpPort) : m_net(net),
-                                                            m_tcpClient(this, host, tcpPort),
+                                                            m_tcpClient(shared_from_this(), host, tcpPort),
                                                             m_udpClient(nullptr),
                                                             onTcpConnected(nullptr),
                                                             onTcpDisconnected(nullptr),
-                                                            onTcpRecvUserData(nullptr)
+                                                            onTcpRecvMessage(nullptr)
 {
 }
 
@@ -50,14 +50,14 @@ void Client::_onTcpConnected()
     m_net->getLoop().createFileEvent(m_tcpClient.shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
     LogSocketState(m_tcpClient.sockfd());
     if (onTcpConnected)
-        onTcpConnected(this);
+        onTcpConnected(shared_from_this());
 }
 
 void Client::_onTcpDisconnected()
 {
     m_net->getLoop().deleteFileEvent(m_tcpClient.sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (onTcpDisconnected)
-        onTcpDisconnected(this);
+        onTcpDisconnected(shared_from_this());
 }
 
 void Client::_onTcpMessage()
@@ -103,9 +103,9 @@ void Client::_onTcpMessage()
                 protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->m_data + header->getHeaderLength());
                 size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
                 // log_debug("getHeaderLength: %d", header->getHeaderLength());
-                if (onTcpRecvUserData)
+                if (onTcpRecvMessage)
                 {
-                    onTcpRecvUserData(this, (uint8_t *)p, dataLength);
+                    onTcpRecvMessage(shared_from_this(), (uint8_t *)p, dataLength);
                 }
                 break;
             }

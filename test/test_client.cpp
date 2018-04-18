@@ -8,13 +8,13 @@ void Stop(int signo)
     net.stopLoop();
 }
 
-void OnTcpConnected(Client *client)
+void OnTcpConnected(PtrClient client)
 {
     log_info("OnTcpConnected: %d", client->getTcpClient().sockfd());
     client->sendByTcp((const uint8_t *)"hello", 5);
 }
 
-void OnTcpDisconnected(Client *client)
+void OnTcpDisconnected(PtrClient client)
 {
     log_info("OnTcpDisconnected: %d", client->getTcpClient().sockfd());
     net.stopLoop();

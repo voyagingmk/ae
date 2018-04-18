@@ -24,14 +24,14 @@ void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
     }
     else
     {
-        Client *client = tcpClient->parent;
+        PtrClient client = tcpClient->parent;
         // connect ok, remove event
         client->getNet()->getLoop().deleteFileEvent(tcpClient->sockfd(), LOOP_EVT_WRITABLE);
         tcpClient->onConnected();
     }
 }
 
-TCPClient::TCPClient(Client *client, const char *host, int port)
+TCPClient::TCPClient(PtrClient client, const char *host, int port)
 {
     parent = client;
     int n;

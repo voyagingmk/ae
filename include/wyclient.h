@@ -14,8 +14,10 @@ namespace wynet
 
 class WyNet;
 class Test;
+class Client;
+typedef std::shared_ptr<Client> PtrClient;
 
-class Client: public Noncopyable, FDRef
+class Client: public FDRef
 {
     WyNet *m_net;
     TcpConnectionForClient m_conn;
@@ -24,13 +26,17 @@ class Client: public Noncopyable, FDRef
     
 public:
     friend class TCPClient;
-    typedef void (*OnTcpConnected)(Client *);
-    typedef void (*OnTcpDisconnected)(Client *);
-    typedef void (*OnTcpRecvUserData)(Client *, uint8_t*, size_t);
+    typedef void (*OnTcpConnected)(PtrClient);
+    typedef void (*OnTcpDisconnected)(PtrClient);
+    typedef void (*OnTcpRecvMessage)(PtrClient, uint8_t*, size_t);
     
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;
-    OnTcpRecvUserData onTcpRecvUserData;
+    OnTcpRecvMessage onTcpRecvMessage;
+  
+    std::shared_ptr<Client> shared_from_this() {
+        return FDRef::downcasted_shared_from_this<Client>(); 
+    }
 
     Client(WyNet *net, const char *host, int tcpPort);
 

@@ -52,7 +52,7 @@ Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : m_net(net),
                                                              m_udpServer(m_udpPort),
                                                              onTcpConnected(nullptr),
                                                              onTcpDisconnected(nullptr),
-                                                             onTcpRecvUserData(nullptr)
+                                                             onTcpRecvMessage(nullptr)
 {
 
     m_convIdGen.setRecycleThreshold(2 << 15);
@@ -168,7 +168,7 @@ void Server::_onTcpConnected(int connfdTcp)
     conn->setEventLoop(ioLoop);
     refConnection(conn);
     if (onTcpConnected)
-        onTcpConnected(this, conn);
+        onTcpConnected(shared_from_this(), conn);
     ioLoop->runInLoop(std::bind(&SerConn::onConnectEstablished, conn));
 }
 
@@ -187,7 +187,7 @@ void Server::_onTcpDisconnected(int connfdTcp)
         unrefConnection(connectId);
         log_info("[Server][tcp] closed, connectId: %d connfdTcp: %d", connectId, connfdTcp);
         if (onTcpDisconnected)
-            onTcpDisconnected(this, conn);
+            onTcpDisconnected(shared_from_this(), conn);
     }
 }
 
@@ -227,9 +227,9 @@ void Server::_onTcpMessage(int connfdTcp)
                 protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->m_data + header->getHeaderLength());
                 size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
                 // log_debug("getHeaderLength: %d", header->getHeaderLength());
-                if (onTcpRecvUserData)
+                if (onTcpRecvMessage)
                 {
-                    onTcpRecvUserData(this, conn, (uint8_t *)p, dataLength);
+                    onTcpRecvMessage(shared_from_this(), conn, (uint8_t *)p, dataLength);
                 }
                 break;
             }
