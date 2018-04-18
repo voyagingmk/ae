@@ -48,7 +48,9 @@ int main(int argc, char **argv)
     //  UDPServer server(9999);
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s", aeGetApiName());
-    std::shared_ptr<Server> server = std::make_shared<Server>(&net, 9998, 9999);
+    std::shared_ptr<Server> server = std::make_shared<Server>(&net);
+    server->initTcpServer(9998);
+    server->initUdpServer(9999);
     server->onTcpConnected = &OnTcpConnected;
     server->onTcpDisconnected = &OnTcpDisconnected;
     server->onTcpRecvMessage = &OnTcpRecvMessage;

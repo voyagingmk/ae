@@ -38,7 +38,11 @@ public:
   OnTcpRecvMessage onTcpRecvMessage;
 
 public:
-  Server(WyNet *net, int tcpPort, int udpPort = 0);
+  Server(WyNet *net);
+
+  void initTcpServer(int tcpPort);
+
+  void initUdpServer(int udpPort);
 
   ~Server();
 
