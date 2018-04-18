@@ -21,7 +21,7 @@ public:
   EventLoop *startLoop();
 
 private:
-  void threadFunc();
+  void threadMain();
 
   EventLoop *m_loop;
   bool m_exiting;

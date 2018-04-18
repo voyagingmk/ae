@@ -11,11 +11,11 @@ namespace wynet
 class Thread : Noncopyable
 {
 public:
-  typedef std::function<void()> ThreadFunc;
+  typedef std::function<void()> ThreadMain;
 
-  explicit Thread(const ThreadFunc &, const std::string &name = std::string(""));
+  explicit Thread(const ThreadMain &, const std::string &name = std::string(""));
 
-  explicit Thread(ThreadFunc &&, const std::string &name = std::string(""));
+  explicit Thread(ThreadMain &&, const std::string &name = std::string(""));
 
   ~Thread();
 
@@ -38,7 +38,7 @@ private:
   bool m_joined;
   pthread_t m_pthreadId;
   pid_t m_tid;
-  ThreadFunc m_func;
+  ThreadMain m_func;
   std::string m_name;
   CountDownLatch m_latch;
 

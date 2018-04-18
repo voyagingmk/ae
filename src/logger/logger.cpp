@@ -10,7 +10,7 @@ Logger::Logger(const string &logtitle,
                                     m_running(false),
                                     m_logtitle(logtitle),
                                     m_rollSize(rollSize),
-                                    m_thread(std::bind(&Logger::threadFunc, this), "Logging"),
+                                    m_thread(std::bind(&Logger::threadMain, this), "Logging"),
                                     m_latch(1),
                                     m_mutex(),
                                     m_cond(m_mutex),
@@ -47,7 +47,7 @@ void Logger::append(const char *logline, int len)
     }
 }
 
-void Logger::threadFunc()
+void Logger::threadMain()
 {
     assert(m_running == true);
     m_latch.countDown();

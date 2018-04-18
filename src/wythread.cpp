@@ -18,13 +18,13 @@ using namespace std;
 
 struct ThreadData
 {
-    typedef Thread::ThreadFunc ThreadFunc;
-    ThreadFunc m_func;
+    typedef Thread::ThreadMain ThreadMain;
+    ThreadMain m_func;
     string m_name;
     pid_t *m_tid;
     CountDownLatch *m_latch;
 
-    ThreadData(const ThreadFunc &func,
+    ThreadData(const ThreadMain &func,
                const string &name,
                pid_t *tid,
                CountDownLatch *latch)
@@ -80,7 +80,7 @@ void *startThread(void *obj)
     return NULL;
 }
 
-Thread::Thread(const ThreadFunc &func, const string &n)
+Thread::Thread(const ThreadMain &func, const string &n)
     : m_started(false),
       m_joined(false),
       m_pthreadId(0),
@@ -93,7 +93,7 @@ Thread::Thread(const ThreadFunc &func, const string &n)
     setDefaultName(num);
 }
 
-Thread::Thread(ThreadFunc &&func, const std::string &n)
+Thread::Thread(ThreadMain &&func, const std::string &n)
     : m_started(false),
       m_joined(false),
       m_pthreadId(0),
