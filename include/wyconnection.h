@@ -37,6 +37,11 @@ class TcpConnection : public FDRef
         m_loop = l;
     }
 
+    EventLoop *getLoop() const
+    {
+        return m_loop;
+    }
+
     inline void setConnectId(UniqID _connectId)
     {
         m_connectId = _connectId;

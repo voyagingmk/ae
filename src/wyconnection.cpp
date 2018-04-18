@@ -30,7 +30,7 @@ void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 void TcpConnectionForServer::onConnectEstablished()
 {
 
-    m_loop->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
+    getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
     /*
     protocol::TcpHandshake handshake;
     handshake.connectId = connectId();
