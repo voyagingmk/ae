@@ -21,61 +21,60 @@ void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
 
 Client::Client(WyNet *net, const char *host, int tcpPort) : FDRef(0),
                                                             m_net(net),
-                                                            m_tcpClient(shared_from_this(), host, tcpPort),
-                                                            m_udpClient(nullptr),
                                                             onTcpConnected(nullptr),
                                                             onTcpDisconnected(nullptr),
                                                             onTcpRecvMessage(nullptr)
 {
+    m_tcpClient = std::make_shared<TCPClient>(shared_from_this(), host, tcpPort);
 }
 
 Client::~Client()
 {
-    log_info("[Client] close tcp sockfd %d", m_tcpClient.sockfd());
-    m_tcpClient.Close();
+    log_info("[Client] close tcp sockfd %d", m_tcpClient->sockfd());
+    m_tcpClient->Close();
 }
 
 void Client::sendByTcp(const uint8_t *data, size_t len)
 {
     protocol::UserPacket *p = (protocol::UserPacket *)data;
     PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
-    m_tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
+    m_tcpClient->Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
 
 void Client::sendByTcp(PacketHeader *header)
 {
-    m_tcpClient.Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
+    m_tcpClient->Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
 
 void Client::_onTcpConnected()
 {
-    m_net->getLoop().createFileEvent(m_tcpClient.shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
-    LogSocketState(m_tcpClient.sockfd());
-    m_conn = std::make_shared<CliConn>(m_tcpClient.sockfd());
+    m_net->getLoop().createFileEvent(m_tcpClient->shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
+    LogSocketState(m_tcpClient->sockfd());
+    m_conn = std::make_shared<CliConn>(m_tcpClient->sockfd());
     if (onTcpConnected)
         onTcpConnected(shared_from_this());
 }
 
 void Client::_onTcpDisconnected()
 {
-    m_net->getLoop().deleteFileEvent(m_tcpClient.sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    m_net->getLoop().deleteFileEvent(m_tcpClient->sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (onTcpDisconnected)
         onTcpDisconnected(shared_from_this());
 }
 
 void Client::_onTcpMessage()
 {
-    SockBuffer &sockBuffer = m_tcpClient.buf;
+    SockBuffer &sockBuffer = m_tcpClient->m_buf;
     // validate packet
     do
     {
         int nreadTotal = 0;
-        int ret = sockBuffer.readIn(m_tcpClient.sockfd(), &nreadTotal);
+        int ret = sockBuffer.readIn(m_tcpClient->sockfd(), &nreadTotal);
         log_debug("readIn ret %d nreadTotal %d", ret, nreadTotal);
         if (ret <= 0)
         {
             // has error or has closed
-            m_tcpClient.Close();
+            m_tcpClient->Close();
             return;
         }
         if (ret == 2)

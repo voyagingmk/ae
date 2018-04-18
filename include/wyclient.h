@@ -21,8 +21,8 @@ class Client : public FDRef
 {
     WyNet *m_net;
     PtrCliConn m_conn;
-    TCPClient m_tcpClient;
-    UDPClient *m_udpClient;
+    std::shared_ptr<TCPClient> m_tcpClient;
+    std::shared_ptr<UDPClient> m_udpClient;
 
   public:
     friend class TCPClient;
@@ -47,12 +47,12 @@ class Client : public FDRef
 
     void sendByTcp(PacketHeader *header);
 
-    const TCPClient &getTcpClient() const
+    const std::shared_ptr<TCPClient> getTcpClient() const
     {
         return m_tcpClient;
     }
 
-    const UDPClient *getUdpClient() const
+    const std::shared_ptr<UDPClient> getUdpClient() const
     {
         return m_udpClient;
     }
