@@ -16,7 +16,7 @@ void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
     }
     log_debug("OnTcpMessage fd %d", sfdRef->fd());
     std::shared_ptr<Client> client = std::dynamic_pointer_cast<Client>(sfdRef);
-    client->_onTcpMessage();
+    // client->_onTcpMessage();
 }
 
 Client::Client(WyNet *net) : FDRef(0),
@@ -70,6 +70,7 @@ void Client::_onTcpDisconnected()
         onTcpDisconnected(shared_from_this());
 }
 
+/*
 void Client::_onTcpMessage()
 {
     SockBuffer &sockBuffer = m_tcpClient->m_buf;
@@ -126,4 +127,5 @@ void Client::_onTcpMessage()
         }
     } while (1);
 }
+*/
 };

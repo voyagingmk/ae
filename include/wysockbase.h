@@ -187,7 +187,6 @@ class SocketBase : public FDRef
     sockaddr_in6 m_sockaddr;
     socklen_t m_socklen;
     int m_family;
-    SockBuffer m_buf;
 };
 };
 

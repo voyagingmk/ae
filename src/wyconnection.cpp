@@ -44,6 +44,65 @@ void TcpConnectionForServer::onConnectEstablished()
 
 void TcpConnectionForServer::onTcpMessage()
 {
+    SockBuffer &sockBuf = sockBuffer();
+    do
+    {
+        int nreadTotal = 0;
+        int ret = sockBuf.readIn(connectFd(), &nreadTotal);
+        log_debug("[Server][tcp] readIn connectFd %d ret %d nreadTotal %d", connectFd(), ret, nreadTotal);
+        if (ret <= 0)
+        {
+            // has error or has closed
+            close(false);
+            return;
+        }
+        if (ret == 2)
+        {
+            break;
+        }
+        if (ret == 1)
+        {
+            BufferRef &bufRef = sockBuf.bufRef;
+            PacketHeader *header = (PacketHeader *)(bufRef->m_data);
+            Protocol protocol = static_cast<Protocol>(header->getProtocol());
+            switch (protocol)
+            {
+            case Protocol::UdpHandshake:
+            {
+                break;
+            }
+            case Protocol::UserPacket:
+            {
+                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->m_data + header->getHeaderLength());
+                size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
+                // log_debug("getHeaderLength: %d", header->getHeaderLength());
+                /*
+                if (onTcpRecvMessage)
+                {
+                    onTcpRecvMessage(shared_from_this(), conn, (uint8_t *)p, dataLength);
+                }*/
+                break;
+            }
+            default:
+                break;
+            }
+            sockBuf.resetBuffer();
+        }
+    } while (1);
+}
+
+void TcpConnectionForServer ::close(bool force)
+{
+    ::close(connectFd());
+    if (force)
+    {
+        struct linger l;
+        l.l_onoff = 1; /* cause RST to be sent on close() */
+        l.l_linger = 0;
+        Setsockopt(connectFd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+    }
+
+    // _onTcpDisconnected(connfdTcp);
 }
 
 void TcpConnectionForServer::send(const uint8_t *data, size_t len)

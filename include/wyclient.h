@@ -67,7 +67,7 @@ class Client : public FDRef
   private:
     void _onTcpConnected();
 
-    void _onTcpMessage();
+    // void _onTcpMessage();
 
     void _onTcpDisconnected();
 
