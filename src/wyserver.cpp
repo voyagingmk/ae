@@ -180,11 +180,6 @@ void Server::_onTcpConnected(int connfdTcp)
 
 void Server::_onTcpDisconnected(int connfdTcp)
 {
-    int ret = close(connfdTcp);
-    if (ret < 0)
-    {
-        log_error("[Server][tcp] close err %d", ret);
-    }
     m_net->getLoop().deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
     if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
     {

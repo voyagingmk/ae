@@ -98,9 +98,10 @@ class TcpConnectionForServer : public TcpConnection
 
     void send(const uint8_t *data, size_t len);
 
-    void close(bool force);
-
     friend void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
+
+  private:
+    void close(bool force);
 };
 
 class TcpConnectionForClient : public TcpConnection
