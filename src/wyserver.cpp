@@ -82,7 +82,7 @@ void Server::initUdpServer(int udpPort)
 {
     m_udpPort = udpPort;
     m_udpServer = std::make_shared<UDPServer>(m_udpPort);
-    log_info("[Server] UDPServer created, udp sockfd: %d\n", m_udpPort->sockfd());
+    log_info("[Server] UDPServer created, udp sockfd: %d\n", m_udpServer->sockfd());
 
     m_net->getLoop().createFileEvent(m_udpServer, LOOP_EVT_READABLE,
                                      OnUdpMessage);
