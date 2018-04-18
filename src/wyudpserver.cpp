@@ -43,7 +43,7 @@ void UDPServer::init(int port)
         if (bind(sockfd(), res->ai_addr, res->ai_addrlen) == 0)
             break; /* success */
 
-        Close(sockfd()); /* bind error, close and try next one */
+        close(sockfd()); /* bind error, close and try next one */
     } while ((res = res->ai_next) != NULL);
 
     if (res == NULL) /* errno from final socket() or bind() */

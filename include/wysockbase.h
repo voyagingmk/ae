@@ -170,10 +170,15 @@ class FDRef : public inheritable_enable_shared_from_this<FDRef>
 class SocketBase : public FDRef
 {
   protected:
-    SocketBase() : FDRef(0),
-                   m_socklen(0),
-                   m_family(0)
+    SocketBase(int fd = 0) : FDRef(fd),
+                             m_socklen(0),
+                             m_family(0)
     {
+    }
+    virtual ~SocketBase()
+    {
+        ::close(sockfd());
+        setfd(0);
     }
 
   public:

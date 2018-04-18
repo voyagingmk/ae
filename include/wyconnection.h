@@ -11,10 +11,10 @@ namespace wynet
 {
 class EventLoop;
 
-class TcpConnection : public FDRef
+class TcpConnection : public SocketBase
 {
   public:
-    TcpConnection(int fd) : FDRef(fd),
+    TcpConnection(int fd) : SocketBase(fd),
                             m_loop(nullptr),
                             m_key(0),
                             m_kcpObj(nullptr),

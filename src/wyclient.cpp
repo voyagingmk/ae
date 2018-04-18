@@ -29,11 +29,6 @@ Client::Client(WyNet *net) : FDRef(0),
 
 Client::~Client()
 {
-    if (m_tcpClient)
-    {
-        log_info("[Client] close tcp sockfd %d", m_tcpClient->sockfd());
-        m_tcpClient->Close();
-    }
 }
 
 void Client::initTcpClient(const char *host, int tcpPort)

@@ -93,7 +93,6 @@ void TcpConnectionForServer::onTcpMessage()
 
 void TcpConnectionForServer ::close(bool force)
 {
-    ::close(connectFd());
     if (force)
     {
         struct linger l;
