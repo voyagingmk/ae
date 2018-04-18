@@ -155,6 +155,7 @@ bool Server::unrefConnection(UniqID connectId) {
     m_connfd2cid.erase(conn->connectFd());
     m_convId2cid.erase(conn->convId());
     m_connDict.erase(connectId);
+    return true;
 }
 
 
@@ -182,10 +183,7 @@ void Server::_onTcpDisconnected(int connfdTcp)
     if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
     {
         UniqID connectId = m_connfd2cid[connfdTcp];
-        m_connfd2cid.erase(connfdTcp);
-        PtrSerConn conn = m_connDict[connectId];
-        m_convId2cid.erase(conn->convId());
-        m_connDict.erase(connectId);
+        unrefConnection(connectId);
         log_info("[Server][tcp] closed, connectId: %d connfdTcp: %d", connectId, connfdTcp);
         if (onTcpDisconnected)
             onTcpDisconnected(this, connectId);
