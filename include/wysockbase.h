@@ -149,38 +149,46 @@ class SockBuffer : public Noncopyable
     }
 };
 
-class FDRef: public inheritable_enable_shared_from_this<FDRef> {
-public:
+class FDRef : public inheritable_enable_shared_from_this<FDRef>
+{
+  public:
+    FDRef(int fd)
+    {
+        setfd(fd);
+    }
     virtual ~FDRef() {}
-    inline void setfd(int fd) { m_fd = fd; }
+
     inline int fd() const { return m_fd; }
-public:
+
+  protected:
+    inline void setfd(int fd) { m_fd = fd; }
+
+  private:
     int m_fd;
 };
 
-class SocketBase: public FDRef
+class SocketBase : public FDRef
 {
   protected:
-    SocketBase() : m_socklen(0),
+    SocketBase() : FDRef(0),
+                   m_socklen(0),
                    m_family(0)
     {
     }
+
+  public:
+    inline void setSockfd(int fd) { setfd(fd); }
+    inline int sockfd() const { return fd(); }
+    inline bool valid() const { return fd() > 0; }
+    inline bool isIPv4() const { return m_family == PF_INET; }
+    inline bool isIPv6() const { return m_family == PF_INET6; }
 
   public:
     sockaddr_in6 m_sockaddr;
     socklen_t m_socklen;
     int m_family;
     SockBuffer buf;
-
-    void setSockfd(int fd) { m_fd = fd; }
-    int sockfd() const { return m_fd; }
-    bool valid() const { return m_fd > 0; }
-    bool isIPv4() const { return m_family == PF_INET; }
-    bool isIPv6() const { return m_family == PF_INET6; }
 };
-
-
-
 };
 
 #endif

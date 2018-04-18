@@ -45,7 +45,8 @@ void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
     // server->m_udpServer.Recvfrom();
 }
 
-Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : m_net(net),
+Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : FDRef(0),
+                                                             m_net(net),
                                                              m_tcpPort(tcpPortArg),
                                                              m_udpPort(udpPortArg),
                                                              m_tcpServer(m_tcpPort),
@@ -133,8 +134,8 @@ void Server::sendByTcp(UniqID connectId, PacketHeader *header)
     }
 }
 
-
-UniqID Server::refConnection(PtrSerConn conn) {
+UniqID Server::refConnection(PtrSerConn conn)
+{
     UniqID connectId = m_connectIdGen.getNewID();
     UniqID convId = m_convIdGen.getNewID();
     m_connDict[connectId] = conn;
@@ -146,9 +147,10 @@ UniqID Server::refConnection(PtrSerConn conn) {
     return connectId;
 }
 
-
-bool Server::unrefConnection(UniqID connectId) {
-    if (m_connDict.find(connectId) == m_connDict.end()) {
+bool Server::unrefConnection(UniqID connectId)
+{
+    if (m_connDict.find(connectId) == m_connDict.end())
+    {
         return false;
     }
     PtrSerConn conn = m_connDict[connectId];
@@ -158,13 +160,11 @@ bool Server::unrefConnection(UniqID connectId) {
     return true;
 }
 
-
 void Server::_onTcpConnected(int connfdTcp)
 {
     m_net->getLoop().assertInLoopThread();
     EventLoop *ioLoop = m_net->getThreadPool()->getNextLoop();
-    PtrSerConn conn = std::make_shared<SerConn>();
-    conn->setConnectFd(connfdTcp);
+    PtrSerConn conn = std::make_shared<SerConn>(connfdTcp);
     conn->setEventLoop(ioLoop);
     refConnection(conn);
     if (onTcpConnected)
@@ -195,7 +195,7 @@ void Server::_onTcpMessage(int connfdTcp)
 {
     UniqID connectId = m_connfd2cid[connfdTcp];
     PtrSerConn conn = m_connDict[connectId];
-    SockBuffer &sockBuffer = conn->buf;
+    SockBuffer &sockBuffer = conn->sockBuffer();
     do
     {
         int nreadTotal = 0;

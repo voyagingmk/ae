@@ -14,16 +14,22 @@ class EventLoop;
 class TcpConnection : public FDRef
 {
   public:
-    EventLoop *m_loop;
-    uint32_t m_key;
-    KCPObject *m_kcpObj;
-    UniqID m_connectId;
-
-    TcpConnection() : m_loop(nullptr),
-                      m_key(0),
-                      m_kcpObj(nullptr),
-                      m_connectId(0)
+    TcpConnection(int fd) : FDRef(fd),
+                            m_loop(nullptr),
+                            m_key(0),
+                            m_kcpObj(nullptr),
+                            m_connectId(0)
     {
+    }
+
+    TcpConnection &operator=(TcpConnection &&c)
+    {
+        m_buf = std::move(c.m_buf);
+        m_key = c.m_key;
+        m_kcpObj = c.m_kcpObj;
+        c.m_key = 0;
+        c.m_kcpObj = nullptr;
+        return *this;
     }
 
     inline void setEventLoop(EventLoop *l)
@@ -31,15 +37,10 @@ class TcpConnection : public FDRef
         m_loop = l;
     }
 
-    inline void setConnectFd(int fd)
-    {
-        setfd(fd);
-    }  
-
     inline void setConnectId(UniqID _connectId)
     {
         m_connectId = _connectId;
-    }  
+    }
 
     inline void setKey(uint32_t k)
     {
@@ -66,25 +67,26 @@ class TcpConnection : public FDRef
         return fd();
     }
 
-    TcpConnection &operator=(TcpConnection &&c)
+    inline SockBuffer &sockBuffer()
     {
-        m_key = c.m_key;
-        m_kcpObj = c.m_kcpObj;
-        c.m_key = 0;
-        c.m_kcpObj = nullptr;
-        return *this;
+        return m_buf;
     }
+
+  private:
+    EventLoop *m_loop;
+    uint32_t m_key;
+    KCPObject *m_kcpObj;
+    UniqID m_connectId;
+    SockBuffer m_buf;
 };
 
 class TcpConnectionForServer : public TcpConnection
 {
   public:
-    SockBuffer buf;
-    TcpConnectionForServer &operator=(TcpConnectionForServer &&c)
+    TcpConnectionForServer(int fd) : TcpConnection(fd)
     {
-        buf = std::move(c.buf);
-        return *this;
     }
+
     void onConnectEstablished();
 
     void onTcpMessage();
@@ -97,12 +99,16 @@ class TcpConnectionForServer : public TcpConnection
 class TcpConnectionForClient : public TcpConnection
 {
   public:
-    void setUdpPort(int udpPort) {
+    TcpConnectionForClient(int fd) : TcpConnection(fd)
+    {
+    }
+    void setUdpPort(int udpPort)
+    {
         m_udpPort = udpPort;
     }
-  public:
+
+  private:
     int m_udpPort;
-    
 };
 
 typedef TcpConnectionForServer SerConn;

@@ -18,7 +18,10 @@ public:
     PtrClient parent;
     bool connected;
 public:
-    
+    std::shared_ptr<TCPClient> shared_from_this() {
+        return FDRef::downcasted_shared_from_this<TCPClient>(); 
+    }
+
     TCPClient(PtrClient client, const char *host, int port);
     
     void Close();

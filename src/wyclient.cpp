@@ -8,17 +8,19 @@ namespace wynet
 {
 
 void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
-{ 
+{
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-    if (!sfdRef) {
+    if (!sfdRef)
+    {
         return;
     }
-    log_debug("OnTcpMessage fd %d", sfdRef->fd());  
+    log_debug("OnTcpMessage fd %d", sfdRef->fd());
     std::shared_ptr<Client> client = std::dynamic_pointer_cast<Client>(sfdRef);
     client->_onTcpMessage();
 }
 
-Client::Client(WyNet *net, const char *host, int tcpPort) : m_net(net),
+Client::Client(WyNet *net, const char *host, int tcpPort) : FDRef(0),
+                                                            m_net(net),
                                                             m_tcpClient(shared_from_this(), host, tcpPort),
                                                             m_udpClient(nullptr),
                                                             onTcpConnected(nullptr),
@@ -49,6 +51,7 @@ void Client::_onTcpConnected()
 {
     m_net->getLoop().createFileEvent(m_tcpClient.shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
     LogSocketState(m_tcpClient.sockfd());
+    m_conn = std::make_shared<CliConn>(m_tcpClient.sockfd());
     if (onTcpConnected)
         onTcpConnected(shared_from_this());
 }
@@ -89,13 +92,13 @@ void Client::_onTcpMessage()
             case Protocol::TcpHandshake:
             {
                 protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->m_data + header->getHeaderLength());
-                m_conn.setKey(handShake->key);
-                m_conn.setUdpPort(handShake->udpPort);
-                m_conn.setConnectId(handShake->connectId);
+                m_conn->setKey(handShake->key);
+                m_conn->setUdpPort(handShake->udpPort);
+                m_conn->setConnectId(handShake->connectId);
                 log_info("TcpHandshake connectId %d, udpPort %d convId %d passwd %d",
                          handShake->connectId, handShake->udpPort,
-                         m_conn.convId(),
-                         m_conn.passwd());
+                         m_conn->convId(),
+                         m_conn->passwd());
                 break;
             }
             case Protocol::UserPacket:
