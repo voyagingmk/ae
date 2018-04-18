@@ -1,8 +1,8 @@
 #ifndef WY_EVENTLOOP_THREAD_H
 #define WY_EVENTLOOP_THREAD_H
 
-#include "noncopyable.h"
 #include "common.h"
+#include "noncopyable.h"
 #include "wythread.h"
 
 namespace wynet
@@ -10,11 +10,13 @@ namespace wynet
 class EventLoop;
 typedef std::function<void(EventLoop *)> ThreadInitCallback;
 
+// 将一个thread和一个loop联合起来的对象
+// 每个EventLoopThread拥有一个mutex
 class EventLoopThread : Noncopyable
 {
 public:
   EventLoopThread(const ThreadInitCallback &cb = {},
-                  const std::string &name = std::string());
+                  const std::string &name = "");
 
   ~EventLoopThread();
 
