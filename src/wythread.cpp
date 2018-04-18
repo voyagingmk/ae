@@ -19,16 +19,16 @@ using namespace std;
 struct ThreadData
 {
     typedef Thread::ThreadMain ThreadMain;
-    ThreadMain &&m_func;
+    ThreadMain m_func;
     string m_name;
     pid_t *m_tid;
     CountDownLatch *m_latch;
 
-    ThreadData(ThreadMain &&func,
+    ThreadData(ThreadMain &func,
                const string &name,
                pid_t *tid,
                CountDownLatch *latch)
-        : m_func(std::move(func)),
+        : m_func(func),
           m_name(name),
           m_tid(tid),
           m_latch(latch)
@@ -86,7 +86,7 @@ Thread::Thread(ThreadMain &&func, const std::string &n)
       m_joined(false),
       m_pthreadId(0),
       m_tid(0),
-      m_func(std::move(func)),
+      m_func(func),
       m_name(n),
       m_latch(1)
 {
@@ -115,7 +115,7 @@ void Thread::start()
     assert(!m_started);
     m_started = true;
 
-    ThreadData *data = new ThreadData(std::move(m_func), m_name, &m_tid, &m_latch);
+    ThreadData *data = new ThreadData(m_func, m_name, &m_tid, &m_latch);
     int err = pthread_create(&m_pthreadId, NULL, &startThread, (void *)data);
     if (err)
     {

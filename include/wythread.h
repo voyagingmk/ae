@@ -42,7 +42,7 @@ private:
   bool m_joined;
   pthread_t m_pthreadId;
   pid_t m_tid;
-  ThreadMain &&m_func;
+  ThreadMain m_func;
   std::string m_name;
   CountDownLatch m_latch;
 

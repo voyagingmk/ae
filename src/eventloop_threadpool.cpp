@@ -29,7 +29,10 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb)
     assert(!m_started);
     m_baseLoop->assertInLoopThread();
     m_started = true;
-
+    if (cb)
+    {
+        printf("has ThreadInitCallback");
+    }
     for (int i = 0; i < m_numThreads; ++i)
     {
         char nameBuf[m_name.size() + 1 + sizeof(int)];

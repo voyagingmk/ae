@@ -16,7 +16,7 @@ void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int ma
         return;
     }
     std::shared_ptr<Server> server = std::dynamic_pointer_cast<Server>(sfdRef);
-    int listenfdTcp = server->getTCPServer().sockfd();
+    int listenfdTcp = server->getTCPServer()->sockfd();
     struct sockaddr_storage cliAddr;
     socklen_t len = sizeof(cliAddr);
     int connfdTcp = accept(listenfdTcp, (SA *)&cliAddr, &len);
@@ -49,8 +49,6 @@ Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : FDRef(0),
                                                              m_net(net),
                                                              m_tcpPort(tcpPortArg),
                                                              m_udpPort(udpPortArg),
-                                                             m_tcpServer(m_tcpPort),
-                                                             m_udpServer(m_udpPort),
                                                              onTcpConnected(nullptr),
                                                              onTcpDisconnected(nullptr),
                                                              onTcpRecvMessage(nullptr)
@@ -59,25 +57,28 @@ Server::Server(WyNet *net, int tcpPortArg, int udpPortArg) : FDRef(0),
     m_convIdGen.setRecycleThreshold(2 << 15);
     m_convIdGen.setRecycleEnabled(true);
 
-    log_info("[Server] created, tcp sockfd: %d, udp sockfd: %d",
-             m_tcpServer.sockfd(),
-             m_udpServer.sockfd());
+    m_tcpServer = std::make_shared<TCPServer>(m_tcpPort);
+    m_udpServer = std::make_shared<UDPServer>(m_udpPort);
 
-    m_net->getLoop().createFileEvent(m_tcpServer.shared_from_this(), LOOP_EVT_READABLE,
+    log_info("[Server] created, tcp sockfd: %d, udp sockfd: %d",
+             m_tcpServer->sockfd(),
+             m_udpServer->sockfd());
+
+    m_net->getLoop().createFileEvent(m_tcpServer, LOOP_EVT_READABLE,
                                      OnTcpNewConnection);
 
-    if (m_udpServer.valid())
+    if (m_udpServer->valid())
     {
-        m_net->getLoop().createFileEvent(m_udpServer.shared_from_this(), LOOP_EVT_READABLE,
+        m_net->getLoop().createFileEvent(m_udpServer, LOOP_EVT_READABLE,
                                          OnUdpMessage);
     }
-    LogSocketState(m_tcpServer.sockfd());
+    LogSocketState(m_tcpServer->sockfd());
 }
 
 Server::~Server()
 {
-    m_net->getLoop().deleteFileEvent(m_tcpServer.sockfd(), LOOP_EVT_READABLE);
-    m_net->getLoop().deleteFileEvent(m_udpServer.sockfd(), LOOP_EVT_READABLE);
+    m_net->getLoop().deleteFileEvent(m_tcpServer->sockfd(), LOOP_EVT_READABLE);
+    m_net->getLoop().deleteFileEvent(m_udpServer->sockfd(), LOOP_EVT_READABLE);
     m_net = nullptr;
     log_info("[Server] destoryed.");
 }

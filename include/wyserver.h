@@ -20,8 +20,8 @@ class Server : public FDRef, public Noncopyable
   WyNet *m_net;
   int m_tcpPort;
   int m_udpPort;
-  TCPServer m_tcpServer;
-  UDPServer m_udpServer;
+  std::shared_ptr<TCPServer> m_tcpServer;
+  std::shared_ptr<UDPServer> m_udpServer;
   std::map<UniqID, PtrSerConn> m_connDict;
   std::map<int, UniqID> m_connfd2cid;
   std::map<ConvID, UniqID> m_convId2cid;
@@ -42,8 +42,9 @@ public:
 
   ~Server();
 
-  std::shared_ptr<Server> shared_from_this() {
-    return FDRef::downcasted_shared_from_this<Server>(); 
+  std::shared_ptr<Server> shared_from_this()
+  {
+    return FDRef::downcasted_shared_from_this<Server>();
   }
 
   // only use in unusal cases
@@ -58,14 +59,14 @@ public:
     return m_net;
   }
 
-  TCPServer &getTCPServer()
+  std::shared_ptr<TCPServer> &getTCPServer()
   {
     return m_tcpServer;
   }
 
 private:
   UniqID refConnection(PtrSerConn conn);
-    
+
   bool unrefConnection(UniqID connectId);
 
   void _closeConnectByFd(int connfdTcp, bool force = false);
@@ -80,8 +81,6 @@ private:
 
   friend void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 };
-
-
 };
 
 #endif
