@@ -38,7 +38,7 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb)
         m_threads.push_back(t);
         m_loops.push_back(t->startLoop());
     }
-    if (m_numThreads == 0 && cb)
+    if (m_numThreads == 0 && cb) // 0个工作线程时，把自己这个loop作为线程池唯一线程
     {
         cb(m_baseLoop);
     }

@@ -9,19 +9,18 @@ namespace wynet
 
 class EventLoop;
 class EventLoopThread;
+typedef std::function<void(EventLoop *)> ThreadInitCallback;
 
 class EventLoopThreadPool : Noncopyable
 {
   public:
-    typedef std::function<void(EventLoop *)> ThreadInitCallback;
-
     EventLoopThreadPool(EventLoop *baseLoop, const std::string &nameArg);
 
     ~EventLoopThreadPool();
 
     void setThreadNum(int n);
 
-    void start(const ThreadInitCallback &cb = ThreadInitCallback());
+    void start(const ThreadInitCallback &cb = {});
 
     // must after calling start()
     EventLoop *getNextLoop();
