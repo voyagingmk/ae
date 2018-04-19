@@ -4,7 +4,6 @@
 #include "common.h"
 #include "uniqid.h"
 #include "noncopyable.h"
-
 #include "mutex.h"
 #include "condition.h"
 
@@ -21,9 +20,19 @@ class BufferBase : public Noncopyable
   public:
     void clean() {}
 
-    uint8_t *data() { return nullptr; }
+    uint8_t *data()
+    {
+        return nullptr;
+    }
 
-    size_t length() { return 0; }
+    const uint8_t *data() const
+    {
+        return nullptr;
+    }
+
+    size_t length() const { return 0; }
+
+    void expand(size_t n) {}
 };
 
 template <int BUF_SIZE>
@@ -31,12 +40,11 @@ class StaticBuffer : public BufferBase
 {
   public:
     uint8_t m_data[BUF_SIZE];
-    size_t m_size;
 
   public:
     void clean()
     {
-        bzero(m_data, m_size);
+        bzero(m_data, BUF_SIZE);
     }
 
     uint8_t *data()
@@ -44,124 +52,124 @@ class StaticBuffer : public BufferBase
         return m_data;
     }
 
-    size_t length()
+    const uint8_t *data() const
     {
-        return m_size;
+        return m_data;
+    }
+
+    size_t length() const
+    {
+        return BUF_SIZE;
     }
 };
 
 class DynamicBuffer : public BufferBase
 {
   public:
-    uint8_t *m_data;
-    size_t m_size;
+    std::vector<uint8_t> m_data;
 
   public:
-    DynamicBuffer(size_t s = 0xff)
+    DynamicBuffer(size_t s = 0xff) : m_data(s)
     {
-        m_size = s;
-        m_data = new uint8_t[m_size];
     }
+
     ~DynamicBuffer()
     {
-        m_size = 0;
-        delete[] m_data;
-    }
-
-    uint8_t *data()
-    {
-        return m_data;
-    }
-
-    size_t length()
-    {
-        return m_size;
     }
 
     void clean()
     {
-        bzero(m_data, m_size);
+        std::fill(m_data.begin(), m_data.end(), 0);
     }
 
-    // keep old m_data
-    uint8_t *expand(size_t n)
+    uint8_t *data()
     {
-        return reserve(n, true);
+        return m_data.data();
     }
 
-    uint8_t *reserve(size_t n, bool keep = false)
+    const uint8_t *data() const
+    {
+        return m_data.data();
+    }
+
+    size_t length() const
+    {
+        return m_data.size();
+    }
+
+    // will keep old m_data
+    void expand(size_t n)
     {
         if (n > MaxBufferSize)
         {
-            return nullptr;
+            log_fatal("[DynamicBuffer] wrong n: %d\n", n);
         }
-        if (!m_data || n > m_size)
-        {
-            size_t oldSize = m_size;
-            while (n > m_size)
-            {
-                m_size = m_size << 1;
-            }
-            uint8_t *newBuffer = new uint8_t[m_size]{0};
-            if (keep)
-            {
-                memcpy(newBuffer, m_data, oldSize);
-            }
-            delete[] m_data;
-            m_data = newBuffer;
-        }
-        return m_data;
+        return m_data.resize(n);
     }
 };
 
-class BufferSet : public Noncopyable
+template <typename Derived>
+class Singleton : public Noncopyable
 {
-    std::vector<std::shared_ptr<DynamicBuffer>> buffers;
-    UniqIDGenerator uniqIDGen;
-    MutexLock m_mutex;
-    Condition m_cond;
+  public:
+    static std::atomic<Derived *> m_instance;
+    static MutexLock m_mutex;
+
+    static Derived *getSingleton()
+    {
+        Derived *tmp = Singleton::m_instance.load(std::memory_order_relaxed);
+        std::atomic_thread_fence(std::memory_order_acquire);
+        if (tmp == nullptr)
+        {
+            MutexLockGuard<MutexLock> lock(m_mutex);
+            tmp = m_instance.load(std::memory_order_relaxed);
+            if (tmp == nullptr)
+            {
+                tmp = new Derived;
+                std::atomic_thread_fence(std::memory_order_release);
+                m_instance.store(tmp, std::memory_order_relaxed);
+            }
+        }
+        return tmp;
+    }
+};
+
+class BufferSet;
+
+// thread-safe
+class BufferSet : public Singleton<BufferSet>
+{
+    std::vector<std::shared_ptr<DynamicBuffer>> m_buffers;
+    UniqIDGenerator m_uniqIDGen;
 
   public:
-    static BufferSet &dynamicSingleton()
-    {
-        static BufferSet gBufferSet;
-        return gBufferSet;
-    }
-
-    static BufferSet &constSingleton()
-    {
-        static BufferSet gBufferSet;
-        return gBufferSet;
-    }
-
-    BufferSet() : m_mutex(),
-                  m_cond(m_mutex)
+    BufferSet()
     {
     }
 
     UniqID newBuffer()
     {
-        UniqID uid = uniqIDGen.getNewID();
-        if (uid > buffers.size())
+        UniqID uid = m_uniqIDGen.getNewID();
+        if (uid > m_buffers.size())
         {
-            buffers.push_back(std::make_shared<DynamicBuffer>());
+            m_buffers.push_back(std::make_shared<DynamicBuffer>());
         }
         return uid;
     }
 
     void recycleBuffer(UniqID uid)
     {
-        uniqIDGen.recycleID(uid);
+        m_uniqIDGen.recycleID(uid);
     }
 
     std::shared_ptr<DynamicBuffer> getBuffer(UniqID uid)
     {
         int32_t idx = uid - 1;
-        if (idx < 0 || idx >= buffers.size())
+        if (idx < 0 || idx >= m_buffers.size())
         {
             return nullptr;
         }
-        return buffers[idx];
+        return m_buffers[idx];
     }
 
     std::shared_ptr<DynamicBuffer> getBufferByIdx(int32_t idx)
@@ -170,13 +178,19 @@ class BufferSet : public Noncopyable
         {
             return nullptr;
         }
-        while ((idx + 1) > buffers.size())
+        while ((idx + 1) > m_buffers.size())
         {
-            buffers.push_back(std::make_shared<DynamicBuffer>());
+            m_buffers.push_back(std::make_shared<DynamicBuffer>());
         }
-        return buffers[idx];
+        return m_buffers[idx];
     }
 };
+
+template <>
+std::atomic<BufferSet *> Singleton<BufferSet>::m_instance;
+
+template <>
+MutexLock Singleton<BufferSet>::m_mutex;
 
 class BufferRef : public Noncopyable
 {
@@ -185,7 +199,7 @@ class BufferRef : public Noncopyable
   public:
     BufferRef()
     {
-        uniqID = BufferSet::dynamicSingleton().newBuffer();
+        uniqID = BufferSet::getSingleton()->newBuffer();
         if (uniqID)
         {
             log_debug("BufferRef created %d", uniqID);
@@ -226,7 +240,7 @@ class BufferRef : public Noncopyable
             return nullptr;
         }
         // log_debug("BufferRef get %d", uniqID);
-        return BufferSet::dynamicSingleton().getBuffer(uniqID);
+        return BufferSet::getSingleton()->getBuffer(uniqID);
     }
 
   private:
@@ -234,7 +248,7 @@ class BufferRef : public Noncopyable
     {
         if (uniqID)
         {
-            BufferSet::dynamicSingleton().recycleBuffer(uniqID);
+            BufferSet::getSingleton()->recycleBuffer(uniqID);
             log_debug("BufferRef recycled %d", uniqID);
             uniqID = 0;
         }

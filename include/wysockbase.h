@@ -37,7 +37,7 @@ class SockBuffer : public Noncopyable
 
     inline int leftSpace()
     {
-        return bufRef->m_size - recvSize;
+        return bufRef->length() - recvSize;
     }
 
     inline void resetBuffer()
@@ -55,6 +55,7 @@ class SockBuffer : public Noncopyable
         *nreadTotal = 0;
         do
         {
+            /*
             int required = -1;
             int ret = validatePacket(&required); // just to get required bytes
             log_debug("validatePacket ret %d required %d", ret, required);
@@ -72,10 +73,10 @@ class SockBuffer : public Noncopyable
             // make sure there is enough space for recv
             while (npend > leftSpace())
             {
-                bufRef->expand(bufRef->m_size + npend);
+                bufRef->expand(bufRef->length() + npend);
             }
             log_debug("readIn npend %d", npend);
-            int nread = recv(sockfd, bufRef->m_data + recvSize, required, 0);
+            int nread = recv(sockfd, bufRef->data() + recvSize, required, 0);
             log_debug("recv nread %d required %d recvSize %d", nread, required, recvSize);
             if (nread == 0)
             {
@@ -94,9 +95,9 @@ class SockBuffer : public Noncopyable
                             sockfd, errno, strerror(errno));
                     return -1;
                 }
-            }
-            nreadTotal += nread;
-            recvSize += nread;
+            }*/
+            // nreadTotal += nread;
+            // recvSize += nread;
         } while (1);
         return -1;
     }
@@ -112,7 +113,7 @@ class SockBuffer : public Noncopyable
             *required = HeaderBaseLength - recvSize;
             return -2;
         }
-        uint8_t *pData = bufRef->m_data;
+        const uint8_t *pData = bufRef->data();
 
         for (int i = 0; i < recvSize; i++)
         {

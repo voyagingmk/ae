@@ -33,7 +33,7 @@ void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mas
     // eventLoop->createTimerInLoop(1000, testOnTimerEvent, std::weak_ptr<FDRef>(), nullptr);
 }
 
-void TcpConnectionForServer::onConnectEstablished()
+void TcpConnectionForServer::ontEstablished()
 {
 
     getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
@@ -70,7 +70,7 @@ void TcpConnectionForServer::onReadable()
         if (ret == 1)
         {
             BufferRef &bufRef = sockBuf.bufRef;
-            PacketHeader *header = (PacketHeader *)(bufRef->m_data);
+            PacketHeader *header = (PacketHeader *)(bufRef->data());
             Protocol protocol = static_cast<Protocol>(header->getProtocol());
             switch (protocol)
             {
@@ -80,7 +80,7 @@ void TcpConnectionForServer::onReadable()
             }
             case Protocol::UserPacket:
             {
-                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->m_data + header->getHeaderLength());
+                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->data() + header->getHeaderLength());
                 size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
                 // log_debug("getHeaderLength: %d", header->getHeaderLength());
                 /*

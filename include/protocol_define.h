@@ -85,9 +85,10 @@ PacketHeader *SerializeProtocol(P &p, size_t len = 0)
     header.updateHeaderLength();
     size_t packetLen = header.getHeaderLength() + len;
     header.setUInt32(HeaderFlag::PacketLen, packetLen);
-    BufferSet &bufferSet = BufferSet::constSingleton();
-    std::shared_ptr<DynamicBuffer> buffer = bufferSet.getBufferByIdx(0);
-    uint8_t *buf = buffer->reserve(packetLen);
+    BufferSet *bufferSet = BufferSet::getSingleton();
+    std::shared_ptr<DynamicBuffer> buffer = bufferSet->getBufferByIdx(0);
+    buffer->expand(packetLen);
+    uint8_t *buf = buffer->data();
     memcpy(buf, (uint8_t *)&header, header.getHeaderLength());
     memcpy(buf + header.getHeaderLength(), p.BeginPos(), len);
     return (PacketHeader *)buf;

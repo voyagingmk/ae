@@ -9,12 +9,10 @@ namespace wynet
 
 using namespace std;
 
-
 class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
 {
   public:
-    LoggingBuffer():
-        used(0)
+    LoggingBuffer() : used(0)
     {
     }
 
@@ -26,51 +24,57 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
     {
         if (leftOpacity() > len)
         {
-            memcpy(m_data + used, buf, len);
+            memcpy(data() + used, buf, len);
             used += len;
         }
     }
 
-    int length() const { 
+    int length() const
+    {
         return used;
     }
 
-    char *current() {
-         return (char *)m_data + used;
+    char *current()
+    {
+        return (char *)data() + used;
     }
 
-    size_t leftOpacity() const { 
-        return m_size - used;
+    size_t leftOpacity() const
+    {
+        return length() - used;
     }
 
-    void add(size_t len) { 
-        used += len; 
+    void add(size_t len)
+    {
+        used += len;
     }
-    
-    void reset() {
+
+    void reset()
+    {
         used = 0;
     }
 
-    void clean() { 
+    void clean()
+    {
         used = 0;
         StaticBuffer::clean();
     }
 
     const char *debugString();
 
-    string toString() const { 
-        return string((const char *)m_data, length());
+    string toString() const
+    {
+        return string((const char *)data(), length());
     }
 
   private:
-    
-    const char *end() const { 
-        return (const char *)m_data + m_size; 
+    const char *end() const
+    {
+        return (const char *)data() + length();
     }
-    
+
     size_t used;
 };
-    
 };
 
 #endif

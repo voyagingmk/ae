@@ -16,11 +16,10 @@ Logger::Logger(const string &logtitle,
                                     m_cond(m_mutex),
                                     m_curBuffer(new LoggingBuffer),
                                     m_nextBuffer(new LoggingBuffer),
-                                    m_fulledBuffers()
+                                    m_fulledBuffers(16)
 {
     m_curBuffer->clean();
     m_nextBuffer->clean();
-    m_fulledBuffers.reserve(16);
 }
 
 void Logger::append(const char *logline, int len)

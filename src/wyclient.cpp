@@ -87,13 +87,13 @@ void Client::_onTcpMessage()
         if (ret == 1)
         {
             BufferRef &bufRef = sockBuffer.bufRef;
-            PacketHeader *header = (PacketHeader *)(bufRef->m_data);
+            PacketHeader *header = (PacketHeader *)(bufRef->data());
             Protocol protocol = static_cast<Protocol>(header->getProtocol());
             switch (protocol)
             {
             case Protocol::TcpHandshake:
             {
-                protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->m_data + header->getHeaderLength());
+                protocol::TcpHandshake *handShake = (protocol::TcpHandshake *)(bufRef->data() + header->getHeaderLength());
                 m_conn->setKey(handShake->key);
                 m_conn->setUdpPort(handShake->udpPort);
                 m_conn->setConnectId(handShake->connectId);
@@ -105,7 +105,7 @@ void Client::_onTcpMessage()
             }
             case Protocol::UserPacket:
             {
-                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->m_data + header->getHeaderLength());
+                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->data() + header->getHeaderLength());
                 size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
                 // log_debug("getHeaderLength: %d", header->getHeaderLength());
                 if (onTcpRecvMessage)

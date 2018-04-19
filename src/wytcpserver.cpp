@@ -224,7 +224,7 @@ void TCPServer::acceptConnection()
 	conn->setCallBack_Message(onTcpRecvMessage);
 	//if (onTcpConnected)
 	//	onTcpConnected(conn);
-	ioLoop->runInLoop(std::bind(&SerConn::onConnectEstablished, conn));
+	ioLoop->runInLoop(std::bind(&SerConn::ontEstablished, conn));
 }
 
 void TCPServer::_onTcpDisconnected(int connfdTcp)
@@ -263,7 +263,7 @@ void TCPServer::_onTcpMessage(int connfdTcp)
 		if (ret == 1)
 		{
 			BufferRef &bufRef = sockBuffer.bufRef;
-			PacketHeader *header = (PacketHeader *)(bufRef->m_data);
+			PacketHeader *header = (PacketHeader *)(bufRef->data());
 			Protocol protocol = static_cast<Protocol>(header->getProtocol());
 			switch (protocol)
 			{
@@ -273,7 +273,7 @@ void TCPServer::_onTcpMessage(int connfdTcp)
 			}
 			case Protocol::UserPacket:
 			{
-				protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->m_data + header->getHeaderLength());
+				protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->data() + header->getHeaderLength());
 				size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
 				// log_debug("getHeaderLength: %d", header->getHeaderLength());
 				if (onTcpRecvMessage)

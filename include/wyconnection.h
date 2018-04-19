@@ -74,9 +74,9 @@ class TcpConnection : public SocketBase
         return m_loop;
     }
 
-    inline void setConnectId(UniqID _connectId)
+    inline void setConnectId(UniqID connectId)
     {
-        m_connectId = _connectId;
+        m_connectId = connectId;
     }
 
     inline void setKey(uint32_t k)
@@ -124,6 +124,13 @@ class TcpConnection : public SocketBase
         onTcpRecvMessage = cb;
     }
 
+  protected:
+    virtual void ontEstablished() {}
+
+    virtual void onReadable() {}
+
+    virtual void onWritable() {}
+
   private:
     EventLoop *m_loop;
     uint32_t m_key;
@@ -143,11 +150,11 @@ class TcpConnectionForServer : public TcpConnection
     {
     }
 
-    void onConnectEstablished();
+    void ontEstablished() override;
 
-    void onReadable();
+    void onReadable() override;
 
-    void onWritable();
+    void onWritable() override;
 
     void send(const uint8_t *data, size_t len);
 
