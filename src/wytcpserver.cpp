@@ -39,11 +39,15 @@ void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int ma
 	//   server->_onTcpConnected(connfdTcp);
 }
 
-TCPServer::TCPServer(PtrServer parent, int port) : onTcpConnected(nullptr),
-												   onTcpDisconnected(nullptr),
-												   onTcpRecvMessage(nullptr)
+TCPServer::TCPServer(PtrServer parent) : onTcpConnected(nullptr),
+										 onTcpDisconnected(nullptr),
+										 onTcpRecvMessage(nullptr)
 {
 	m_parent = parent;
+}
+void TCPServer::startListen(int port)
+{
+	m_tcpPort = port;
 	m_convIdGen.setRecycleThreshold(2 << 15);
 	m_convIdGen.setRecycleEnabled(true);
 	int listenfd, n;
@@ -57,7 +61,7 @@ TCPServer::TCPServer(PtrServer parent, int port) : onTcpConnected(nullptr),
 
 	const char *host = NULL;
 	char buf[5];
-	sprintf(buf, "%d", port);
+	sprintf(buf, "%d", m_tcpPort);
 	const char *serv = (char *)&buf;
 
 	if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)

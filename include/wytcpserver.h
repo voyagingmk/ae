@@ -22,6 +22,7 @@ class TCPServer : public SocketBase
   UniqIDGenerator m_connectIdGen;
   UniqIDGenerator m_convIdGen;
   PtrServer m_parent;
+  int m_tcpPort;
 
 public:
   typedef void (*OnTcpConnected)(PtrTCPServer, PtrSerConn conn);
@@ -33,9 +34,11 @@ public:
   OnTcpRecvMessage onTcpRecvMessage;
 
 public:
-  TCPServer(PtrServer parent, int port);
+  TCPServer(PtrServer parent);
 
   ~TCPServer();
+
+  void startListen(int port);
 
   // only use in unusal cases
   void closeConnect(UniqID connectId);

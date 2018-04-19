@@ -16,7 +16,6 @@ class EventLoop;
 class Server : public FDRef, public Noncopyable
 {
   WyNet *m_net;
-  int m_tcpPort;
   int m_udpPort;
   std::shared_ptr<TCPServer> m_tcpServer;
   std::shared_ptr<UDPServer> m_udpServer;
