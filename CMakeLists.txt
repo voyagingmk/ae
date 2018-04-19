@@ -49,6 +49,7 @@ FILE(GLOB MY_SOURCERS
     src/wythreadbase.cpp
     src/wythread.cpp
     src/exception.cpp
+    src/wythread.cpp
     src/count_down_latch.cpp
     src/logger/logger.cpp
     src/logger/log_file.cpp

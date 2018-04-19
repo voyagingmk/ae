@@ -134,9 +134,16 @@ class Singleton : public Noncopyable
     }
 };
 
+template <typename Derived>
+std::atomic<Derived *> Singleton<Derived>::m_instance;
+
+template <typename Derived>
+MutexLock Singleton<Derived>::m_mutex;
+
 class BufferSet;
 
 // thread-safe
+
 class BufferSet : public Singleton<BufferSet>
 {
     std::vector<std::shared_ptr<DynamicBuffer>> m_buffers;
@@ -185,12 +192,6 @@ class BufferSet : public Singleton<BufferSet>
         return m_buffers[idx];
     }
 };
-
-template <>
-std::atomic<BufferSet *> Singleton<BufferSet>::m_instance;
-
-template <>
-MutexLock Singleton<BufferSet>::m_mutex;
 
 class BufferRef : public Noncopyable
 {
