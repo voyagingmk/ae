@@ -101,7 +101,7 @@ void TcpConnectionForServer::onReadable()
 void TcpConnectionForServer ::close(bool force)
 {
     getLoop()->assertInLoopThread();
-    getLoop()->deleteFileEvent(connectFd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (force)
     {
         struct linger l;

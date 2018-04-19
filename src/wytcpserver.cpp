@@ -115,7 +115,7 @@ TCPServer::TCPServer(PtrServer parent, int port) : onTcpConnected(nullptr),
 
 TCPServer::~TCPServer()
 {
-	close(sockfd());
+	getLoop().deleteFileEvent(sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
 }
 
 void TCPServer::closeConnect(UniqID connectId)
@@ -219,7 +219,6 @@ void TCPServer::_onTcpConnected(int connfdTcp)
 
 void TCPServer::_onTcpDisconnected(int connfdTcp)
 {
-	getLoop().deleteFileEvent(connfdTcp, LOOP_EVT_READABLE);
 	if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
 	{
 		UniqID connectId = m_connfd2cid[connfdTcp];

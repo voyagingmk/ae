@@ -53,14 +53,13 @@ void Client::_onTcpConnected()
 {
     m_net->getLoop().createFileEvent(m_tcpClient->shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
     LogSocketState(m_tcpClient->sockfd());
-    m_conn = std::make_shared<CliConn>(m_tcpClient->sockfd());
     if (onTcpConnected)
         onTcpConnected(shared_from_this());
 }
 
 void Client::_onTcpDisconnected()
 {
-    m_net->getLoop().deleteFileEvent(m_tcpClient->sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    m_net->getLoop().deleteFileEvent(m_tcpClient, LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (onTcpDisconnected)
         onTcpDisconnected(shared_from_this());
 }

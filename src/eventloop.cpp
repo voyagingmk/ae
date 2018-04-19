@@ -117,6 +117,12 @@ void EventLoop::createFileEvent(std::shared_ptr<FDRef> fdRef, int mask, OnFileEv
     m_fdData[fd] = FDData(onFileEvent, fdRef);
 }
 
+void EventLoop ::deleteFileEvent(std::shared_ptr<FDRef> fdRef, int mask)
+{
+    int fd = fdRef->fd();
+    deleteFileEvent(fd, mask);
+}
+
 void EventLoop ::deleteFileEvent(int fd, int mask)
 {
     int setsize = aeGetSetSize(m_aeloop);

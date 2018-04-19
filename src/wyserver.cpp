@@ -21,8 +21,8 @@ Server::Server(WyNet *net) : FDRef(0),
 
 Server::~Server()
 {
-    m_net->getLoop().deleteFileEvent(m_tcpServer->sockfd(), LOOP_EVT_READABLE);
-    m_net->getLoop().deleteFileEvent(m_udpServer->sockfd(), LOOP_EVT_READABLE);
+    m_tcpServer = nullptr;
+    m_udpServer = nullptr;
     m_net = nullptr;
     log_info("[Server] destoryed.");
 }

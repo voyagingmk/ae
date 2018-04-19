@@ -88,6 +88,8 @@ class EventLoop : Noncopyable
 
     void deleteFileEvent(int fd, int mask);
 
+    void deleteFileEvent(std::shared_ptr<FDRef> fdRef, int mask);
+
     TimerRef createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data);
 
     void deleteTimerInLoop(TimerRef tr);
