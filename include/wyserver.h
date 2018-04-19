@@ -12,8 +12,6 @@ namespace wynet
 
 class WyNet;
 class EventLoop;
-class Server;
-typedef std::shared_ptr<Server> PtrServer;
 
 class Server : public FDRef, public Noncopyable
 {
@@ -24,20 +22,11 @@ class Server : public FDRef, public Noncopyable
   std::shared_ptr<UDPServer> m_udpServer;
 
 public:
-  typedef void (*OnTcpConnected)(PtrServer, PtrSerConn conn);
-  typedef void (*OnTcpDisconnected)(PtrServer, PtrSerConn conn);
-  typedef void (*OnTcpRecvMessage)(PtrServer, PtrSerConn conn, uint8_t *, size_t);
-
-  OnTcpConnected onTcpConnected;
-  OnTcpDisconnected onTcpDisconnected;
-  OnTcpRecvMessage onTcpRecvMessage;
-
-public:
   Server(WyNet *net);
 
-  void initTcpServer(int tcpPort);
+  std::shared_ptr<TCPServer> initTcpServer(int tcpPort);
 
-  void initUdpServer(int udpPort);
+  std::shared_ptr<UDPServer> initUdpServer(int udpPort);
 
   ~Server();
 

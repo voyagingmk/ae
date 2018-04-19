@@ -8,8 +8,11 @@
 
 namespace wynet
 {
+class WyNet;
 class Server;
 typedef std::shared_ptr<Server> PtrServer;
+class TCPServer;
+typedef std::shared_ptr<TCPServer> PtrTCPServer;
 
 class TCPServer : public SocketBase
 {
@@ -19,6 +22,15 @@ class TCPServer : public SocketBase
   UniqIDGenerator m_connectIdGen;
   UniqIDGenerator m_convIdGen;
   PtrServer m_parent;
+
+public:
+  typedef void (*OnTcpConnected)(PtrTCPServer, PtrSerConn conn);
+  typedef void (*OnTcpDisconnected)(PtrTCPServer, PtrSerConn conn);
+  typedef void (*OnTcpRecvMessage)(PtrTCPServer, PtrSerConn conn, uint8_t *, size_t);
+
+  OnTcpConnected onTcpConnected;
+  OnTcpDisconnected onTcpDisconnected;
+  OnTcpRecvMessage onTcpRecvMessage;
 
 public:
   TCPServer(PtrServer parent, int port);
@@ -33,6 +45,13 @@ public:
   void sendByTcp(UniqID connectId, PacketHeader *header);
 
 private:
+  std::shared_ptr<TCPServer> shared_from_this()
+  {
+    return FDRef::downcasted_shared_from_this<TCPServer>();
+  }
+
+  WyNet *getNet() const;
+
   EventLoop &getLoop();
 
   UniqID refConnection(PtrSerConn conn);

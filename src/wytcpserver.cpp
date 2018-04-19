@@ -39,7 +39,9 @@ void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int ma
 	//   server->_onTcpConnected(connfdTcp);
 }
 
-TCPServer::TCPServer(PtrServer parent, int port)
+TCPServer::TCPServer(PtrServer parent, int port) : onTcpConnected(nullptr),
+												   onTcpDisconnected(nullptr),
+												   onTcpRecvMessage(nullptr)
 {
 	m_parent = parent;
 	m_convIdGen.setRecycleThreshold(2 << 15);
@@ -167,6 +169,10 @@ void TCPServer::sendByTcp(UniqID connectId, PacketHeader *header)
 		_closeConnectByFd(conn->fd(), true);
 	}
 }
+WyNet *TCPServer::getNet() const
+{
+	return m_parent->getNet();
+}
 
 EventLoop &TCPServer::getLoop()
 {
@@ -202,7 +208,7 @@ bool TCPServer::unrefConnection(UniqID connectId)
 void TCPServer::_onTcpConnected(int connfdTcp)
 {
 	getLoop().assertInLoopThread();
-	EventLoop *ioLoop = m_net->getThreadPool()->getNextLoop();
+	EventLoop *ioLoop = getNet()->getThreadPool()->getNextLoop();
 	PtrSerConn conn = std::make_shared<SerConn>(connfdTcp);
 	conn->setEventLoop(ioLoop);
 	refConnection(conn);

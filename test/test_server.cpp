@@ -9,17 +9,17 @@ void Stop(int signo)
     net.stopLoop();
 }
 
-void OnTcpConnected(PtrServer server, PtrSerConn conn)
+void OnTcpConnected(PtrTCPServer tcpServer, PtrSerConn conn)
 {
     log_debug("[OnTcpConnected] %d", conn->connectId());
 }
 
-void OnTcpDisconnected(PtrServer server, PtrSerConn conn)
+void OnTcpDisconnected(PtrTCPServer tcpServer, PtrSerConn conn)
 {
     log_debug("[OnTcpDisconnected] %d", conn->connectId());
 }
 
-void OnTcpRecvMessage(PtrServer server, PtrSerConn conn, uint8_t *p, size_t len)
+void OnTcpRecvMessage(PtrTCPServer tcpServer, PtrSerConn conn, uint8_t *p, size_t len)
 {
 
     log_debug("[OnTcpRecvMessage] %d, %s", conn->connectId(), (const char *)p);
@@ -49,11 +49,11 @@ int main(int argc, char **argv)
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s", aeGetApiName());
     std::shared_ptr<Server> server = std::make_shared<Server>(&net);
-    server->initTcpServer(9998);
+    std::shared_ptr<TCPServer> tcpServer = server->initTcpServer(9998);
     server->initUdpServer(9999);
-    server->onTcpConnected = &OnTcpConnected;
-    server->onTcpDisconnected = &OnTcpDisconnected;
-    server->onTcpRecvMessage = &OnTcpRecvMessage;
+    tcpServer->onTcpConnected = &OnTcpConnected;
+    tcpServer->onTcpDisconnected = &OnTcpDisconnected;
+    tcpServer->onTcpRecvMessage = &OnTcpRecvMessage;
     net.addServer(server);
     net.startLoop();
     return 0;
