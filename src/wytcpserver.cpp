@@ -20,11 +20,11 @@ void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int ma
 	tcpServer->acceptConnection();
 }
 
-TCPServer::TCPServer(PtrServer parent) : onTcpConnected(nullptr),
+TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
+										 onTcpConnected(nullptr),
 										 onTcpDisconnected(nullptr),
 										 onTcpRecvMessage(nullptr)
 {
-	m_parent = parent;
 }
 
 void TCPServer::startListen(int port)
@@ -236,7 +236,7 @@ void TCPServer::_onTcpDisconnected(int connfdTcp)
 		unrefConnection(connectId);
 		log_info("[TCPServer][tcp] closed, connectId: %d connfdTcp: %d", connectId, connfdTcp);
 		if (onTcpDisconnected)
-			onTcpDisconnected(shared_from_this(), conn);
+			onTcpDisconnected(conn);
 	}
 }
 
@@ -278,7 +278,7 @@ void TCPServer::_onTcpMessage(int connfdTcp)
 				// log_debug("getHeaderLength: %d", header->getHeaderLength());
 				if (onTcpRecvMessage)
 				{
-					onTcpRecvMessage(shared_from_this(), conn, (uint8_t *)p, dataLength);
+					onTcpRecvMessage(conn, (uint8_t *)p, dataLength);
 				}
 				break;
 			}

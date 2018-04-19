@@ -15,6 +15,10 @@ class TCPServer;
 
 typedef std::shared_ptr<TCPServer> PtrTCPServer;
 
+class TcpConnection;
+
+typedef std::shared_ptr<TcpConnection> PtrConn;
+
 class TcpConnectionForServer;
 
 class TcpConnectionForClient;
@@ -29,20 +33,24 @@ typedef std::shared_ptr<SerConn> PtrSerConn;
 
 typedef std::shared_ptr<CliConn> PtrCliConn;
 
-typedef void (*OnTcpConnected)(PtrSerConn conn);
-
-typedef void (*OnTcpDisconnected)(PtrSerConn conn);
-
-typedef void (*OnTcpRecvMessage)(PtrSerConn conn, uint8_t *, size_t);
-
 class TcpConnection : public SocketBase
 {
   public:
+    typedef void (*OnTcpConnected)(PtrConn conn);
+
+    typedef void (*OnTcpDisconnected)(PtrConn conn);
+
+    typedef void (*OnTcpRecvMessage)(PtrConn conn, uint8_t *, size_t);
+
     TcpConnection(int fd) : SocketBase(fd),
                             m_loop(nullptr),
                             m_key(0),
                             m_kcpObj(nullptr),
                             m_connectId(0)
+    {
+    }
+
+    virtual ~TcpConnection()
     {
     }
 
@@ -108,31 +116,30 @@ class TcpConnection : public SocketBase
 
     void setCallBack_Disconnected(OnTcpDisconnected cb)
     {
-        OnTcpDisconnected = cb;
+        onTcpDisconnected = cb;
     }
 
-    void setCallBack_Message(onTcpRecvMessage cb)
+    void setCallBack_Message(OnTcpRecvMessage cb)
     {
         onTcpRecvMessage = cb;
     }
 
   private:
-    OnTcpConnected onTcpConnected;
-    OnTcpDisconnected onTcpDisconnected;
-    OnTcpRecvMessage onTcpRecvMessage;
-
     EventLoop *m_loop;
     uint32_t m_key;
     KCPObject *m_kcpObj;
     UniqID m_connectId;
     SockBuffer m_buf;
+    OnTcpConnected onTcpConnected;
+    OnTcpDisconnected onTcpDisconnected;
+    OnTcpRecvMessage onTcpRecvMessage;
 };
 
 class TcpConnectionForServer : public TcpConnection
 {
   public:
-    TcpConnectionForServer(PtrTCPServer tcpServer, int fd) : m_tcpServer(tcpServer),
-                                                             TcpConnection(fd)
+    TcpConnectionForServer(PtrTCPServer tcpServer, int fd) : TcpConnection(fd),
+                                                             m_tcpServer(tcpServer)
     {
     }
 

@@ -25,9 +25,9 @@ class TCPServer : public SocketBase
   int m_tcpPort;
 
 public:
-  OnTcpConnected onTcpConnected;
-  OnTcpDisconnected onTcpDisconnected;
-  OnTcpRecvMessage onTcpRecvMessage;
+  TcpConnection::OnTcpConnected onTcpConnected;
+  TcpConnection::OnTcpDisconnected onTcpDisconnected;
+  TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
 
 public:
   TCPServer(PtrServer parent);

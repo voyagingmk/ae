@@ -9,17 +9,17 @@ void Stop(int signo)
     net.stopLoop();
 }
 
-void OnTcpConnected(PtrSerConn conn)
+void OnTcpConnected(PtrConn conn)
 {
     log_debug("[OnTcpConnected] %d", conn->connectId());
 }
 
-void OnTcpDisconnected(PtrSerConn conn)
+void OnTcpDisconnected(PtrConn conn)
 {
     log_debug("[OnTcpDisconnected] %d", conn->connectId());
 }
 
-void OnTcpRecvMessage(PtrSerConn conn, uint8_t *p, size_t len)
+void OnTcpRecvMessage(PtrConn conn, uint8_t *p, size_t len)
 {
 
     log_debug("[OnTcpRecvMessage] %d, %s", conn->connectId(), (const char *)p);
