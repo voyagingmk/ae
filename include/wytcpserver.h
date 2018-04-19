@@ -61,6 +61,8 @@ private:
 
   bool unrefConnection(UniqID connectId);
 
+  void acceptConnection();
+
   void _closeConnectByFd(int connfdTcp, bool force = false);
 
   void _onTcpConnected(int connfdTcp);

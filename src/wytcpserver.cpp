@@ -16,27 +16,8 @@ void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int ma
 		return;
 	}
 	std::shared_ptr<TCPServer> tcpServer = std::dynamic_pointer_cast<TCPServer>(sfdRef);
-	int listenfdTcp = tcpServer->sockfd();
-	struct sockaddr_storage cliAddr;
-	socklen_t len = sizeof(cliAddr);
-	int connfdTcp = accept(listenfdTcp, (SA *)&cliAddr, &len);
-	if (connfdTcp < 0)
-	{
-		if ((errno == EAGAIN) ||
-			(errno == EWOULDBLOCK) ||
-			(errno == ECONNABORTED) ||
-#ifdef EPROTO
-			(errno == EPROTO) ||
-#endif
-			(errno == EINTR))
-		{
-			// already closed
-			return;
-		}
-		log_error("[TCPServer] Accept err: %d %s", errno, strerror(errno));
-		return;
-	}
-	//   server->_onTcpConnected(connfdTcp);
+
+	tcpServer->acceptConnection();
 }
 
 TCPServer::TCPServer(PtrServer parent) : onTcpConnected(nullptr),
@@ -45,6 +26,7 @@ TCPServer::TCPServer(PtrServer parent) : onTcpConnected(nullptr),
 {
 	m_parent = parent;
 }
+
 void TCPServer::startListen(int port)
 {
 	m_tcpPort = port;
@@ -207,6 +189,31 @@ bool TCPServer::unrefConnection(UniqID connectId)
 	m_convId2cid.erase(conn->convId());
 	m_connDict.erase(connectId);
 	return true;
+}
+
+void TCPServer::acceptConnection()
+{
+	int listenfd = sockfd();
+	struct sockaddr_storage cliAddr;
+	socklen_t len = sizeof(cliAddr);
+	int connfdTcp = accept(listenfd, (SA *)&cliAddr, &len);
+	if (connfdTcp < 0)
+	{
+		if ((errno == EAGAIN) ||
+			(errno == EWOULDBLOCK) ||
+			(errno == ECONNABORTED) ||
+#ifdef EPROTO
+			(errno == EPROTO) ||
+#endif
+			(errno == EINTR))
+		{
+			// already closed
+			return;
+		}
+		log_error("[TCPServer] Accept err: %d %s", errno, strerror(errno));
+		return;
+	}
+	_onTcpConnected(connfdTcp);
 }
 
 void TCPServer::_onTcpConnected(int connfdTcp)
