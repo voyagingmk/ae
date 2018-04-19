@@ -25,10 +25,6 @@ class TCPServer : public SocketBase
   int m_tcpPort;
 
 public:
-  typedef void (*OnTcpConnected)(PtrTCPServer, PtrSerConn conn);
-  typedef void (*OnTcpDisconnected)(PtrTCPServer, PtrSerConn conn);
-  typedef void (*OnTcpRecvMessage)(PtrTCPServer, PtrSerConn conn, uint8_t *, size_t);
-
   OnTcpConnected onTcpConnected;
   OnTcpDisconnected onTcpDisconnected;
   OnTcpRecvMessage onTcpRecvMessage;
@@ -64,8 +60,6 @@ private:
   void acceptConnection();
 
   void _closeConnectByFd(int connfdTcp, bool force = false);
-
-  void _onTcpConnected(int connfdTcp);
 
   void _onTcpMessage(int connfdTcp);
 

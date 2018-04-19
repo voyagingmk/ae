@@ -11,6 +11,30 @@ namespace wynet
 {
 class EventLoop;
 
+class TCPServer;
+
+typedef std::shared_ptr<TCPServer> PtrTCPServer;
+
+class TcpConnectionForServer;
+
+class TcpConnectionForClient;
+
+typedef TcpConnectionForServer SerConn;
+
+typedef TcpConnectionForClient CliConn;
+
+typedef std::shared_ptr<TcpConnection> PtrConn;
+
+typedef std::shared_ptr<SerConn> PtrSerConn;
+
+typedef std::shared_ptr<CliConn> PtrCliConn;
+
+typedef void (*OnTcpConnected)(PtrSerConn conn);
+
+typedef void (*OnTcpDisconnected)(PtrSerConn conn);
+
+typedef void (*OnTcpRecvMessage)(PtrSerConn conn, uint8_t *, size_t);
+
 class TcpConnection : public SocketBase
 {
   public:
@@ -77,7 +101,26 @@ class TcpConnection : public SocketBase
         return m_buf;
     }
 
+    void setCallBack_Connected(OnTcpConnected cb)
+    {
+        onTcpConnected = cb;
+    }
+
+    void setCallBack_Disconnected(OnTcpDisconnected cb)
+    {
+        OnTcpDisconnected = cb;
+    }
+
+    void setCallBack_Message(onTcpRecvMessage cb)
+    {
+        onTcpRecvMessage = cb;
+    }
+
   private:
+    OnTcpConnected onTcpConnected;
+    OnTcpDisconnected onTcpDisconnected;
+    OnTcpRecvMessage onTcpRecvMessage;
+
     EventLoop *m_loop;
     uint32_t m_key;
     KCPObject *m_kcpObj;
@@ -88,7 +131,8 @@ class TcpConnection : public SocketBase
 class TcpConnectionForServer : public TcpConnection
 {
   public:
-    TcpConnectionForServer(int fd) : TcpConnection(fd)
+    TcpConnectionForServer(PtrTCPServer tcpServer, int fd) : m_tcpServer(tcpServer),
+                                                             TcpConnection(fd)
     {
     }
 
@@ -104,6 +148,9 @@ class TcpConnectionForServer : public TcpConnection
 
   private:
     void close(bool force);
+
+  private:
+    PtrTCPServer m_tcpServer;
 };
 
 class TcpConnectionForClient : public TcpConnection
@@ -120,16 +167,6 @@ class TcpConnectionForClient : public TcpConnection
   private:
     int m_udpPort;
 };
-
-typedef TcpConnectionForServer SerConn;
-
-typedef TcpConnectionForClient CliConn;
-
-typedef std::shared_ptr<TcpConnection> PtrConn;
-
-typedef std::shared_ptr<SerConn> PtrSerConn;
-
-typedef std::shared_ptr<CliConn> PtrCliConn;
 };
 
 #endif

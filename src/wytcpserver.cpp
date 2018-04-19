@@ -213,18 +213,17 @@ void TCPServer::acceptConnection()
 		log_error("[TCPServer] Accept err: %d %s", errno, strerror(errno));
 		return;
 	}
-	_onTcpConnected(connfdTcp);
-}
 
-void TCPServer::_onTcpConnected(int connfdTcp)
-{
 	getLoop().assertInLoopThread();
 	EventLoop *ioLoop = getNet()->getThreadPool()->getNextLoop();
-	PtrSerConn conn = std::make_shared<SerConn>(connfdTcp);
+	PtrSerConn conn = std::make_shared<SerConn>(shared_from_this(), connfdTcp);
 	conn->setEventLoop(ioLoop);
 	refConnection(conn);
-	if (onTcpConnected)
-		onTcpConnected(shared_from_this(), conn);
+	conn->setCallBack_Connected(onTcpConnected);
+	conn->setCallBack_Disconnected(onTcpDisconnected);
+	conn->setCallBack_Message(onTcpRecvMessage);
+	//if (onTcpConnected)
+	//	onTcpConnected(conn);
 	ioLoop->runInLoop(std::bind(&SerConn::onConnectEstablished, conn));
 }
 
