@@ -112,22 +112,22 @@ template <typename Derived>
 class Singleton : public Noncopyable
 {
   public:
-    static std::atomic<Derived *> m_instance;
-    static MutexLock m_mutex;
+    static std::atomic<Derived *> s_instance;
+    static MutexLock s_mutex;
 
     static Derived *getSingleton()
     {
-        Derived *tmp = Singleton::m_instance.load(std::memory_order_relaxed);
+        Derived *tmp = Singleton::s_instance.load(std::memory_order_relaxed);
         std::atomic_thread_fence(std::memory_order_acquire);
         if (tmp == nullptr)
         {
-            MutexLockGuard<MutexLock> lock(m_mutex);
-            tmp = m_instance.load(std::memory_order_relaxed);
+            MutexLockGuard<MutexLock> lock(s_mutex);
+            tmp = s_instance.load(std::memory_order_relaxed);
             if (tmp == nullptr)
             {
                 tmp = new Derived;
                 std::atomic_thread_fence(std::memory_order_release);
-                m_instance.store(tmp, std::memory_order_relaxed);
+                s_instance.store(tmp, std::memory_order_relaxed);
             }
         }
         return tmp;
@@ -135,10 +135,10 @@ class Singleton : public Noncopyable
 };
 
 template <typename Derived>
-std::atomic<Derived *> Singleton<Derived>::m_instance;
+std::atomic<Derived *> Singleton<Derived>::s_instance;
 
 template <typename Derived>
-MutexLock Singleton<Derived>::m_mutex;
+MutexLock Singleton<Derived>::s_mutex;
 
 class BufferSet;
 
@@ -146,6 +146,7 @@ class BufferSet;
 
 class BufferSet : public Singleton<BufferSet>
 {
+    MutexLock m_mutex;
     std::vector<std::shared_ptr<DynamicBuffer>> m_buffers;
     UniqIDGenerator m_uniqIDGen;
 
@@ -156,6 +157,7 @@ class BufferSet : public Singleton<BufferSet>
 
     UniqID newBuffer()
     {
+        MutexLockGuard<MutexLock> lock(m_mutex);
         UniqID uid = m_uniqIDGen.getNewID();
         if (uid > m_buffers.size())
         {
@@ -166,12 +168,14 @@ class BufferSet : public Singleton<BufferSet>
 
     void recycleBuffer(UniqID uid)
     {
+        MutexLockGuard<MutexLock> lock(m_mutex);
         m_uniqIDGen.recycleID(uid);
     }
 
     std::shared_ptr<DynamicBuffer> getBuffer(UniqID uid)
     {
         int32_t idx = uid - 1;
+        MutexLockGuard<MutexLock> lock(m_mutex);
         if (idx < 0 || idx >= m_buffers.size())
         {
             return nullptr;
@@ -185,6 +189,7 @@ class BufferSet : public Singleton<BufferSet>
         {
             return nullptr;
         }
+        MutexLockGuard<MutexLock> lock(m_mutex);
         while ((idx + 1) > m_buffers.size())
         {
             m_buffers.push_back(std::make_shared<DynamicBuffer>());
@@ -196,6 +201,7 @@ class BufferSet : public Singleton<BufferSet>
 class BufferRef : public Noncopyable
 {
     UniqID uniqID;
+    std::shared_ptr<DynamicBuffer> m_cachedPtr;
 
   public:
     BufferRef()
@@ -240,8 +246,12 @@ class BufferRef : public Noncopyable
         {
             return nullptr;
         }
+        if (!m_cachedPtr)
+        {
+            m_cachedPtr = BufferSet::getSingleton()->getBuffer(uniqID);
+        }
         // log_debug("BufferRef get %d", uniqID);
-        return BufferSet::getSingleton()->getBuffer(uniqID);
+        return m_cachedPtr;
     }
 
   private:
