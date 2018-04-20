@@ -7,7 +7,7 @@ EventLoopThread::EventLoopThread(const ThreadInitCallback &cb,
                                  const std::string &name)
     : m_loop(NULL),
       m_exiting(false),
-      m_thread(std::bind(&EventLoopThread::threadMain, this), name),
+      m_thread(std::bind(&EventLoopThread::threadEntry, this), name),
       m_mutex(),
       m_cond(m_mutex),
       m_callback(cb)
@@ -17,9 +17,9 @@ EventLoopThread::EventLoopThread(const ThreadInitCallback &cb,
 EventLoopThread::~EventLoopThread()
 {
     m_exiting = true;
-    if (m_loop != NULL) // not 100% race-free, eg. threadMain could be running callback_.
+    if (m_loop != NULL) // not 100% race-free, eg. threadEntry could be running callback_.
     {
-        // still a tiny chance to call destructed object, if threadMain exits just now.
+        // still a tiny chance to call destructed object, if threadEntry exits just now.
         // but when EventLoopThread destructs, usually programming is exiting anyway.
         m_loop->stop();
         m_thread.join();
@@ -42,9 +42,9 @@ EventLoop *EventLoopThread::startLoop()
     return m_loop;
 }
 
-void EventLoopThread::threadMain()
+void EventLoopThread::threadEntry()
 {
-    printf("threadMain\n");
+    printf("threadEntry\n");
     EventLoop loop;
 
     if (m_callback)

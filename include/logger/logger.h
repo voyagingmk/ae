@@ -45,7 +45,7 @@ public:
   }
 
 private:
-  void threadMain();
+  void threadEntry();
 
   typedef std::unique_ptr<LoggingBuffer> BufferUniquePtr;
   typedef std::vector<BufferUniquePtr> BufferPtrVector;

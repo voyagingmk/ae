@@ -18,13 +18,13 @@ using namespace std;
 
 struct ThreadData
 {
-    typedef Thread::ThreadMain ThreadMain;
-    ThreadMain m_func;
+    typedef Thread::ThreadEntry ThreadEntry;
+    ThreadEntry m_func;
     string m_name;
     pid_t *m_tid;
     CountDownLatch *m_latch;
 
-    ThreadData(ThreadMain &func,
+    ThreadData(ThreadEntry &&func,
                const string &name,
                pid_t *tid,
                CountDownLatch *latch)
@@ -35,6 +35,16 @@ struct ThreadData
     {
     }
 
+    ThreadData(const ThreadEntry &func,
+               const string &name,
+               pid_t *tid,
+               CountDownLatch *latch)
+        : m_func(func),
+          m_name(name),
+          m_tid(tid),
+          m_latch(latch)
+    {
+    }
     void runInThread()
     {
         // 该线程正在运行，即CurrentThread为这个线程
@@ -81,7 +91,7 @@ void *startThread(void *obj)
     return NULL;
 }
 
-Thread::Thread(ThreadMain &&func, const std::string &n)
+Thread::Thread(ThreadEntry &&func, const std::string &n)
     : m_started(false),
       m_joined(false),
       m_pthreadId(0),
@@ -112,7 +122,8 @@ void Thread::setDefaultName(int num)
 
 void Thread::start()
 {
-    assert(!m_started);
+    assert(!m_joined && name().c_str());
+    assert(!m_started && name().c_str());
     m_started = true;
 
     ThreadData *data = new ThreadData(m_func, m_name, &m_tid, &m_latch);

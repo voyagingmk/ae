@@ -23,7 +23,7 @@ public:
   EventLoop *startLoop();
 
 private:
-  void threadMain();
+  void threadEntry();
 
 private:
   EventLoop *m_loop;

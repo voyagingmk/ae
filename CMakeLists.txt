@@ -121,6 +121,7 @@ set( project_tests
     test_eventloop1
     test_eventloop2
     test_eventloopthread
+    test_buffer
    )
 
 set( EXE_test_client_SOURCES
@@ -136,8 +137,13 @@ set( EXE_test_eventloop1_SOURCES
 set( EXE_test_eventloop2_SOURCES
     test/test_eventloop2.cpp
 )
+
 set( EXE_test_eventloopthread_SOURCES
     test/test_eventloopthread.cpp
+)
+
+set( EXE_test_buffer_SOURCES
+test/test_buffer.cpp
 )
 
 # For each executable in the list...
