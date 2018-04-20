@@ -43,6 +43,7 @@ FILE(GLOB MY_SOURCERS
     src/wyudpclient.cpp
     src/wyudpserver.cpp
     src/wyutils.cpp
+    src/wybuffer.cpp
     src/eventloop.cpp
     src/eventloop_thread.cpp
     src/eventloop_threadpool.cpp

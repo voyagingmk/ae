@@ -151,53 +151,15 @@ class BufferSet : public Singleton<BufferSet>
     UniqIDGenerator m_uniqIDGen;
 
   public:
-    UniqID newBuffer()
-    {
-        MutexLockGuard<MutexLock> lock(m_mutex);
-        UniqID uid = m_uniqIDGen.getNewID();
-        if (uid > m_buffers.size())
-        {
-            m_buffers.push_back(std::make_shared<DynamicBuffer>());
-        }
-        return uid;
-    }
+    UniqID newBuffer();
 
-    size_t getSize()
-    {
-        MutexLockGuard<MutexLock> lock(m_mutex);
-        return m_buffers.size();
-    }
+    size_t getSize();
 
-    void recycleBuffer(UniqID uid)
-    {
-        MutexLockGuard<MutexLock> lock(m_mutex);
-        m_uniqIDGen.recycleID(uid);
-    }
+    void recycleBuffer(UniqID uid);
 
-    std::shared_ptr<DynamicBuffer> getBuffer(UniqID uid)
-    {
-        int32_t idx = uid - 1;
-        MutexLockGuard<MutexLock> lock(m_mutex);
-        if (idx < 0 || idx >= m_buffers.size())
-        {
-            return nullptr;
-        }
-        return m_buffers[idx];
-    }
+    std::shared_ptr<DynamicBuffer> getBuffer(UniqID uid);
 
-    std::shared_ptr<DynamicBuffer> getBufferByIdx(int32_t idx)
-    {
-        if (idx < 0)
-        {
-            return nullptr;
-        }
-        MutexLockGuard<MutexLock> lock(m_mutex);
-        while ((idx + 1) > m_buffers.size())
-        {
-            m_buffers.push_back(std::make_shared<DynamicBuffer>());
-        }
-        return m_buffers[idx];
-    }
+    std::shared_ptr<DynamicBuffer> getBufferByIdx(int32_t idx);
 };
 
 class BufferRef : public Noncopyable
