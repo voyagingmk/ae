@@ -164,17 +164,14 @@ class BufferSet : public Singleton<BufferSet>
 
 class BufferRef : public Noncopyable
 {
-    UniqID uniqID;
-    std::shared_ptr<DynamicBuffer> m_cachedPtr;
+    UniqID m_uniqID;
+    std::shared_ptr<DynamicBuffer> m_cachedPtr; // lock only once
 
   public:
     BufferRef()
     {
-        uniqID = BufferSet::getSingleton()->newBuffer();
-        if (uniqID)
-        {
-            log_debug("BufferRef created %d", uniqID);
-        }
+        m_uniqID = BufferSet::getSingleton()->newBuffer();
+        log_debug("BufferRef created %d\n", m_uniqID);
     }
 
     ~BufferRef()
@@ -185,17 +182,19 @@ class BufferRef : public Noncopyable
     BufferRef(BufferRef &&b)
     {
         recycleBuffer();
-        uniqID = b.uniqID;
-        b.uniqID = 0;
-        log_debug("BufferRef moved %d", uniqID);
+        m_uniqID = b.m_uniqID;
+        b.m_uniqID = 0;
+        b.m_cachedPtr = nullptr;
+        log_debug("BufferRef moved %d\n", m_uniqID);
     }
 
     BufferRef &operator=(BufferRef &&b)
     {
         recycleBuffer();
-        uniqID = b.uniqID;
-        b.uniqID = 0;
-        log_debug("BufferRef moved %d", uniqID);
+        m_uniqID = b.m_uniqID;
+        b.m_uniqID = 0;
+        b.m_cachedPtr = nullptr;
+        log_debug("BufferRef moved %d\n", m_uniqID);
         return (*this);
     }
 
@@ -204,29 +203,30 @@ class BufferRef : public Noncopyable
         return get();
     }
 
+  private:
     std::shared_ptr<DynamicBuffer> get()
     {
-        if (!uniqID)
+        if (!m_uniqID)
         {
             return nullptr;
         }
         if (!m_cachedPtr)
         {
-            m_cachedPtr = BufferSet::getSingleton()->getBuffer(uniqID);
+            m_cachedPtr = BufferSet::getSingleton()->getBuffer(m_uniqID);
+            log_debug("BufferRef cache %d\n", m_uniqID);
         }
-        // log_debug("BufferRef get %d", uniqID);
         return m_cachedPtr;
     }
 
-  private:
     void recycleBuffer()
     {
-        if (uniqID)
+        if (m_uniqID)
         {
-            BufferSet::getSingleton()->recycleBuffer(uniqID);
-            log_debug("BufferRef recycled %d", uniqID);
-            uniqID = 0;
+            BufferSet::getSingleton()->recycleBuffer(m_uniqID);
+            log_debug("BufferRef recycled %d\n", m_uniqID);
+            m_uniqID = 0;
         }
+        m_cachedPtr = nullptr;
     }
 };
 };
