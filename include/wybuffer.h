@@ -151,10 +151,6 @@ class BufferSet : public Singleton<BufferSet>
     UniqIDGenerator m_uniqIDGen;
 
   public:
-    BufferSet()
-    {
-    }
-
     UniqID newBuffer()
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
@@ -164,6 +160,12 @@ class BufferSet : public Singleton<BufferSet>
             m_buffers.push_back(std::make_shared<DynamicBuffer>());
         }
         return uid;
+    }
+
+    size_t getSize()
+    {
+        MutexLockGuard<MutexLock> lock(m_mutex);
+        return m_buffers.size();
     }
 
     void recycleBuffer(UniqID uid)
