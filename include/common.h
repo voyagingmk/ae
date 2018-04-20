@@ -25,6 +25,8 @@
 
 #define LOG_USE_COLOR 1
 
+#include "concurrentqueue.h"
+
 extern "C" {
 #include "log.h"
 #include "wrapsock.h"

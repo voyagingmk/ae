@@ -49,6 +49,7 @@
         "mutex": "cpp",
         "__string": "cpp",
         "istream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "thread": "cpp"
     }
 }

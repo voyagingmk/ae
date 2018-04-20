@@ -16,6 +16,8 @@ void threadEntry(int i)
         MutexLockGuard<MutexLock> lock(stdout_mutex);
         cout << "thread:" << i << ", b:" << b << ", s1:" << s1 << ", s2:" << s2 << endl;
     }
+    BufferRef a;
+    BufferRef b(BufferRef());
 }
 
 int main(int argc, char **argv)

@@ -129,6 +129,7 @@ set( project_tests
     test_eventloop2
     test_eventloopthread
     test_buffer
+    test_concurrentqueue
    )
 
 set( EXE_test_client_SOURCES
@@ -150,7 +151,11 @@ set( EXE_test_eventloopthread_SOURCES
 )
 
 set( EXE_test_buffer_SOURCES
-test/test_buffer.cpp
+    test/test_buffer.cpp
+)
+
+set( EXE_test_concurrentqueue_SOURCES
+    test/test_concurrentqueue.cpp
 )
 
 # For each executable in the list...
