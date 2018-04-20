@@ -17,47 +17,47 @@ typedef void (*log_LockFn)(void *udata, int lock);
 
 enum
 {
-    LOG_TRACE,
-    LOG_DEBUG,
-    LOG_INFO,
-    LOG_WARN,
-    LOG_ERROR,
-    LOG_FATAL
+    LOG_TRACE__,
+    LOG_DEBUG__,
+    LOG_INFO__,
+    LOG_WARN__,
+    LOG_ERROR__,
+    LOG_FATAL__
 };
 
 #ifndef ENABLE_LOG_FILELINE
 
 #ifdef DEBUG_MODE
-#define log_trace(...) log_log(LOG_TRACE, "", 0, __VA_ARGS__)
-#define log_debug(...) log_log(LOG_DEBUG, "", 0, __VA_ARGS__)
+#define log_trace(...) log_log(LOG_TRACE__, "", 0, __VA_ARGS__)
+#define log_debug(...) log_log(LOG_DEBUG__, "", 0, __VA_ARGS__)
 #else
 #define log_trace(...)
 #define log_debug(...)
 #endif
-#define log_info(...) log_log(LOG_INFO, "", 0, __VA_ARGS__)
-#define log_warn(...) log_log(LOG_WARN, "", 0, __VA_ARGS__)
-#define log_error(...) log_log(LOG_ERROR, "", 0, __VA_ARGS__)
-#define log_fatal(...)                          \
-    {                                           \
-        log_log(LOG_FATAL, "", 0, __VA_ARGS__); \
-        ::abort();                              \
+#define log_info(...) log_log(LOG_INFO__, "", 0, __VA_ARGS__)
+#define log_warn(...) log_log(LOG_WARN__, "", 0, __VA_ARGS__)
+#define log_error(...) log_log(LOG_ERROR__, "", 0, __VA_ARGS__)
+#define log_fatal(...)                            \
+    {                                             \
+        log_log(LOG_FATAL__, "", 0, __VA_ARGS__); \
+        ::abort();                                \
     }
 #else
 
 #ifdef DEBUG_MODE
-#define log_trace(...) log_log(LOG_TRACE, __FILE__, __LINE__, __VA_ARGS__)
-#define log_debug(...) log_log(LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#define log_trace(...) log_log(LOG_TRACE__, __FILE__, __LINE__, __VA_ARGS__)
+#define log_debug(...) log_log(LOG_DEBUG__, __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define log_trace(...)
 #define log_debug(...)
 #endif
-#define log_info(...) log_log(LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
-#define log_warn(...) log_log(LOG_WARN, __FILE__, __LINE__, __VA_ARGS__)
-#define log_error(...) log_log(LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
-#define log_fatal(...)                                       \
-    {                                                        \
-        log_log(LOG_FATAL, __FILE__, __LINE__, __VA_ARGS__); \
-        ::abort();                                           \
+#define log_info(...) log_log(LOG_INFO__, __FILE__, __LINE__, __VA_ARGS__)
+#define log_warn(...) log_log(LOG_WARN__, __FILE__, __LINE__, __VA_ARGS__)
+#define log_error(...) log_log(LOG_ERROR__, __FILE__, __LINE__, __VA_ARGS__)
+#define log_fatal(...)                                         \
+    {                                                          \
+        log_log(LOG_FATAL__, __FILE__, __LINE__, __VA_ARGS__); \
+        ::abort();                                             \
     }
 
 #endif

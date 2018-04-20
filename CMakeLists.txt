@@ -1,3 +1,5 @@
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+include(cotire)
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
 project(wynet_project LANGUAGES C CXX VERSION 0.0.0)
@@ -111,7 +113,11 @@ target_include_directories(
         include
         src
         external
-        )
+        ) 
+
+set_target_properties(wynet PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/common.h")
+cotire(wynet)
+
 install(TARGETS wynet DESTINATION lib)
 
 
