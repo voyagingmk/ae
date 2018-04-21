@@ -19,7 +19,7 @@ LogFile::LogFile(const string &basename,
       m_rollSize(rollSize),
       m_flushInterval(flushInterval),
       m_checkEveryN(checkEveryN),
-      m_count(0),
+      m_logLinesCount(0),
       m_mutex(threadSafe ? new MutexLock : nullptr),
       m_startPeriod(0),
       m_lastRoll(0),
@@ -67,10 +67,10 @@ void LogFile::append_unlocked(const char *logline, int len)
   }
   else
   {
-    ++m_count;
-    if (m_count >= m_checkEveryN)
+    ++m_logLinesCount;
+    if (m_logLinesCount >= m_checkEveryN)
     {
-      m_count = 0;
+      m_logLinesCount = 0;
       time_t now = ::time(NULL);
       time_t curPeriod = getPeriod(now);
       if (curPeriod != m_startPeriod)

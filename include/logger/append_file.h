@@ -1,9 +1,9 @@
 #ifndef WY_APPEND_FILE_H
 #define WY_APPEND_FILE_H
 
-#include "../common.h"
-#include "../mutex.h"
-#include "../noncopyable.h"
+#include "common.h"
+#include "mutex.h"
+#include "noncopyable.h"
 
 namespace wynet
 {

@@ -1,11 +1,11 @@
 #ifndef WY_LOGGER_H
 #define WY_LOGGER_H
 
-#include "../common.h"
-#include "../noncopyable.h"
-#include "../mutex.h"
-#include "../wythread.h"
-#include "../count_down_latch.h"
+#include "common.h"
+#include "noncopyable.h"
+#include "mutex.h"
+#include "wythread.h"
+#include "count_down_latch.h"
 #include "logger/logging_buffer.h"
 
 namespace wynet

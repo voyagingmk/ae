@@ -1,9 +1,9 @@
 #ifndef WY_LOG_FILE_H
 #define WY_LOG_FILE_H
 
-#include "../common.h"
-#include "../mutex.h"
-#include "../noncopyable.h"
+#include "common.h"
+#include "mutex.h"
+#include "noncopyable.h"
 
 namespace wynet
 {
@@ -45,8 +45,7 @@ private:
   const int m_flushInterval;
   const int m_checkEveryN;
 
-  int m_count;
-
+  int m_logLinesCount;
   unique_ptr<MutexLock> m_mutex;
   time_t m_startPeriod;
   time_t m_lastRoll;
