@@ -25,8 +25,6 @@ LogFile::LogFile(const string &basename,
       m_lastRoll(0),
       m_lastFlush(0)
 {
-  assert(basename.find('/') == string::npos);
-  rollFile();
 }
 
 LogFile::~LogFile()
@@ -51,19 +49,19 @@ void LogFile::flush()
   if (m_mutex)
   {
     MutexLockGuard<MutexLock> lock(*m_mutex);
-    m_file->flush();
+    getAppendFile()->flush();
   }
   else
   {
-    m_file->flush();
+    getAppendFile()->flush();
   }
 }
 
 void LogFile::append_unlocked(const char *logline, int len)
 {
-  m_file->append(logline, len);
+  getAppendFile()->append(logline, len);
 
-  if (m_file->writtenBytes() > m_rollSize)
+  if (getAppendFile()->writtenBytes() > m_rollSize)
   {
     rollFile();
   }
@@ -82,15 +80,25 @@ void LogFile::append_unlocked(const char *logline, int len)
       else if (now - m_lastFlush > m_flushInterval)
       {
         m_lastFlush = now;
-        m_file->flush();
+        getAppendFile()->flush();
       }
     }
   }
 }
 
+unique_ptr<AppendFile> &LogFile::getAppendFile()
+{
+  if (!m_file)
+  {
+    rollFile();
+  }
+  return m_file;
+}
+
 void LogFile::rollFile()
 {
   time_t now = 0;
+  assert(m_basename.find('/') == string::npos);
   string filename = getLogFileName(m_basename, &now);
   time_t start = now / k_RollPerSeconds * k_RollPerSeconds;
 

@@ -32,6 +32,8 @@ public:
 private:
   void append_unlocked(const char *logline, int len);
 
+  unique_ptr<AppendFile> &getAppendFile();
+
 private:
   const string m_basename;
   const off_t m_rollSize;
