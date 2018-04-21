@@ -21,7 +21,7 @@ LogFile::LogFile(const string &basename,
       m_checkEveryN(checkEveryN),
       m_count(0),
       m_mutex(threadSafe ? new MutexLock : nullptr),
-      m_startOfPeriod(0),
+      m_startPeriod(0),
       m_lastRoll(0),
       m_lastFlush(0)
 {
@@ -72,8 +72,8 @@ void LogFile::append_unlocked(const char *logline, int len)
     {
       m_count = 0;
       time_t now = ::time(NULL);
-      time_t thisPeriod_ = now / k_RollPerSeconds * k_RollPerSeconds;
-      if (thisPeriod_ != m_startOfPeriod)
+      time_t curPeriod = getPeriod(now);
+      if (curPeriod != m_startPeriod)
       {
         rollFile();
       }
@@ -100,13 +100,12 @@ void LogFile::rollFile()
   time_t now = 0;
   assert(m_basename.find('/') == string::npos);
   string filename = getLogFileName(m_basename, &now);
-  time_t start = now / k_RollPerSeconds * k_RollPerSeconds;
-
+  time_t startPeriod = getPeriod(now);
   if (now > m_lastRoll)
   {
     m_lastRoll = now;
     m_lastFlush = now;
-    m_startOfPeriod = start;
+    m_startPeriod = startPeriod;
     m_file.reset(new AppendFile(filename));
   }
 }
@@ -122,7 +121,7 @@ string getLogFileName(const string &basename, time_t *now)
   {
     // basesame + .time.
     struct tm tm;
-    time(now);
+    ::time(now);
     gmtime_r(now, &tm); // thread-safe
     char timebuf[32] = {0};
     strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);

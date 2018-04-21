@@ -34,6 +34,11 @@ private:
 
   unique_ptr<AppendFile> &getAppendFile();
 
+  inline time_t getPeriod(time_t &t)
+  {
+    return t / k_RollPerSeconds * k_RollPerSeconds;
+  }
+
 private:
   const string m_basename;
   const off_t m_rollSize;
@@ -43,7 +48,7 @@ private:
   int m_count;
 
   unique_ptr<MutexLock> m_mutex;
-  time_t m_startOfPeriod;
+  time_t m_startPeriod;
   time_t m_lastRoll;
   time_t m_lastFlush;
   unique_ptr<AppendFile> m_file;
