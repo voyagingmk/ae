@@ -8,6 +8,8 @@
 using namespace wynet;
 using namespace std;
 
+static string getLogFileName(const string &basename, time_t *now);
+
 LogFile::LogFile(const string &basename,
                  off_t rollSize,
                  bool threadSafe,
@@ -18,7 +20,7 @@ LogFile::LogFile(const string &basename,
       m_flushInterval(flushInterval),
       m_checkEveryN(checkEveryN),
       m_count(0),
-      m_mutex(threadSafe ? new MutexLock : NULL),
+      m_mutex(threadSafe ? new MutexLock : nullptr),
       m_startOfPeriod(0),
       m_lastRoll(0),
       m_lastFlush(0)
@@ -86,7 +88,7 @@ void LogFile::append_unlocked(const char *logline, int len)
   }
 }
 
-bool LogFile::rollFile()
+void LogFile::rollFile()
 {
   time_t now = 0;
   string filename = getLogFileName(m_basename, &now);
@@ -98,31 +100,40 @@ bool LogFile::rollFile()
     m_lastFlush = now;
     m_startOfPeriod = start;
     m_file.reset(new AppendFile(filename));
-    return true;
   }
-  return false;
 }
 
-string LogFile::getLogFileName(const string &basename, time_t *now)
+string getLogFileName(const string &basename, time_t *now)
 {
   string filename;
-  filename.reserve(basename.size() + 64);
-  filename = basename;
-
-  char timebuf[32];
-  struct tm tm;
-  *now = time(NULL);
-  gmtime_r(now, &tm); // FIXME: localtime_r ?
-  strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
-  filename += timebuf;
-
-  filename += hostname();
-
-  char pidbuf[32];
-  snprintf(pidbuf, sizeof pidbuf, ".%d", getpid());
-  filename += pidbuf;
-
-  filename += ".log";
+  {
+    // basesame
+    filename.reserve(basename.size() + 64);
+    filename = basename;
+  }
+  {
+    // basesame + .time.
+    struct tm tm;
+    time(now);
+    gmtime_r(now, &tm); // thread-safe
+    char timebuf[32] = {0};
+    strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
+    filename += timebuf;
+  }
+  {
+    // basesame + .time. + hostname
+    filename += hostname();
+  }
+  {
+    // basesame + .time. + hostname + .pid
+    char pidbuf[32];
+    snprintf(pidbuf, sizeof pidbuf, ".%d", getpid());
+    filename += pidbuf;
+  }
+  {
+    // basesame + .time. + hostname + .pid + .log
+    filename += ".log";
+  }
 
   return filename;
 }

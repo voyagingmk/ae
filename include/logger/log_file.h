@@ -27,12 +27,10 @@ public:
 
   void flush();
 
-  bool rollFile();
+  void rollFile();
 
 private:
   void append_unlocked(const char *logline, int len);
-
-  static string getLogFileName(const string &basename, time_t *now);
 
 private:
   const string m_basename;
