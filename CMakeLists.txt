@@ -132,6 +132,7 @@ set( project_tests
     test_eventloopthread
     test_buffer
     test_concurrentqueue
+    test_logging
    )
 
 set( EXE_test_client_SOURCES

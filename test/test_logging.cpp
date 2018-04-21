@@ -1,34 +1,33 @@
 #include "wynet.h"
+#include "logger/logger.h"
 
 using namespace wynet;
 using namespace std;
 
+Logger *g_Logger;
 
 void threadProducer(int i)
 {
-  
-}
-
-void threadComsumer(int i)
-{
-
+    for (int k = 0; k < 10000; k++)
+    {
+        char buff[64];
+        snprintf(buff, sizeof(buff), "threadProducer < %d > %d\n", i, k);
+        g_Logger->append(buff, strlen(buff));
+    }
 }
 
 int main()
 {
-
     Logger logger("test");
+    g_Logger = &logger;
     logger.start();
 
     vector<shared_ptr<Thread>> threads;
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 2; i++)
     {
         threads.push_back(make_shared<Thread>(std::bind(threadProducer, i), "thread" + to_string(i)));
     }
-
-    int i = 10;
-    threads.push_back(make_shared<Thread>(std::bind(threadComsumer, i), "thread" + to_string(i)));
 
     for (auto pThread : threads)
     {

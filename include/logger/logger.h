@@ -30,6 +30,8 @@ public:
 private:
   void threadEntry();
 
+  void threadEntry2();
+
   typedef std::unique_ptr<LoggingBuffer> BufferUniquePtr;
   typedef std::vector<BufferUniquePtr> BufferPtrVector;
 

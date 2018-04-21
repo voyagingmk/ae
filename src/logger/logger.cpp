@@ -16,8 +16,11 @@ Logger::Logger(const string &logtitle,
                                     m_cond(m_mutex),
                                     m_curBuffer(new LoggingBuffer),
                                     m_nextBuffer(new LoggingBuffer),
-                                    m_fulledBuffers(16)
+                                    m_fulledBuffers()
 {
+    m_fulledBuffers.reserve(16);
+    assert(m_curBuffer);
+    assert(m_nextBuffer);
     m_curBuffer->clean();
     m_nextBuffer->clean();
 }
@@ -33,6 +36,7 @@ Logger::~Logger()
 void Logger::append(const char *logline, int len)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
+    assert(m_curBuffer);
     if (m_curBuffer->leftOpacity() > len)
     {
         m_curBuffer->append(logline, len);
@@ -40,17 +44,20 @@ void Logger::append(const char *logline, int len)
     else
     {
         m_fulledBuffers.push_back(std::move(m_curBuffer));
-
+        assert(!m_curBuffer);
         if (m_nextBuffer)
         {
             m_curBuffer = std::move(m_nextBuffer);
+            assert(!m_nextBuffer);
         }
         else
         {
             m_curBuffer.reset(new LoggingBuffer());
         }
+        assert(m_curBuffer);
+        assert(m_curBuffer->usedLength() == 0);
         m_curBuffer->append(logline, len);
-        m_cond.notify();
+        m_cond.notify(); // 满了才notify
     }
 }
 
@@ -73,6 +80,34 @@ void Logger::threadEntry()
     assert(m_running == true);
     m_latch.countDown();
     LogFile output(m_logtitle, m_rollSize, false);
+    while (m_running)
+    {
+        {
+            MutexLockGuard<MutexLock> lock(m_mutex);
+            if (m_fulledBuffers.empty()) // unusual usage!
+            {
+                m_cond.waitForSeconds(m_flushInterval);
+            }
+            // 可能是满了被唤醒，或者超时了唤醒，超时唤醒时m_curBuffer不满
+            m_fulledBuffers.push_back(std::move(m_curBuffer));
+            assert(!m_curBuffer);
+            m_curBuffer = std::move(newBuffer1);
+            assert(m_curBuffer);
+            assert(!newBuffer1);
+            buffersToWrite.swap(m_fulledBuffers);
+            if (!m_nextBuffer)
+            {
+                m_nextBuffer = std::move(newBuffer2);
+            }
+        }
+    }
+}
+
+void Logger::threadEntry2()
+{
+    assert(m_running == true);
+    m_latch.countDown();
+    LogFile output(m_logtitle, m_rollSize, false);
     BufferUniquePtr newBuffer1(new LoggingBuffer);
     BufferUniquePtr newBuffer2(new LoggingBuffer);
     newBuffer1->clean();
@@ -81,8 +116,10 @@ void Logger::threadEntry()
     buffersToWrite.reserve(16);
     while (m_running)
     {
-        assert(newBuffer1 && newBuffer1->length() == 0);
-        assert(newBuffer2 && newBuffer2->length() == 0);
+        assert(newBuffer1);
+        assert(newBuffer1->usedLength() == 0);
+        assert(newBuffer2);
+        assert(newBuffer2->usedLength() == 0);
         assert(buffersToWrite.empty());
 
         {
@@ -92,7 +129,10 @@ void Logger::threadEntry()
                 m_cond.waitForSeconds(m_flushInterval);
             }
             m_fulledBuffers.push_back(std::move(m_curBuffer));
+            assert(!m_curBuffer);
             m_curBuffer = std::move(newBuffer1);
+            assert(m_curBuffer);
+            assert(!newBuffer1);
             buffersToWrite.swap(m_fulledBuffers);
             if (!m_nextBuffer)
             {
@@ -115,7 +155,7 @@ void Logger::threadEntry()
         for (size_t i = 0; i < buffersToWrite.size(); ++i)
         {
             // FIXME: use unbuffered stdio FILE ? or use ::writev ?
-            output.append((const char *)buffersToWrite[i]->data(), buffersToWrite[i]->length());
+            output.append((const char *)buffersToWrite[i]->data(), buffersToWrite[i]->usedLength());
         }
 
         if (buffersToWrite.size() > 2)
@@ -129,7 +169,7 @@ void Logger::threadEntry()
             assert(!buffersToWrite.empty());
             newBuffer1 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
-            newBuffer1->reset();
+            newBuffer1->resetUsed();
         }
 
         if (!newBuffer2)
@@ -137,9 +177,10 @@ void Logger::threadEntry()
             assert(!buffersToWrite.empty());
             newBuffer2 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
-            newBuffer2->reset();
+            newBuffer2->resetUsed();
         }
-
+        assert(newBuffer1);
+        assert(newBuffer2);
         buffersToWrite.clear();
         output.flush();
     }

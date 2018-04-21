@@ -29,7 +29,7 @@ class BufferBase : public Noncopyable
     {
         return nullptr;
     }
-
+    // buffer capacity
     size_t length() const { return 0; }
 
     void expand(size_t n) {}

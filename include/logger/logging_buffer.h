@@ -29,11 +29,6 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
         }
     }
 
-    int length() const
-    {
-        return used;
-    }
-
     char *current()
     {
         return (char *)data() + used;
@@ -49,7 +44,12 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
         used += len;
     }
 
-    void reset()
+    size_t usedLength() const
+    {
+        return used;
+    }
+
+    void resetUsed()
     {
         used = 0;
     }
@@ -57,20 +57,19 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
     void clean()
     {
         used = 0;
-        StaticBuffer::clean();
     }
 
     const char *debugString();
 
     string toString() const
     {
-        return string((const char *)data(), length());
+        return string((const char *)data(), usedLength());
     }
 
   private:
     const char *end() const
     {
-        return (const char *)data() + length();
+        return (const char *)data() + usedLength();
     }
 
     size_t used;

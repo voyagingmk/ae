@@ -50,6 +50,8 @@
         "__string": "cpp",
         "istream": "cpp",
         "iostream": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "array": "cpp",
+        "streambuf": "cpp"
     }
 }
