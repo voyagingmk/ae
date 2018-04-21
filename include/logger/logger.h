@@ -1,13 +1,12 @@
 #ifndef WY_LOGGER_H
 #define WY_LOGGER_H
 
-#include <string>
-#include <sys/types.h>
+#include "../common.h"
 #include "../noncopyable.h"
 #include "../mutex.h"
 #include "../wythread.h"
 #include "../count_down_latch.h"
-#include "logging_buffer.h"
+#include "logger/logging_buffer.h"
 
 namespace wynet
 {
@@ -20,29 +19,13 @@ public:
          off_t rollSize = 500 * 1024 * 1024,
          int flushInterval = 3);
 
-  ~Logger()
-  {
-    if (m_running)
-    {
-      stop();
-    }
-  }
+  ~Logger();
 
   void append(const char *logline, int len);
 
-  void start()
-  {
-    m_running = true;
-    m_thread.start();
-    m_latch.wait();
-  }
+  void start();
 
-  void stop()
-  {
-    m_running = false;
-    m_cond.notify();
-    m_thread.join();
-  }
+  void stop();
 
 private:
   void threadEntry();

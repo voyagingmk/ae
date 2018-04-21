@@ -55,6 +55,7 @@ FILE(GLOB MY_SOURCERS
     src/wythread.cpp
     src/count_down_latch.cpp
     src/logger/logger.cpp
+    src/logger/append_file.cpp
     src/logger/log_file.cpp
     external/ae.c
     external/wrapsock.c
@@ -93,6 +94,7 @@ FILE(GLOB MY_HEADERS
     include/count_down_latch.h
     include/logger/logging_buffer.h
     include/logger/logger.h
+    include/logger/append_file.h
     include/logger/log_file.h
     external/wrapsock.h
     external/error.h
@@ -156,6 +158,10 @@ set( EXE_test_buffer_SOURCES
 
 set( EXE_test_concurrentqueue_SOURCES
     test/test_concurrentqueue.cpp
+)
+
+set( EXE_test_logging_SOURCES
+    test/test_logging.cpp
 )
 
 # For each executable in the list...

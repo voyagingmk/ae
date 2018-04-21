@@ -1,36 +1,17 @@
-#ifndef WY_LOGFILE_H
-#define WY_LOGFILE_H
+#ifndef WY_LOG_FILE_H
+#define WY_LOG_FILE_H
 
+#include "../common.h"
 #include "../mutex.h"
 #include "../noncopyable.h"
-#include <memory>
-#include <string>
 
 namespace wynet
 {
 using namespace std;
 
-class AppendFile : Noncopyable
-{
-public:
-  explicit AppendFile(std::string &filename);
+class AppendFile;
 
-  ~AppendFile();
-
-  void append(const char *logline, const size_t len);
-
-  void flush();
-
-  off_t writtenBytes() const { return m_writtenBytes; }
-
-private:
-  size_t write(const char *logline, size_t len);
-
-  FILE *m_fp;
-  char m_buffer[64 * 1024];
-  off_t m_writtenBytes;
-};
-
+// 日志文件io
 class LogFile : Noncopyable
 {
 public:
@@ -39,10 +20,13 @@ public:
           bool threadSafe = true,
           int flushInterval = 3,
           int checkEveryN = 1024);
+
   ~LogFile();
 
   void append(const char *logline, int len);
+
   void flush();
+
   bool rollFile();
 
 private:
@@ -50,6 +34,7 @@ private:
 
   static string getLogFileName(const string &basename, time_t *now);
 
+private:
   const string m_basename;
   const off_t m_rollSize;
   const int m_flushInterval;
@@ -63,7 +48,7 @@ private:
   time_t m_lastFlush;
   unique_ptr<AppendFile> m_file;
 
-  const static int kRollPerSeconds_ = 60 * 60 * 24;
+  const static int k_RollPerSeconds = 3600 * 24;
 };
 };
 

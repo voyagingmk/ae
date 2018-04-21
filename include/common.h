@@ -20,6 +20,7 @@
 #include <functional>
 #include <stdint.h>
 #include <sys/syscall.h>
+#include <sys/types.h>
 
 #define DEBUG_MODE 1
 

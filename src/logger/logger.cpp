@@ -22,6 +22,14 @@ Logger::Logger(const string &logtitle,
     m_nextBuffer->clean();
 }
 
+Logger::~Logger()
+{
+    if (m_running)
+    {
+        stop();
+    }
+}
+
 void Logger::append(const char *logline, int len)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
@@ -44,6 +52,20 @@ void Logger::append(const char *logline, int len)
         m_curBuffer->append(logline, len);
         m_cond.notify();
     }
+}
+
+void Logger::start()
+{
+    m_running = true;
+    m_thread.start();
+    m_latch.wait();
+}
+
+void Logger::stop()
+{
+    m_running = false;
+    m_cond.notify();
+    m_thread.join();
 }
 
 void Logger::threadEntry()
