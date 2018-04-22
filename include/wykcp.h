@@ -2,6 +2,7 @@
 #define WY_KCP_H
 
 #include "common.h"
+#include "logger/log.h"
 
 namespace wynet
 {

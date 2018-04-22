@@ -57,13 +57,13 @@ FILE(GLOB MY_SOURCERS
     src/logger/logger.cpp
     src/logger/append_file.cpp
     src/logger/log_file.cpp
+    src/logger/log.cpp
     external/ae.c
     external/wrapsock.c
     external/zmalloc.c
     external/sock_ntop.c
     external/writen.c
     external/ikcp.c
-    external/log.c
     external/error.c)
 
 FILE(GLOB MY_HEADERS
@@ -96,9 +96,9 @@ FILE(GLOB MY_HEADERS
     include/logger/logger.h
     include/logger/append_file.h
     include/logger/log_file.h
+    include/logger/log.h
     external/wrapsock.h
     external/error.h
-    external/log.h
     external/ikcp.h
     external/ae.h
     external/zmalloc.h

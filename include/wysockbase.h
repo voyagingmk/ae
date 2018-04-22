@@ -2,6 +2,7 @@
 #define WY_SOCKBASE_H
 
 #include "common.h"
+#include "logger/log.h"
 #include "wybuffer.h"
 #include "protocol.h"
 #include "noncopyable.h"

@@ -7,8 +7,6 @@
 
 namespace wynet
 {
-using namespace std;
-
 // 纯粹的磁盘文件IO，无锁
 class AppendFile : Noncopyable
 {

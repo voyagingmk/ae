@@ -67,7 +67,7 @@ void TCPServer::startListen(int port)
 			Close(listenfd);
 			continue;
 		}
-		if (bind(listenfd, res->ai_addr, res->ai_addrlen) < 0)
+		if (::bind(listenfd, res->ai_addr, res->ai_addrlen) < 0)
 		{
 			Close(listenfd); /* bind error, close and try next one */
 			continue;

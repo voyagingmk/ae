@@ -37,12 +37,6 @@ static int SocketOutput(const char *buf, int len, ikcpcb *kcp, void *user)
 
 int main(int argc, char **argv)
 {
-    if (argc > 1)
-    {
-        log_set_level((int)(*argv[1]));
-    }
-    Logger logger("test");
-    log_set_file("./server.log", "w+");
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
     //  UDPServer server(9999);

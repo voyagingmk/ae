@@ -2,6 +2,15 @@
 
 using namespace wynet;
 
+void DynamicBuffer::expand(size_t n)
+{
+    if (n > MaxBufferSize)
+    {
+        log_fatal("[DynamicBuffer] wrong n: %d\n", n);
+    }
+    return m_data.resize(n);
+}
+
 UniqID BufferSet::newBuffer()
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
@@ -48,4 +57,59 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
         m_buffers.push_back(std::make_shared<DynamicBuffer>());
     }
     return m_buffers[idx];
+}
+
+BufferRef::BufferRef()
+{
+    m_uniqID = BufferSet::getSingleton()->newBuffer();
+    log_debug("BufferRef created %d\n", m_uniqID);
+}
+
+BufferRef::~BufferRef()
+{
+    recycleBuffer();
+}
+
+BufferRef::BufferRef(BufferRef &&b)
+{
+    recycleBuffer();
+    m_uniqID = b.m_uniqID;
+    b.m_uniqID = 0;
+    b.m_cachedPtr = nullptr;
+    log_debug("BufferRef moved %d\n", m_uniqID);
+}
+
+BufferRef &BufferRef::operator=(BufferRef &&b)
+{
+    recycleBuffer();
+    m_uniqID = b.m_uniqID;
+    b.m_uniqID = 0;
+    b.m_cachedPtr = nullptr;
+    log_debug("BufferRef moved %d\n", m_uniqID);
+    return (*this);
+}
+
+std::shared_ptr<DynamicBuffer> BufferRef::get()
+{
+    if (!m_uniqID)
+    {
+        return nullptr;
+    }
+    if (!m_cachedPtr)
+    {
+        m_cachedPtr = BufferSet::getSingleton()->getBuffer(m_uniqID);
+        log_debug("BufferRef cache %d\n", m_uniqID);
+    }
+    return m_cachedPtr;
+}
+
+void BufferRef::recycleBuffer()
+{
+    if (m_uniqID)
+    {
+        BufferSet::getSingleton()->recycleBuffer(m_uniqID);
+        log_debug("BufferRef recycled %d\n", m_uniqID);
+        m_uniqID = 0;
+    }
+    m_cachedPtr = nullptr;
 }

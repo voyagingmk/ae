@@ -52,6 +52,7 @@
         "iostream": "cpp",
         "thread": "cpp",
         "array": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "stdarg.h": "c"
     }
 }

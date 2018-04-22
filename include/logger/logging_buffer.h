@@ -7,8 +7,6 @@
 namespace wynet
 {
 
-using namespace std;
-
 class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
 {
   public:
@@ -56,9 +54,9 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
 
     const char *debugString();
 
-    string toString() const
+    std::string toString() const
     {
-        return string((const char *)data(), usedLength());
+        return std::string((const char *)data(), usedLength());
     }
 
   private:

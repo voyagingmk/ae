@@ -119,26 +119,27 @@ string getLogFileName(const string &basename, time_t *now)
     filename = basename;
   }
   {
-    // basesame + .time.
+    // basesame + .utctime.
     struct tm tm;
     ::time(now);
     gmtime_r(now, &tm); // thread-safe
     char timebuf[32] = {0};
     strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
+    // e.g.：20180422-133335
     filename += timebuf;
   }
   {
-    // basesame + .time. + hostname
+    // basesame + .utctime. + hostname
     filename += hostname();
   }
   {
-    // basesame + .time. + hostname + .pid
+    // basesame + .utctime. + hostname + .pid
     char pidbuf[32];
     snprintf(pidbuf, sizeof pidbuf, ".%d", getpid());
     filename += pidbuf;
   }
   {
-    // basesame + .time. + hostname + .pid + .log
+    // basesame + .utctime. + hostname + .pid + .log
     filename += ".log";
   }
 

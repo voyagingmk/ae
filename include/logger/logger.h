@@ -10,13 +10,12 @@
 
 namespace wynet
 {
-using namespace std;
 
 class Logger : Noncopyable
 {
 public:
-  Logger(const string &logtitle,
-         off_t rollSize = 500 * 1024 * 1024,
+  Logger(const std::string &logtitle,
+         off_t rollSize = 32 * 1000 * 1000,
          int flushInterval = 3);
 
   ~Logger();
@@ -30,8 +29,6 @@ public:
 private:
   void threadEntry();
 
-  void threadEntry2();
-
   void updateCurBuffer();
 
 private:
@@ -40,7 +37,7 @@ private:
 
   const int m_flushInterval;
   bool m_running;
-  string m_logtitle;
+  std::string m_logtitle;
   off_t m_rollSize;
   Thread m_thread;
   CountDownLatch m_latch;

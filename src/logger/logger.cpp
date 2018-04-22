@@ -4,7 +4,7 @@
 
 namespace wynet
 {
-Logger::Logger(const string &logtitle,
+Logger::Logger(const std::string &logtitle,
                off_t rollSize,
                int flushInterval) : m_flushInterval(flushInterval),
                                     m_running(false),
@@ -126,92 +126,5 @@ void Logger::threadEntry()
         buffersToWrite.clear();
         output.flush();
     }
-}
-
-void Logger::threadEntry2()
-{
-    assert(m_running == true);
-    m_latch.countDown();
-    LogFile output(m_logtitle, m_rollSize, false);
-    BufferUniquePtr newBuffer1(new LoggingBuffer);
-    BufferUniquePtr newBuffer2(new LoggingBuffer);
-    newBuffer1->clean();
-    newBuffer2->clean();
-    BufferPtrVector buffersToWrite;
-    buffersToWrite.reserve(16);
-    while (m_running)
-    {
-        assert(newBuffer1);
-        assert(newBuffer1->usedLength() == 0);
-        assert(newBuffer2);
-        assert(newBuffer2->usedLength() == 0);
-        assert(buffersToWrite.empty());
-
-        {
-            MutexLockGuard<MutexLock> lock(m_mutex);
-            if (m_fulledBuffers.empty()) // unusual usage!
-            {
-                m_cond.waitForSeconds(m_flushInterval);
-            }
-            // 可能是满了被唤醒，或者超时了唤醒，超时唤醒时m_curBuffer不满
-            // 放到full里
-            m_fulledBuffers.push_back(std::move(m_curBuffer));
-            assert(!m_curBuffer);
-            // 给cur分配可用的buffer
-            m_curBuffer = std::move(newBuffer1);
-            assert(m_curBuffer);
-            assert(!newBuffer1);
-            buffersToWrite.swap(m_fulledBuffers);
-            if (!m_nextBuffer)
-            {
-                m_nextBuffer = std::move(newBuffer2);
-            }
-        }
-
-        assert(!buffersToWrite.empty());
-
-        if (buffersToWrite.size() > 25)
-        {
-            char buf[256];
-            snprintf(buf, sizeof buf, "Dropped log messages, %zd larger buffers\n",
-                     buffersToWrite.size() - 2);
-            fputs(buf, stderr);
-            output.append(buf, static_cast<int>(strlen(buf)));
-            buffersToWrite.erase(buffersToWrite.begin() + 2, buffersToWrite.end());
-        }
-
-        for (size_t i = 0; i < buffersToWrite.size(); ++i)
-        {
-            // FIXME: use unbuffered stdio FILE ? or use ::writev ?
-            output.append((const char *)buffersToWrite[i]->data(), buffersToWrite[i]->usedLength());
-        }
-
-        if (buffersToWrite.size() > 2)
-        {
-            // drop non-bzero-ed buffers, avoid trashing
-            buffersToWrite.resize(2);
-        }
-
-        if (!newBuffer1)
-        {
-            assert(!buffersToWrite.empty());
-            newBuffer1 = std::move(buffersToWrite.back());
-            buffersToWrite.pop_back();
-            newBuffer1->clean();
-        }
-
-        if (!newBuffer2)
-        {
-            assert(!buffersToWrite.empty());
-            newBuffer2 = std::move(buffersToWrite.back());
-            buffersToWrite.pop_back();
-            newBuffer2->clean();
-        }
-        assert(newBuffer1);
-        assert(newBuffer2);
-        buffersToWrite.clear();
-        output.flush();
-    }
-    output.flush();
 }
 };

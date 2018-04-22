@@ -2,6 +2,7 @@
 #define WY_BUFFER_H
 
 #include "common.h"
+#include "logger/log.h"
 #include "uniqid.h"
 #include "noncopyable.h"
 #include "mutex.h"
@@ -98,14 +99,7 @@ class DynamicBuffer : public BufferBase
     }
 
     // will keep old m_data
-    void expand(size_t n)
-    {
-        if (n > MaxBufferSize)
-        {
-            log_fatal("[DynamicBuffer] wrong n: %d\n", n);
-        }
-        return m_data.resize(n);
-    }
+    void expand(size_t n);
 };
 
 template <typename Derived>
@@ -168,35 +162,13 @@ class BufferRef : public Noncopyable
     std::shared_ptr<DynamicBuffer> m_cachedPtr; // lock only once
 
   public:
-    BufferRef()
-    {
-        m_uniqID = BufferSet::getSingleton()->newBuffer();
-        log_debug("BufferRef created %d\n", m_uniqID);
-    }
+    BufferRef();
 
-    ~BufferRef()
-    {
-        recycleBuffer();
-    }
+    ~BufferRef();
 
-    BufferRef(BufferRef &&b)
-    {
-        recycleBuffer();
-        m_uniqID = b.m_uniqID;
-        b.m_uniqID = 0;
-        b.m_cachedPtr = nullptr;
-        log_debug("BufferRef moved %d\n", m_uniqID);
-    }
+    BufferRef(BufferRef &&b);
 
-    BufferRef &operator=(BufferRef &&b)
-    {
-        recycleBuffer();
-        m_uniqID = b.m_uniqID;
-        b.m_uniqID = 0;
-        b.m_cachedPtr = nullptr;
-        log_debug("BufferRef moved %d\n", m_uniqID);
-        return (*this);
-    }
+    BufferRef &operator=(BufferRef &&b);
 
     inline std::shared_ptr<DynamicBuffer> operator->()
     {
@@ -204,30 +176,9 @@ class BufferRef : public Noncopyable
     }
 
   private:
-    std::shared_ptr<DynamicBuffer> get()
-    {
-        if (!m_uniqID)
-        {
-            return nullptr;
-        }
-        if (!m_cachedPtr)
-        {
-            m_cachedPtr = BufferSet::getSingleton()->getBuffer(m_uniqID);
-            log_debug("BufferRef cache %d\n", m_uniqID);
-        }
-        return m_cachedPtr;
-    }
+    std::shared_ptr<DynamicBuffer> get();
 
-    void recycleBuffer()
-    {
-        if (m_uniqID)
-        {
-            BufferSet::getSingleton()->recycleBuffer(m_uniqID);
-            log_debug("BufferRef recycled %d\n", m_uniqID);
-            m_uniqID = 0;
-        }
-        m_cachedPtr = nullptr;
-    }
+    void recycleBuffer();
 };
 };
 

@@ -7,7 +7,6 @@
 
 namespace wynet
 {
-using namespace std;
 
 class AppendFile;
 
@@ -15,7 +14,7 @@ class AppendFile;
 class LogFile : Noncopyable
 {
 public:
-  LogFile(const string &basename,
+  LogFile(const std::string &basename,
           off_t rollSize,
           bool threadSafe = true,
           int flushInterval = 3,
@@ -32,7 +31,7 @@ public:
 private:
   void append_unlocked(const char *logline, int len);
 
-  unique_ptr<AppendFile> &getAppendFile();
+  std::unique_ptr<AppendFile> &getAppendFile();
 
   inline time_t getPeriod(time_t &t)
   {
@@ -40,17 +39,17 @@ private:
   }
 
 private:
-  const string m_basename;
+  const std::string m_basename;
   const off_t m_rollSize;
   const int m_flushInterval;
   const int m_checkEveryN;
 
   int m_logLinesCount;
-  unique_ptr<MutexLock> m_mutex;
+  std::unique_ptr<MutexLock> m_mutex;
   time_t m_startPeriod;
   time_t m_lastRoll;
   time_t m_lastFlush;
-  unique_ptr<AppendFile> m_file;
+  std::unique_ptr<AppendFile> m_file;
 
   const static int k_RollPerSeconds = 3600 * 24;
 };

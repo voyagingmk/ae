@@ -2,6 +2,7 @@
 #define WY_UTILS_H
 
 #include "common.h"
+#include "logger/log.h"
 
 #ifdef DEBUG_MODE
 
@@ -16,7 +17,6 @@ void LogSocketState(int fd);
 int SetSockSendBufSize(int fd, int newSndbuf);
 
 int SetSockRecvBufSize(int fd, int newRcvbuf);
-
 
 std::string hostname();
 
