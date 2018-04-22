@@ -49,11 +49,6 @@ class LoggingBuffer : public StaticBuffer<4 * 1024 * 1024>
         return used;
     }
 
-    void resetUsed()
-    {
-        used = 0;
-    }
-
     void clean()
     {
         used = 0;

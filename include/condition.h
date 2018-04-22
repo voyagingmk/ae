@@ -34,7 +34,6 @@ class Condition : Noncopyable
         ClockTime nowtime(ClockTime::getNowTime());
         ClockTime duration(seconds);
         nowtime += duration;
-        MutexLockGuard<MutexLock> g(m_mutex);
         return ETIMEDOUT == pthread_cond_timedwait(&m_cond, m_mutex.getRawPointer(), &nowtime.ts);
     }
 

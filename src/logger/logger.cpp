@@ -45,20 +45,35 @@ void Logger::append(const char *logline, int len)
     {
         m_fulledBuffers.push_back(std::move(m_curBuffer));
         assert(!m_curBuffer);
-        if (m_nextBuffer)
-        {
-            m_curBuffer = std::move(m_nextBuffer);
-            assert(!m_nextBuffer);
-        }
-        else
-        {
-            m_curBuffer.reset(new LoggingBuffer());
-        }
+        updateCurBuffer();
         assert(m_curBuffer);
-        assert(m_curBuffer->usedLength() == 0);
         m_curBuffer->append(logline, len);
         m_cond.notify(); // 满了才notify
     }
+}
+
+void Logger::updateCurBuffer()
+{
+    if (m_curBuffer)
+    {
+        return;
+    }
+    assert(m_nextBuffer);
+    m_curBuffer = std::move(m_nextBuffer);
+    m_curBuffer->clean();
+    if (m_freeBuffers.size() > 0)
+    {
+        m_nextBuffer = std::move(m_freeBuffers.back());
+        m_freeBuffers.pop_back();
+        m_nextBuffer->clean();
+    }
+    else
+    {
+        m_nextBuffer.reset(new LoggingBuffer());
+    }
+    assert(m_nextBuffer);
+    assert(m_curBuffer->usedLength() == 0);
+    assert(m_nextBuffer->usedLength() == 0);
 }
 
 void Logger::start()
@@ -77,9 +92,12 @@ void Logger::stop()
 
 void Logger::threadEntry()
 {
+
     assert(m_running == true);
     m_latch.countDown();
     LogFile output(m_logtitle, m_rollSize, false);
+    BufferPtrVector buffersToWrite;
+    buffersToWrite.reserve(16);
     while (m_running)
     {
         {
@@ -88,18 +106,25 @@ void Logger::threadEntry()
             {
                 m_cond.waitForSeconds(m_flushInterval);
             }
-            // 可能是满了被唤醒，或者超时了唤醒，超时唤醒时m_curBuffer不满
             m_fulledBuffers.push_back(std::move(m_curBuffer));
             assert(!m_curBuffer);
-            m_curBuffer = std::move(newBuffer1);
+            updateCurBuffer();
             assert(m_curBuffer);
-            assert(!newBuffer1);
             buffersToWrite.swap(m_fulledBuffers);
-            if (!m_nextBuffer)
-            {
-                m_nextBuffer = std::move(newBuffer2);
-            }
         }
+
+        assert(!buffersToWrite.empty());
+        for (size_t i = 0; i < buffersToWrite.size(); i++)
+        {
+            output.append((const char *)buffersToWrite[i]->data(), buffersToWrite[i]->usedLength());
+        }
+        while (buffersToWrite.size() > 0)
+        {
+            m_freeBuffers.push_back(std::move(buffersToWrite.back()));
+            buffersToWrite.pop_back();
+        }
+        buffersToWrite.clear();
+        output.flush();
     }
 }
 
@@ -128,8 +153,11 @@ void Logger::threadEntry2()
             {
                 m_cond.waitForSeconds(m_flushInterval);
             }
+            // 可能是满了被唤醒，或者超时了唤醒，超时唤醒时m_curBuffer不满
+            // 放到full里
             m_fulledBuffers.push_back(std::move(m_curBuffer));
             assert(!m_curBuffer);
+            // 给cur分配可用的buffer
             m_curBuffer = std::move(newBuffer1);
             assert(m_curBuffer);
             assert(!newBuffer1);
@@ -169,7 +197,7 @@ void Logger::threadEntry2()
             assert(!buffersToWrite.empty());
             newBuffer1 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
-            newBuffer1->resetUsed();
+            newBuffer1->clean();
         }
 
         if (!newBuffer2)
@@ -177,7 +205,7 @@ void Logger::threadEntry2()
             assert(!buffersToWrite.empty());
             newBuffer2 = std::move(buffersToWrite.back());
             buffersToWrite.pop_back();
-            newBuffer2->resetUsed();
+            newBuffer2->clean();
         }
         assert(newBuffer1);
         assert(newBuffer2);

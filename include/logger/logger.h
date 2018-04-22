@@ -32,6 +32,9 @@ private:
 
   void threadEntry2();
 
+  void updateCurBuffer();
+
+private:
   typedef std::unique_ptr<LoggingBuffer> BufferUniquePtr;
   typedef std::vector<BufferUniquePtr> BufferPtrVector;
 
@@ -46,6 +49,7 @@ private:
   BufferUniquePtr m_curBuffer;
   BufferUniquePtr m_nextBuffer;
   BufferPtrVector m_fulledBuffers;
+  BufferPtrVector m_freeBuffers;
 };
 }
 #endif
