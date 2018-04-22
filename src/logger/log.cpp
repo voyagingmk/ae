@@ -71,8 +71,9 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     char *begin = buff + prefixLength;
-    snprintf(begin, k_lineBuffer - prefixLength, fmt, args);
+    vsnprintf(begin, k_lineBuffer - prefixLength, fmt, args);
     va_end(args);
+
     g_logger->append(buff, prefixLength + strlen(begin));
 }
 }
