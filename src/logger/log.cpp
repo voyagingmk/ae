@@ -61,17 +61,18 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
 
     char buff[k_lineBuffer];
 
-    snprintf(buff, 32, "%4d%02d%02d %02d:%02d:%02d",
+    snprintf(buff, 18, "%4d%02d%02d %02d:%02d:%02d",
              tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
              tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
+    buff[17] = ' ';
+    memcpy(buff + 18, LOG_LEVEL_to_str[static_cast<int>(level)], 6);
 
-    memcpy(buff + 32, LOG_LEVEL_to_str[static_cast<int>(level)], 6);
-    const int offset = 32 + 6;
-
+    const int prefixLength = 18 + 6;
     va_list args;
     va_start(args, fmt);
-    snprintf(buff + offset, k_lineBuffer - offset, fmt, args);
+    char *begin = buff + prefixLength;
+    snprintf(begin, k_lineBuffer - prefixLength, fmt, args);
     va_end(args);
-    g_logger->append(buff, strlen(buff));
+    g_logger->append(buff, prefixLength + strlen(begin));
 }
 }
