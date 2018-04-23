@@ -17,6 +17,8 @@ int main()
 {
     Logger logger("test");
     setLogLevel(LOG_LEVEL::LOG_DEBUG);
+    setEnableLogLineInfo(false);
+    setEnableOutputToConsole(false);
     setLogger(&logger);
     logger.start();
 

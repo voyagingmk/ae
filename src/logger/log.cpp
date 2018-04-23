@@ -23,6 +23,7 @@ class LogVars
     LogVars() : m_logLevel(initLogLevel()),
                 m_logger(nullptr),
                 m_logLineInfo(true),
+                m_outputToConsole(true),
                 k_logLineMax(1024)
     {
     }
@@ -44,6 +45,7 @@ class LogVars
     LOG_LEVEL m_logLevel;
     Logger *m_logger;
     bool m_logLineInfo;
+    bool m_outputToConsole;
     const int k_logLineMax;
     const char *k_logLevelToStr[];
 };
@@ -67,14 +69,17 @@ void setLogger(Logger *logger)
 
 void setEnableLogLineInfo(bool enabled)
 {
+    g_LogVars.m_logLineInfo = enabled;
+}
+
+void setEnableOutputToConsole(bool enabled)
+{
+
+    g_LogVars.m_outputToConsole = enabled;
 }
 
 void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
 {
-    if (!g_LogVars.m_logger)
-    {
-        return;
-    }
     if (level < g_LogVars.m_logLevel)
     {
         return;
@@ -96,7 +101,7 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
     int n = vsnprintf(buffContent, g_LogVars.k_logLineMax, fmt, args);
     va_end(args);
 
-    n = snprintf(buff, g_LogVars.k_logLineMax, "%4d%02d%02d %02d:%02d:%02d.%06d %07d %s %s - %s:%d",
+    n = snprintf(buff, g_LogVars.k_logLineMax, "%4d%02d%02d %02d:%02d:%02d.%06d %07d %s %s - %s:%d\n",
                  tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
                  tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec,
                  CurrentThread::tid(),
@@ -104,7 +109,13 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
                  buffContent,
                  _file, _line);
 
-    buff[n] = '\n';
-    g_LogVars.m_logger->append(buff, n + 1);
+    if (g_LogVars.m_logger)
+    {
+        g_LogVars.m_logger->append(buff, n);
+    }
+    if (g_LogVars.m_outputToConsole)
+    {
+        fprintf(stderr, "%s", buff);
+    }
 }
 }

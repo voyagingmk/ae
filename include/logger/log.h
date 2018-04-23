@@ -35,6 +35,8 @@ void setLogger(Logger *logger);
 
 void setEnableLogLineInfo(bool enabled);
 
+void setEnableOutputToConsole(bool enabled);
+
 void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...);
 };
 
