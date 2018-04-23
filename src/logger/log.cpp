@@ -92,7 +92,7 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
 
     const int prefixN = 40;
     const int postfixN = 200;
-    char buff[prefixN + g_LogVars.k_logLineMax + postfixN];
+    char buff[prefixN + g_LogVars.k_logLineMax + postfixN + 1];
     int n = 0;
     int total = prefixN;
     {
@@ -122,16 +122,16 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
         else
         {
             buff[prefixN + n] = '\n'; // replace \0 with \n
+            buff[prefixN + n + 1] = '\0';
         }
-    }
-
-    if (g_LogVars.m_logger)
-    {
-        g_LogVars.m_logger->append(buff, total);
     }
     if (g_LogVars.m_outputToConsole)
     {
         fprintf(stderr, "%s", buff);
+    }
+    if (g_LogVars.m_logger)
+    {
+        g_LogVars.m_logger->append(buff, total);
     }
 }
 }

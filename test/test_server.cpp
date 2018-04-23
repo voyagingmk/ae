@@ -37,6 +37,9 @@ static int SocketOutput(const char *buf, int len, ikcpcb *kcp, void *user)
 
 int main(int argc, char **argv)
 {
+    log_setting("test", LOG_LEVEL::LOG_DEBUG);
+    log_lineinfo(false);
+    log_start();
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
     //  UDPServer server(9999);
