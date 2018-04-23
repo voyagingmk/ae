@@ -101,7 +101,8 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
     int n = vsnprintf(buffContent, g_LogVars.k_logLineMax, fmt, args);
     va_end(args);
 
-    n = snprintf(buff, g_LogVars.k_logLineMax, "%4d%02d%02d %02d:%02d:%02d.%06d %07d %s %s - %s:%d\n",
+    // GMT（Z） = UTC + 0
+    n = snprintf(buff, g_LogVars.k_logLineMax, "%4d%02d%02d %02d:%02d:%02d.%06dZ %07d %s %s - %s:%d\n",
                  tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
                  tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec,
                  CurrentThread::tid(),
