@@ -24,7 +24,7 @@ int main()
 
     vector<shared_ptr<Thread>> threads;
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 1; i++)
     {
         threads.push_back(make_shared<Thread>(std::bind(threadProducer, i), "thread" + to_string(i)));
     }
