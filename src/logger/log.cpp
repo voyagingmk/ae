@@ -88,19 +88,21 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
     ::gmtime_r(&tv.tv_sec, &tm_time);
 
     char buff[g_LogVars.k_logLineMax];
+    char buffContent[g_LogVars.k_logLineMax];
 
-    int n = snprintf(buff, g_LogVars.k_logLineMax, "%4d%02d%02d %02d:%02d:%02d.%06d %s:%d",
-                     tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-                     tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec, _file, _line);
-    buff[n] = ' ';
-    const int prefixLength = n + 1;
     va_list args;
     va_start(args, fmt);
-    char *content = buff + prefixLength;
-    const int availableLength = g_LogVars.k_logLineMax - prefixLength;
-    n = vsnprintf(content, availableLength, fmt, args);
+    int n = vsnprintf(buffContent, g_LogVars.k_logLineMax, fmt, args);
     va_end(args);
-    *(content + n) = '\n';
-    g_LogVars.m_logger->append(buff, prefixLength + n + 1);
+
+    n = snprintf(buff, g_LogVars.k_logLineMax, "%4d%02d%02d %02d:%02d:%02d.%06d %s %s - %s:%d",
+                 tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
+                 tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec,
+                 g_LogVars.getLogLevelStr(level),
+                 buffContent,
+                 _file, _line);
+
+    buff[n] = '\n';
+    g_LogVars.m_logger->append(buff, n + 1);
 }
 }
