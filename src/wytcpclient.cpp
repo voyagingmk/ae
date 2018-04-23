@@ -69,7 +69,7 @@ void TCPClient::connect(const char *host, int port)
         SetSockSendBufSize(sockfd(), 32 * 1024);
 
         ret = ::connect(sockfd(), res->ai_addr, res->ai_addrlen);
-        log_debug("connect: %d\n", ret);
+        log_debug("connect: %d", ret);
         if ((ret == -1) && (errno == EINPROGRESS))
         {
             parent->getNet()->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,

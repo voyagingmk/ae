@@ -55,14 +55,14 @@ int KCPObject::send(const char *buf, int len)
     int ret = ikcp_send(m_kcp, buf, len);
     if (ret < 0)
     {
-        log_error("[kcp.send] err %d \n", ret);
+        log_error("[kcp.send] err %d", ret);
         if (ret == -1)
         {
-            log_error("[kcp.send] len < 0 \n");
+            log_error("[kcp.send] len < 0");
         }
         if (ret == -2)
         {
-            log_error("[kcp.send] seg == NULL or count > 255 \n");
+            log_error("[kcp.send] seg == NULL or count > 255");
         }
     }
     return ret;
@@ -73,19 +73,19 @@ int KCPObject::recv(char *buf, int len)
     int ret = ikcp_recv(m_kcp, buf, len);
     if (ret < 0)
     {
-        log_error("[kcp.recv] err %d \n", ret);
+        log_error("[kcp.recv] err %d", ret);
         if (ret == -1)
         {
-            log_error("[kcp.recv] rcv_queue is empty \n");
+            log_error("[kcp.recv] rcv_queue is empty");
         }
         if (ret == -2)
         {
-            log_error("[kcp.recv] peeksize < 0 \n");
+            log_error("[kcp.recv] peeksize < 0");
         }
 
         if (ret == -3)
         {
-            log_error("[kcp.recv] peeksize > len \n");
+            log_error("[kcp.recv] peeksize > len");
         }
     }
     return ret;
@@ -111,19 +111,19 @@ int KCPObject::input(const char *data, long size)
     int ret = ikcp_input(m_kcp, data, size);
     if (ret < 0)
     {
-        log_error("[kcp.input] err %d \n", ret);
+        log_error("[kcp.input] err %d", ret);
         if (ret == -1)
         {
-            log_error("[kcp.input] wrong data \n");
+            log_error("[kcp.input] wrong data");
         }
         if (ret == -2)
         {
-            log_error("[kcp.input] size < len \n");
+            log_error("[kcp.input] size < len");
         }
 
         if (ret == -3)
         {
-            log_error("[kcp.input] wrong cmd \n");
+            log_error("[kcp.input] wrong cmd");
         }
     }
     return ret;
@@ -139,14 +139,14 @@ int KCPObject::setmtu(int mtu)
     int ret = ikcp_setmtu(m_kcp, mtu);
     if (ret < 0)
     {
-        log_error("[kcp.setmtu] err %d \n", ret);
+        log_error("[kcp.setmtu] err %d", ret);
         if (ret == -1)
         {
-            log_error("[kcp.setmtu] mtu < 50 || mtu < (int)IKCP_OVERHEAD \n");
+            log_error("[kcp.setmtu] mtu < 50 || mtu < (int)IKCP_OVERHEAD");
         }
         if (ret == -2)
         {
-            log_error("[kcp.setmtu] buffer == NULL \n");
+            log_error("[kcp.setmtu] buffer == NULL");
         }
     }
     return ret;

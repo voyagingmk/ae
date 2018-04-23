@@ -8,7 +8,7 @@ WyNet::WyNet()
     m_threadPool = std::make_shared<EventLoopThreadPool>(&m_loop, "WyNet");
     m_threadPool->setThreadNum(4);
     m_threadPool->start([](EventLoop *loop) -> void {
-        printf("ThreadInitCallback\n");
+        log_debug("ThreadInitCallback");
     });
 }
 

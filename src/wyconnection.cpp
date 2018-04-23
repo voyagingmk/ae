@@ -8,7 +8,7 @@ using namespace wynet;
 
 int testOnTimerEvent(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *data)
 {
-    printf("testOnTimerEvent %lld\n", tr.Id());
+    log_debug("testOnTimerEvent %lld", tr.Id());
     return LOOP_EVT_NOMORE;
 }
 

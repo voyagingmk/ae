@@ -6,7 +6,7 @@ void DynamicBuffer::expand(size_t n)
 {
     if (n > MaxBufferSize)
     {
-        log_fatal("[DynamicBuffer] wrong n: %d\n", n);
+        log_fatal("[DynamicBuffer] wrong n: %d", n);
     }
     return m_data.resize(n);
 }
@@ -62,7 +62,7 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
 BufferRef::BufferRef()
 {
     m_uniqID = BufferSet::getSingleton()->newBuffer();
-    log_debug("BufferRef created %d\n", m_uniqID);
+    log_debug("BufferRef created %d", m_uniqID);
 }
 
 BufferRef::~BufferRef()
@@ -76,7 +76,7 @@ BufferRef::BufferRef(BufferRef &&b)
     m_uniqID = b.m_uniqID;
     b.m_uniqID = 0;
     b.m_cachedPtr = nullptr;
-    log_debug("BufferRef moved %d\n", m_uniqID);
+    log_debug("BufferRef moved %d", m_uniqID);
 }
 
 BufferRef &BufferRef::operator=(BufferRef &&b)
@@ -85,7 +85,7 @@ BufferRef &BufferRef::operator=(BufferRef &&b)
     m_uniqID = b.m_uniqID;
     b.m_uniqID = 0;
     b.m_cachedPtr = nullptr;
-    log_debug("BufferRef moved %d\n", m_uniqID);
+    log_debug("BufferRef moved %d", m_uniqID);
     return (*this);
 }
 
@@ -98,7 +98,7 @@ std::shared_ptr<DynamicBuffer> BufferRef::get()
     if (!m_cachedPtr)
     {
         m_cachedPtr = BufferSet::getSingleton()->getBuffer(m_uniqID);
-        log_debug("BufferRef cache %d\n", m_uniqID);
+        log_debug("BufferRef cache %d", m_uniqID);
     }
     return m_cachedPtr;
 }
@@ -108,7 +108,7 @@ void BufferRef::recycleBuffer()
     if (m_uniqID)
     {
         BufferSet::getSingleton()->recycleBuffer(m_uniqID);
-        log_debug("BufferRef recycled %d\n", m_uniqID);
+        log_debug("BufferRef recycled %d", m_uniqID);
         m_uniqID = 0;
     }
     m_cachedPtr = nullptr;

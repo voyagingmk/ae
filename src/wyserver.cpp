@@ -30,7 +30,7 @@ std::shared_ptr<TCPServer> Server::initTcpServer(int tcpPort)
 {
     m_tcpServer = std::make_shared<TCPServer>(shared_from_this());
     m_tcpServer->startListen(tcpPort);
-    log_info("[Server] TCPServer created, tcp sockfd: %d\n", m_tcpServer->sockfd());
+    log_info("[Server] TCPServer created, tcp sockfd: %d", m_tcpServer->sockfd());
     return m_tcpServer;
 }
 
@@ -38,7 +38,7 @@ std::shared_ptr<UDPServer> Server::initUdpServer(int udpPort)
 {
     m_udpPort = udpPort;
     m_udpServer = std::make_shared<UDPServer>(m_udpPort);
-    log_info("[Server] UDPServer created, udp sockfd: %d\n", m_udpServer->sockfd());
+    log_info("[Server] UDPServer created, udp sockfd: %d", m_udpServer->sockfd());
 
     m_net->getLoop().createFileEvent(m_udpServer, LOOP_EVT_READABLE,
                                      OnUdpMessage);

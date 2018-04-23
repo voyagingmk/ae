@@ -31,7 +31,7 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb)
     m_started = true;
     if (cb)
     {
-        printf("has ThreadInitCallback");
+        log_debug("has ThreadInitCallback");
     }
     for (int i = 0; i < m_numThreads; ++i)
     {
