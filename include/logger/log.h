@@ -32,6 +32,14 @@ enum class LOG_LEVEL
 
 #define log_start() __logger__.start();
 
+#define log_lineinfo(enabled) setEnableLogLineInfo(enabled);
+
+#define log_console(enabled) setEnableOutputToConsole(enabled);
+
+void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...);
+
+// ----- shouldn't call directly  ----------
+
 class Logger;
 
 void setLogLevel(LOG_LEVEL level);
@@ -39,8 +47,6 @@ void setLogLevel(LOG_LEVEL level);
 LOG_LEVEL logLevel();
 
 void setLogger(Logger *logger);
-
-void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...);
 
 // Note: change setting before log_start
 

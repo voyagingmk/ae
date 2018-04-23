@@ -16,8 +16,8 @@ void threadProducer(int i)
 int main()
 {
     log_setting("test", LOG_LEVEL::LOG_DEBUG);
-    // setEnableLogLineInfo(false);
-    // setEnableOutputToConsole(false);
+    log_lineinfo(false);
+    log_console(false);
     log_start();
 
     vector<shared_ptr<Thread>> threads;
