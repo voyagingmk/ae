@@ -6,6 +6,7 @@
 #include "wykcp.h"
 #include "wyserver.h"
 #include "wyclient.h"
+#include "wythread.h"
 #include "mutex.h"
 #include "eventloop.h"
 #include "eventloop_thread.h"
