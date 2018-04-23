@@ -42,22 +42,15 @@ enum class LOG_LEVEL
 
 #endif // ENABLE_LOG_FILELINE
 
-extern const int k_lineBuffer;
-
-extern LOG_LEVEL g_logLevel;
-
 class Logger;
-
-extern Logger *g_logger;
 
 void setLogLevel(LOG_LEVEL level);
 
-inline LOG_LEVEL logLevel()
-{
-    return g_logLevel;
-}
+LOG_LEVEL logLevel();
 
 void setLogger(Logger *logger);
+
+void setEnableLogLineInfo(bool enabled);
 
 void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...);
 };
