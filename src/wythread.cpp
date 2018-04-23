@@ -104,6 +104,19 @@ Thread::Thread(ThreadEntry &&func, const std::string &n)
     setDefaultName(num);
 }
 
+Thread::Thread(const ThreadEntry &func, const std::string &n)
+    : m_started(false),
+      m_joined(false),
+      m_pthreadId(0),
+      m_tid(0),
+      m_func(func),
+      m_name(n),
+      m_latch(1)
+{
+    int num = ++m_numCreated;
+    setDefaultName(num);
+}
+
 Thread::~Thread()
 {
     if (m_started && !m_joined)
