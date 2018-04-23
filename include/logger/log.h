@@ -25,6 +25,13 @@ enum class LOG_LEVEL
         ::abort();                                                             \
     }
 
+#define log_setting(filename, level)    \
+    wynet::Logger __logger__(filename); \
+    setLogger(&__logger__);             \
+    setLogLevel(level);
+
+#define log_start() __logger__.start();
+
 class Logger;
 
 void setLogLevel(LOG_LEVEL level);
@@ -33,11 +40,13 @@ LOG_LEVEL logLevel();
 
 void setLogger(Logger *logger);
 
+void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...);
+
+// Note: change setting before log_start
+
 void setEnableLogLineInfo(bool enabled);
 
 void setEnableOutputToConsole(bool enabled);
-
-void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...);
 };
 
 #endif

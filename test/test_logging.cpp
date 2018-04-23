@@ -15,12 +15,10 @@ void threadProducer(int i)
 
 int main()
 {
-    Logger logger("test");
-    setLogLevel(LOG_LEVEL::LOG_DEBUG);
+    log_setting("test", LOG_LEVEL::LOG_DEBUG);
     // setEnableLogLineInfo(false);
     // setEnableOutputToConsole(false);
-    setLogger(&logger);
-    logger.start();
+    log_start();
 
     vector<shared_ptr<Thread>> threads;
 
