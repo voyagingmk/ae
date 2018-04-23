@@ -93,26 +93,35 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
     struct tm tm_time;
     ::gmtime_r(&tv.tv_sec, &tm_time);
 
-    char buff[g_LogVars.k_logLineMax];
-    char buffContent[g_LogVars.k_logLineMax];
-
-    va_list args;
-    va_start(args, fmt);
-    int n = vsnprintf(buffContent, g_LogVars.k_logLineMax, fmt, args);
-    va_end(args);
-
-    // GMT（Z） = UTC + 0
-    n = snprintf(buff, g_LogVars.k_logLineMax, "%4d%02d%02d %02d:%02d:%02d.%06dZ %07d %s %s - %s:%d\n",
-                 tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-                 tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec,
-                 CurrentThread::tid(),
-                 g_LogVars.getLogLevelStr(level),
-                 buffContent,
-                 _file, _line);
+    const int prefixN = 40;
+    const int postfixN = 200;
+    char buff[prefixN + g_LogVars.k_logLineMax + postfixN];
+    int n = 0;
+    int total = prefixN;
+    {
+        // 4 + 2 + 2 + 1 + 2 + 1 + 2 + 1 + 2 + 1 + 6 + 1 + 1 + 7 + 1 + 5 = 39
+        snprintf(buff, prefixN, "%4d%02d%02d %02d:%02d:%02d.%06dZ %07d %s",
+                tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
+                tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec,
+                CurrentThread::tid(),
+                g_LogVars.getLogLevelStr(level));
+        buff[prefixN - 1] = ' ';
+    }
+    {
+        va_list args;
+        va_start(args, fmt);
+        n = vsnprintf(buff + prefixN, g_LogVars.k_logLineMax, fmt, args);
+        va_end(args);
+        buff[prefixN + n] = ' ';
+        total += n;
+        n = snprintf(buff + prefixN + n, std::max(g_LogVars.k_logLineMax + postfixN - n, postfixN), 
+            " - %s:%d\n", _file, _line);
+        total += n;
+    }
 
     if (g_LogVars.m_logger)
     {
-        g_LogVars.m_logger->append(buff, n);
+        g_LogVars.m_logger->append(buff, total);
     }
     if (g_LogVars.m_outputToConsole)
     {
