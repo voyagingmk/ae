@@ -116,7 +116,9 @@ void Logger::threadEntry()
         assert(!buffersToWrite.empty());
         for (size_t i = 0; i < buffersToWrite.size(); i++)
         {
-            output.append((const char *)buffersToWrite[i]->data(), buffersToWrite[i]->usedLength());
+            if (buffersToWrite[i]->usedLength() > 0) {
+                output.append((const char *)buffersToWrite[i]->data(), buffersToWrite[i]->usedLength());
+            }
         }
         while (buffersToWrite.size() > 0)
         {

@@ -1,5 +1,7 @@
 #ifndef WY_CLOCK_TIME_H
 #define WY_CLOCK_TIME_H
+
+#include "common.h"
 #include <time.h>
 
 class ClockTime
@@ -33,10 +35,14 @@ class ClockTime
         return *this;
     }
 
+    void debugFormat(char * buf, int bufLength) {
+        ::snprintf(buf, bufLength, "%lld.%.9ld\n", (long long)ts.tv_sec, ts.tv_nsec);
+    }
+
     static timespec getNowTime()
     {
         struct timespec _ts;
-        clock_gettime(CLOCK_MONOTONIC_RAW, &_ts);
+        clock_gettime(CLOCK_REALTIME, &_ts);
         return _ts;
     }
 
