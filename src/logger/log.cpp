@@ -21,7 +21,6 @@ class LogVars
 {
   public:
     LogVars() : m_logLevel(initLogLevel()),
-                m_logger(nullptr),
                 m_logLineInfo(true),
                 m_outputToConsole(true),
                 k_logLineMax(1024)
@@ -43,7 +42,7 @@ class LogVars
 
   public:
     LOG_LEVEL m_logLevel;
-    Logger *m_logger;
+    std::weak_ptr<Logger> m_loggerPtr;
     bool m_logLineInfo;
     bool m_outputToConsole;
     const int k_logLineMax;
@@ -62,9 +61,9 @@ LOG_LEVEL logLevel()
     return g_LogVars.m_logLevel;
 }
 
-void setLogger(Logger *logger)
+void setLogger(std::shared_ptr<Logger> ptr)
 {
-    g_LogVars.m_logger = logger;
+    g_LogVars.m_loggerPtr = ptr;
 }
 
 void setEnableLogLineInfo(bool enabled)
@@ -127,11 +126,14 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
     }
     if (g_LogVars.m_outputToConsole)
     {
+        // static consoleMutex;
+        // MutexLockGuard<MutexLock> lock(consoleMutex);
         fprintf(stderr, "%s", buff);
     }
-    if (g_LogVars.m_logger)
+    auto ptr = g_LogVars.m_loggerPtr.lock();
+    if (ptr)
     {
-        g_LogVars.m_logger->append(buff, total);
+        ptr->append(buff, total);
     }
 }
 }

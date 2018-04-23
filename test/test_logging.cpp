@@ -7,7 +7,7 @@ using namespace std;
 
 void threadProducer(int i)
 {
-    for (int k = 0; k < 100; k++)
+    for (int k = 0; k < 1000; k++)
     {
         log_debug("threadProducer: k = %d", k);
     }
@@ -15,10 +15,19 @@ void threadProducer(int i)
 
 int main()
 {
-    log_setting("test", LOG_LEVEL::LOG_DEBUG);
-    log_lineinfo(false);
-    log_console(false);
-    log_start();
+    if (true)
+    {
+
+        log_level(LOG_LEVEL::LOG_DEBUG);
+        log_lineinfo(false);
+    }
+    else
+    {
+        log_file("test");
+        log_level(LOG_LEVEL::LOG_DEBUG);
+        log_console(false);
+        log_start();
+    }
 
     vector<shared_ptr<Thread>> threads;
 

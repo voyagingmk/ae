@@ -1,11 +1,12 @@
 #include "wynet.h"
+#include "logger/logger.h"
 using namespace wynet;
 
-WyNet net;
+WyNet *g_net;
 
 void Stop(int signo)
 {
-    net.stopLoop();
+    g_net->stopLoop();
 }
 
 void OnTcpConnected(PtrClient client)
@@ -17,13 +18,21 @@ void OnTcpConnected(PtrClient client)
 void OnTcpDisconnected(PtrClient client)
 {
     log_info("OnTcpDisconnected: %d", client->getTcpClient()->sockfd());
-    net.stopLoop();
+    g_net->stopLoop();
 }
 
 int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
+
+    // log_file("test_client");
+    log_level(LOG_LEVEL::LOG_DEBUG);
+    log_lineinfo(false);
+    // log_start();
+
+    WyNet net;
+    g_net = &net;
 
     log_info("aeGetApiName: %s", aeGetApiName());
     std::shared_ptr<Client> client = std::make_shared<Client>(&net);

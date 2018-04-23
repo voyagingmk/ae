@@ -1,6 +1,8 @@
 #ifndef WY_LOG_H
 #define WY_LOG_H
 
+#include <memory>
+
 namespace wynet
 {
 
@@ -25,12 +27,13 @@ enum class LOG_LEVEL
         ::abort();                                                             \
     }
 
-#define log_setting(filename, level)    \
-    wynet::Logger __logger__(filename); \
-    setLogger(&__logger__);             \
-    setLogLevel(level);
+#define log_file(filename)                                                                        \
+    static std::shared_ptr<wynet::Logger> __logger__ = std::make_shared<wynet::Logger>(filename); \
+    setLogger(__logger__);
 
-#define log_start() __logger__.start();
+#define log_start() __logger__->start();
+
+#define log_level(level) setLogLevel(level);
 
 #define log_lineinfo(enabled) setEnableLogLineInfo(enabled);
 
@@ -46,7 +49,7 @@ void setLogLevel(LOG_LEVEL level);
 
 LOG_LEVEL logLevel();
 
-void setLogger(Logger *logger);
+void setLogger(std::shared_ptr<Logger> logger);
 
 // Note: change setting before log_start
 

@@ -2,11 +2,11 @@
 #include "logger/logger.h"
 using namespace wynet;
 
-WyNet net;
+WyNet *g_net;
 
 void Stop(int signo)
 {
-    net.stopLoop();
+    g_net->stopLoop();
 }
 
 void OnTcpConnected(PtrConn conn)
@@ -37,11 +37,17 @@ static int SocketOutput(const char *buf, int len, ikcpcb *kcp, void *user)
 
 int main(int argc, char **argv)
 {
-    log_setting("test", LOG_LEVEL::LOG_DEBUG);
-    log_lineinfo(false);
-    log_start();
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
+
+    // log_file("test_server");
+    log_level(LOG_LEVEL::LOG_DEBUG);
+    log_lineinfo(false);
+    // log_start();
+
+    WyNet net;
+    g_net = &net;
+
     //  UDPServer server(9999);
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s", aeGetApiName());

@@ -35,6 +35,10 @@ Logger::~Logger()
 
 void Logger::append(const char *logline, int len)
 {
+    if (!m_running)
+    {
+        return;
+    }
     MutexLockGuard<MutexLock> lock(m_mutex);
     assert(m_curBuffer);
     if (m_curBuffer->leftOpacity() > len)
@@ -116,7 +120,8 @@ void Logger::threadEntry()
         assert(!buffersToWrite.empty());
         for (size_t i = 0; i < buffersToWrite.size(); i++)
         {
-            if (buffersToWrite[i]->usedLength() > 0) {
+            if (buffersToWrite[i]->usedLength() > 0)
+            {
                 output.append((const char *)buffersToWrite[i]->data(), buffersToWrite[i]->usedLength());
             }
         }
