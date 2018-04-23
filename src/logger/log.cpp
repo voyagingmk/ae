@@ -29,12 +29,12 @@ class LogVars
     const char *getLogLevelStr(LOG_LEVEL level) const
     {
         const char *k_logLevelToStr[] = {
-            "TRACE ",
-            "DEBUG ",
-            "INFO  ",
-            "WARN  ",
-            "ERROR ",
-            "FATAL ",
+            "TRACE",
+            "DEBUG",
+            "INFO ",
+            "WARN ",
+            "ERROR",
+            "FATAL",
         };
         return k_logLevelToStr[static_cast<int>(level)];
     }
@@ -81,25 +81,26 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
+    const char *_file = g_LogVars.m_logLineInfo ? file : "?";
+    int _line = g_LogVars.m_logLineInfo ? line : 0;
+
     struct tm tm_time;
     ::gmtime_r(&tv.tv_sec, &tm_time);
 
     char buff[g_LogVars.k_logLineMax];
 
-    // 4 2 2 1 2 1 2 1 2 1 6= 24,  24 + '\0' = 25
-    snprintf(buff, 25, "%4d%02d%02d %02d:%02d:%02d.%06d",
-             tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-             tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec); // tv_usec 微秒 百万分之一秒
-    buff[24] = ' ';
-    memcpy(buff + 25, g_LogVars.getLogLevelStr(level), 6);
-
-    const int prefixLength = 25 + 6;
+    int n = snprintf(buff, g_LogVars.k_logLineMax, "%4d%02d%02d %02d:%02d:%02d.%06d %s:%d",
+                     tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
+                     tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec, _file, _line);
+    buff[n] = ' ';
+    const int prefixLength = n + 1;
     va_list args;
     va_start(args, fmt);
-    char *begin = buff + prefixLength;
-    vsnprintf(begin, g_LogVars.k_logLineMax - prefixLength, fmt, args);
+    char *content = buff + prefixLength;
+    const int availableLength = g_LogVars.k_logLineMax - prefixLength;
+    n = vsnprintf(content, availableLength, fmt, args);
     va_end(args);
-
-    g_LogVars.m_logger->append(buff, prefixLength + strlen(begin));
+    *(content + n) = '\n';
+    g_LogVars.m_logger->append(buff, prefixLength + n + 1);
 }
 }

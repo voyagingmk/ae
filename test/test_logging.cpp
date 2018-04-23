@@ -9,7 +9,7 @@ void threadProducer(int i)
 {
     for (int k = 0; k < 100; k++)
     {
-        log_debug("threadProducer<%d>: k = %d\n", i, k);
+        log_debug("threadProducer<%d>: k = %d", i, k);
     }
 }
 
