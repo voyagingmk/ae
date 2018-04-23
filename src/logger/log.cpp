@@ -96,13 +96,13 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
     int n = 0;
     int total = prefixN;
     {
-        //  4 +    2 +    2 +   1 +     3 +     3 +     3 +     7 +   1 +    7 +   1 +     6 = 40
-        //%4d + %02d + %02d + ' ' + %02d: + %02d: + %02d. + %06dZ + ' ' + %07d + ' ' + level
-        n = snprintf(buff, prefixN, "%4d%02d%02d %02d:%02d:%02d.%06dZ %07d %s",
-                tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-                tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec,
-                CurrentThread::tid(),
-                g_LogVars.getLogLevelStr(level));
+        //  4 +    2 +    2 +   1 +     3 +     3 +     3 +     7 +   1 +  7 +   1 +     6 = 40
+        //%4d + %02d + %02d + ' ' + %02d: + %02d: + %02d. + %06dZ + ' ' + %s + ' ' + level
+        n = snprintf(buff, prefixN, "%4d%02d%02d %02d:%02d:%02d.%06dZ %s %s",
+                     tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
+                     tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, tv.tv_usec,
+                     CurrentThread::tidString(),
+                     g_LogVars.getLogLevelStr(level));
         assert(prefixN == n + 1);
         buff[n] = ' '; // replace \0 with space
     }
@@ -112,12 +112,15 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
         n = vsnprintf(buff + prefixN, g_LogVars.k_logLineMax, fmt, args);
         va_end(args);
         total += n + 1; // the \0 will be replaced
-        if (g_LogVars.m_logLineInfo) {
+        if (g_LogVars.m_logLineInfo)
+        {
             buff[prefixN + n] = ' '; // replace \0 with space
-            n = snprintf(buff + total, std::max(g_LogVars.k_logLineMax + postfixN - n, postfixN), 
-                "- %s:%d\n", file, line);
+            n = snprintf(buff + total, std::max(g_LogVars.k_logLineMax + postfixN - n, postfixN),
+                         "- %s:%d\n", file, line);
             total += n; // the last \0 not needed
-        } else {
+        }
+        else
+        {
             buff[prefixN + n] = '\n'; // replace \0 with \n
         }
     }
