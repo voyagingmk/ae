@@ -3,10 +3,10 @@ using namespace wynet;
 
 EventLoop *g_loop;
 
-void threadEntry()
+void AnotherLoop()
 {
-    printf("threadEntry(): pid = %d, tid = %d\n", getpid(), CurrentThread::tid());
-    printf("threadEntry(): isMainThread: %s\n", CurrentThread::isMainThread() ? "true" : "false");
+    printf("AnotherLoop(): pid = %d, tid = %d\n", getpid(), CurrentThread::tid());
+    printf("AnotherLoop(): isMainThread: %s\n", CurrentThread::isMainThread() ? "true" : "false");
 
     g_loop->loop();
 }
@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     EventLoop loop;
     g_loop = &loop;
 
-    Thread thread(threadEntry);
+    Thread thread(AnotherLoop);
     thread.start();
     thread.join();
     return 0;
