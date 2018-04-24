@@ -44,6 +44,7 @@ FILE(GLOB MY_SOURCERS
     src/wyudpserver.cpp
     src/wyutils.cpp
     src/wybuffer.cpp
+    src/wysockbuffer.cpp
     src/eventloop.cpp
     src/eventloop_thread.cpp
     src/eventloop_threadpool.cpp
@@ -73,6 +74,7 @@ FILE(GLOB MY_HEADERS
     include/wykcp.h
     include/wysockbase.h
     include/wybuffer.h
+    include/wysockbuffer.h
     include/wyclient.h
     include/wyserver.h
     include/wyudpclient.h

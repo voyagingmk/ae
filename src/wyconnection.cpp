@@ -3,6 +3,7 @@
 #include "eventloop.h"
 #include "protocol.h"
 #include "protocol_define.h"
+#include "wysockbuffer.h"
 
 using namespace wynet;
 

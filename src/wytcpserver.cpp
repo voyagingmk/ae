@@ -5,6 +5,7 @@
 #include "protocol.h"
 #include "protocol_define.h"
 #include "wynet.h"
+#include "wysockbuffer.h"
 
 namespace wynet
 {

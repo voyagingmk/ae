@@ -5,6 +5,7 @@
 #include "uniqid.h"
 #include "wykcp.h"
 #include "wysockbase.h"
+#include "wysockbuffer.h"
 #include "noncopyable.h"
 
 namespace wynet
