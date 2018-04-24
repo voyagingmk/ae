@@ -7,6 +7,7 @@
 #include "noncopyable.h"
 #include "mutex.h"
 #include "condition.h"
+#include "wysingleton.h"
 
 namespace wynet
 {
@@ -100,32 +101,6 @@ class DynamicBuffer : public BufferBase
 
     // will keep old m_data
     void expand(size_t n);
-};
-
-template <typename Derived>
-class Singleton : public Noncopyable
-{
-  public:
-    static std::atomic<Derived *> s_instance;
-    static MutexLock s_mutex;
-
-    static Derived *getSingleton()
-    {
-        Derived *tmp = Singleton::s_instance.load(std::memory_order_relaxed);
-        std::atomic_thread_fence(std::memory_order_acquire);
-        if (tmp == nullptr)
-        {
-            MutexLockGuard<MutexLock> lock(s_mutex);
-            tmp = s_instance.load(std::memory_order_relaxed);
-            if (tmp == nullptr)
-            {
-                tmp = new Derived;
-                std::atomic_thread_fence(std::memory_order_release);
-                s_instance.store(tmp, std::memory_order_relaxed);
-            }
-        }
-        return tmp;
-    }
 };
 
 template <typename Derived>

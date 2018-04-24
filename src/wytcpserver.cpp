@@ -262,7 +262,7 @@ void TCPServer::_onTcpMessage(int connfdTcp)
 		}
 		if (ret == 1)
 		{
-			BufferRef &bufRef = sockBuffer.bufRef;
+			BufferRef &bufRef = sockBuffer.getBufRef();
 			PacketHeader *header = (PacketHeader *)(bufRef->data());
 			Protocol protocol = static_cast<Protocol>(header->getProtocol());
 			switch (protocol)

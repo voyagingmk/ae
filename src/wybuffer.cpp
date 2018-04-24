@@ -93,6 +93,7 @@ std::shared_ptr<DynamicBuffer> BufferRef::get()
 {
     if (!m_uniqID)
     {
+        log_fatal("BufferRef get, no m_uniqID");
         return nullptr;
     }
     if (!m_cachedPtr)

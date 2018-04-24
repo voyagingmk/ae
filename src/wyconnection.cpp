@@ -46,7 +46,7 @@ void TcpConnectionForServer::ontEstablished()
     sendByTcp(connectId, SerializeProtocol<protocol::TcpHandshake>(handshake));
     log_info("[Server][tcp] connected, connectId: %d, connfdTcp: %d, key: %d", connectId(), connectFd(), handshake.key);
     */
-    LogSocketState(fd());
+    // LogSocketState(fd());
 }
 
 void TcpConnectionForServer::onReadable()
@@ -69,7 +69,7 @@ void TcpConnectionForServer::onReadable()
         }
         if (ret == 1)
         {
-            BufferRef &bufRef = sockBuf.bufRef;
+            BufferRef &bufRef = sockBuf.getBufRef();
             PacketHeader *header = (PacketHeader *)(bufRef->data());
             Protocol protocol = static_cast<Protocol>(header->getProtocol());
             switch (protocol)
