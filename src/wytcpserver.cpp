@@ -241,6 +241,7 @@ void TCPServer::_onTcpDisconnected(int connfdTcp)
 	}
 }
 
+/*
 void TCPServer::_onTcpMessage(int connfdTcp)
 {
 	UniqID connectId = m_connfd2cid[connfdTcp];
@@ -289,5 +290,5 @@ void TCPServer::_onTcpMessage(int connfdTcp)
 			sockBuffer.resetBuffer();
 		}
 	} while (1);
-}
+}*/
 };

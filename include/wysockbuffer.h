@@ -46,9 +46,14 @@ class SockBuffer : public Noncopyable
         return m_bufRef;
     }
 
-    inline int leftSpace()
+    inline int writableSize()
     {
         return m_bufRef->length() - m_pos;
+    }
+
+    inline int readableSize()
+    {
+        return m_pos;
     }
 
     inline void resetBuffer()

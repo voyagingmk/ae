@@ -61,8 +61,6 @@ private:
 
   void _closeConnectByFd(int connfdTcp, bool force = false);
 
-  void _onTcpMessage(int connfdTcp);
-
   void _onTcpDisconnected(int connfdTcp);
 
   friend void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);

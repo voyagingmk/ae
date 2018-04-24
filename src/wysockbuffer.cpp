@@ -28,7 +28,7 @@ int SockBuffer::readIn(int sockfd, int *nreadTotal)
             int npend;
             ioctl(sockfd, FIONREAD, &npend);
             // make sure there is enough space for recv
-            while (npend > leftSpace())
+            while (npend > writableSize())
             {
                 m_bufRef->expand(m_bufRef->length() + npend);
             }

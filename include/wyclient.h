@@ -67,8 +67,6 @@ class Client : public FDRef
   private:
     void _onTcpConnected();
 
-    // void _onTcpMessage();
-
     void _onTcpDisconnected();
 
     friend void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask);
