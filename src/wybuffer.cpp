@@ -6,7 +6,7 @@ void DynamicBuffer::expand(size_t n)
 {
     if (n > MaxBufferSize)
     {
-        log_fatal("[DynamicBuffer] wrong n: %d", n);
+        log_fatal("[DynamicBuffer] expand, wrong n: %d", n);
     }
     return m_data.resize(n);
 }

@@ -68,9 +68,6 @@ class StaticBuffer : public BufferBase
 class DynamicBuffer : public BufferBase
 {
   public:
-    std::vector<uint8_t> m_data;
-
-  public:
     DynamicBuffer(size_t s = 0xff) : m_data(s)
     {
     }
@@ -101,6 +98,14 @@ class DynamicBuffer : public BufferBase
 
     // will keep old m_data
     void expand(size_t n);
+
+    std::vector<uint8_t> &getDataVector()
+    {
+        return m_data;
+    }
+
+  private:
+    std::vector<uint8_t> m_data;
 };
 
 template <typename Derived>
