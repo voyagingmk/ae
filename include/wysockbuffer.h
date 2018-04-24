@@ -106,7 +106,7 @@ class SockBuffer : public Noncopyable
     void append(uint8_t *data, size_t n);
 
     // return value = readv/read
-    size_t readIn(int sockfd, int *nreadTotal);
+    size_t readIn(int sockfd);
 };
 };
 

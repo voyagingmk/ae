@@ -23,7 +23,7 @@ void SockBuffer::append(uint8_t *data, size_t n)
     m_pos2 += n;
 }
 
-size_t SockBuffer::readIn(int sockfd, int *nreadTotal)
+size_t SockBuffer::readIn(int sockfd)
 {
     *nreadTotal = 0;
     const size_t free = tailFreeSize();
