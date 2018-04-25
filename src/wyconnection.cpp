@@ -53,49 +53,49 @@ void TcpConnectionForServer::ontEstablished()
 void TcpConnectionForServer::onReadable()
 {
     SockBuffer &sockBuf = sockBuffer();
-    do
+    int ret = sockBuf.readIn(connectFd());
+    log_debug("[Server][tcp] readIn connectFd %d ret %d", connectFd(), ret);
+    if (ret <= 0)
     {
-        int ret = sockBuf.readIn(connectFd());
-        log_debug("[Server][tcp] readIn connectFd %d ret %d", connectFd(), ret);
-        if (ret <= 0)
+        if (ret < 0)
         {
-            // has error or has closed
-            close(false);
-            return;
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                return;
+            }
+            log_error("readIn error: %d", errno);
         }
-        if (ret == 2)
+        // has unknown error or has closed
+        close(false);
+        return;
+    }
+    /*
+        BufferRef &bufRef = sockBuf.getBufRef();
+        PacketHeader *header = (PacketHeader *)(bufRef->data());
+        Protocol protocol = static_cast<Protocol>(header->getProtocol());
+        switch (protocol)
+        {
+        case Protocol::UdpHandshake:
         {
             break;
         }
-        if (ret == 1)
+        case Protocol::UserPacket:
         {
-            BufferRef &bufRef = sockBuf.getBufRef();
-            PacketHeader *header = (PacketHeader *)(bufRef->data());
-            Protocol protocol = static_cast<Protocol>(header->getProtocol());
-            switch (protocol)
-            {
-            case Protocol::UdpHandshake:
-            {
-                break;
-            }
-            case Protocol::UserPacket:
-            {
-                protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->data() + header->getHeaderLength());
-                size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
-                // log_debug("getHeaderLength: %d", header->getHeaderLength());
-                /*
+            protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->data() + header->getHeaderLength());
+            size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
+            // log_debug("getHeaderLength: %d", header->getHeaderLength());
+           
                 if (onTcpRecvMessage)
                 {
                     onTcpRecvMessage(shared_from_this(), conn, (uint8_t *)p, dataLength);
-                }*/
-                break;
-            }
-            default:
-                break;
-            }
-            sockBuf.resetBuffer();
+                }
+            break;
         }
-    } while (1);
+        default:
+            break;
+        }
+        sockBuf.resetBuffer();
+    }*/
 }
 
 void TcpConnectionForServer ::close(bool force)
