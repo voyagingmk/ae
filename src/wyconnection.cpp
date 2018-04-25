@@ -56,7 +56,7 @@ void TcpConnectionForServer::onReadable()
     do
     {
         int ret = sockBuf.readIn(connectFd());
-        log_debug("[Server][tcp] readIn connectFd %d ret %d nreadTotal %d", connectFd(), ret);
+        log_debug("[Server][tcp] readIn connectFd %d ret %d", connectFd(), ret);
         if (ret <= 0)
         {
             // has error or has closed
