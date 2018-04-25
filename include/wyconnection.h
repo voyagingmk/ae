@@ -55,6 +55,11 @@ class TcpConnection : public SocketBase
     {
     }
 
+    std::shared_ptr<TcpConnection> shared_from_this()
+    {
+        return FDRef::downcasted_shared_from_this<TcpConnection>();
+    }
+
     TcpConnection &operator=(TcpConnection &&c)
     {
         m_buf = std::move(c.m_buf);
@@ -126,13 +131,13 @@ class TcpConnection : public SocketBase
     }
 
   protected:
-    virtual void ontEstablished() {}
+    virtual void onEstablished() {}
 
     virtual void onReadable() {}
 
     virtual void onWritable() {}
 
-  private:
+  protected:
     EventLoop *m_loop;
     uint32_t m_key;
     KCPObject *m_kcpObj;
@@ -151,7 +156,7 @@ class TcpConnectionForServer : public TcpConnection
     {
     }
 
-    void ontEstablished() override;
+    void onEstablished() override;
 
     void onReadable() override;
 

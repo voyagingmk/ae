@@ -34,11 +34,12 @@ void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mas
     // eventLoop->createTimerInLoop(1000, testOnTimerEvent, std::weak_ptr<FDRef>(), nullptr);
 }
 
-void TcpConnectionForServer::ontEstablished()
+void TcpConnectionForServer::onEstablished()
 {
-
+    getLoop()->assertInLoopThread();
     getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
 
+    onTcpConnected(shared_from_this());
     /*
     protocol::TcpHandshake handshake;
     handshake.connectId = connectId();

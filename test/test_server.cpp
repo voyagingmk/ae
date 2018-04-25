@@ -11,18 +11,18 @@ void Stop(int signo)
 
 void OnTcpConnected(PtrConn conn)
 {
-    log_debug("[OnTcpConnected] %d", conn->connectId());
+    log_debug("[test.OnTcpConnected] %d", conn->connectId());
 }
 
 void OnTcpDisconnected(PtrConn conn)
 {
-    log_debug("[OnTcpDisconnected] %d", conn->connectId());
+    log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
 }
 
 void OnTcpRecvMessage(PtrConn conn, uint8_t *p, size_t len)
 {
 
-    log_debug("[OnTcpRecvMessage] %d, %s", conn->connectId(), (const char *)p);
+    log_debug("[test.OnTcpRecvMessage] %d, %s", conn->connectId(), (const char *)p);
 }
 
 /*
