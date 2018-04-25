@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "wysockbase.h"
+#include "wyconnection.h"
 
 namespace wynet
 {
@@ -12,32 +13,47 @@ typedef std::shared_ptr<Client> PtrClient;
 
 class TCPClient : public SocketBase
 {
-  public:
-    sockaddr_in m_serSockaddr;
-    struct hostent *h;
-    PtrClient parent;
-    bool connected;
+public:
+  sockaddr_in m_serSockaddr;
+  struct hostent *h;
+  PtrClient m_parent;
+  bool m_connected;
 
-  public:
-    std::shared_ptr<TCPClient> shared_from_this()
-    {
-        return FDRef::downcasted_shared_from_this<TCPClient>();
-    }
+public:
+  TcpConnection::OnTcpConnected onTcpConnected;
+  TcpConnection::OnTcpDisconnected onTcpDisconnected;
+  TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
 
-    TCPClient(PtrClient client);
+public:
+  std::shared_ptr<TCPClient> shared_from_this()
+  {
+    return FDRef::downcasted_shared_from_this<TCPClient>();
+  }
 
-    void connect(const char *host, int port);
+  TCPClient(PtrClient client);
 
-    void Close();
+  void connect(const char *host, int port);
 
-    void Send(uint8_t *data, size_t len);
+  void Close();
 
-    void Recvfrom();
+  void Send(uint8_t *data, size_t len);
 
-    void onConnected();
+  void Recvfrom();
 
-  private:
-    friend void OnTcpWritable(struct aeEventLoop *eventLoop, void *clientData, int mask);
+  void onConnected();
+
+  EventLoop &getLoop();
+
+private:
+  void _onTcpConnected();
+
+  void _onTcpDisconnected();
+
+  void _onTcpMessage();
+
+  friend void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask);
+
+  friend void OnTcpWritable(struct aeEventLoop *eventLoop, void *clientData, int mask);
 };
 };
 

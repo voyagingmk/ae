@@ -26,7 +26,7 @@ void SockBuffer::append(uint8_t *data, size_t n)
 size_t SockBuffer::readIn(int sockfd)
 {
     const size_t free = tailFreeSize();
-    uint8_t *buf = m_bufRef->data() + m_pos1;
+    uint8_t *buf = m_bufRef->data() + m_pos2;
     const int stackBufLength = 65536;
     char stackBuf[stackBufLength];
     struct iovec vec[2];
@@ -41,7 +41,7 @@ size_t SockBuffer::readIn(int sockfd)
     {
         if (nRead <= free)
         {
-            m_pos1 += nRead;
+            m_pos2 += nRead;
         }
         else
         {

@@ -7,23 +7,8 @@
 namespace wynet
 {
 
-void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
-{
-    std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-    if (!sfdRef)
-    {
-        return;
-    }
-    log_debug("OnTcpMessage fd %d", sfdRef->fd());
-    std::shared_ptr<Client> client = std::dynamic_pointer_cast<Client>(sfdRef);
-    // client->_onTcpMessage();
-}
-
 Client::Client(WyNet *net) : FDRef(0),
-                             m_net(net),
-                             onTcpConnected(nullptr),
-                             onTcpDisconnected(nullptr),
-                             onTcpRecvMessage(nullptr)
+                             m_net(net)
 {
 }
 
@@ -31,37 +16,23 @@ Client::~Client()
 {
 }
 
-void Client::initTcpClient(const char *host, int tcpPort)
+std::shared_ptr<TCPClient> Client::initTcpClient(const char *host, int tcpPort)
 {
     m_tcpClient = std::make_shared<TCPClient>(shared_from_this());
     m_tcpClient->connect(host, tcpPort);
+    return m_tcpClient;
 }
 
 void Client::sendByTcp(const uint8_t *data, size_t len)
 {
-    protocol::UserPacket *p = (protocol::UserPacket *)data;
-    PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
-    m_tcpClient->Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
+    // protocol::UserPacket *p = (protocol::UserPacket *)data;
+    // PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
+    // m_tcpClient->Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
 }
 
 void Client::sendByTcp(PacketHeader *header)
 {
     m_tcpClient->Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
-}
-
-void Client::_onTcpConnected()
-{
-    m_net->getLoop().createFileEvent(m_tcpClient->shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
-    LogSocketState(m_tcpClient->sockfd());
-    if (onTcpConnected)
-        onTcpConnected(shared_from_this());
-}
-
-void Client::_onTcpDisconnected()
-{
-    m_net->getLoop().deleteFileEvent(m_tcpClient, LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
-    if (onTcpDisconnected)
-        onTcpDisconnected(shared_from_this());
 }
 
 /*

@@ -12,7 +12,7 @@ void Stop(int signo)
 void OnTcpConnected(PtrClient client)
 {
     log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
-    client->sendByTcp((const uint8_t *)"hello", 5);
+    // client->sendByTcp((const uint8_t *)"hello", 5);
 }
 
 void OnTcpDisconnected(PtrClient client)
@@ -36,9 +36,9 @@ int main(int argc, char **argv)
 
     log_info("aeGetApiName: %s", aeGetApiName());
     std::shared_ptr<Client> client = std::make_shared<Client>(&net);
-    client->initTcpClient("127.0.0.1", 9998);
-    client->onTcpConnected = &OnTcpConnected;
-    client->onTcpDisconnected = &OnTcpDisconnected;
+    std::shared_ptr<TCPClient> tcpClient = client->initTcpClient("127.0.0.1", 9998);
+    tcpClient->onTcpConnected = &OnTcpConnected;
+    tcpClient->onTcpDisconnected = &OnTcpDisconnected;
     net.addClient(client);
     net.startLoop();
     log_info("exit");

@@ -89,7 +89,7 @@ class SockBuffer : public Noncopyable
 
     inline int readableSize()
     {
-        return m_pos1;
+        return m_pos2 - m_pos1;
     }
 
     inline void resetBuffer()
@@ -107,6 +107,12 @@ class SockBuffer : public Noncopyable
 
     // return value = readv/read
     size_t readIn(int sockfd);
+
+    void readOut(int expected)
+    {
+        expected = std::min(std::max(expected, 0), readableSize());
+        m_pos1 += expected;
+    }
 };
 };
 

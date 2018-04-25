@@ -53,6 +53,7 @@ void TcpConnectionForServer::onEstablished()
 
 void TcpConnectionForServer::onReadable()
 {
+    getLoop()->assertInLoopThread();
     SockBuffer &sockBuf = sockBuffer();
     int ret = sockBuf.readIn(connectFd());
     log_debug("[Server][tcp] readIn connectFd %d ret %d", connectFd(), ret);
@@ -70,6 +71,7 @@ void TcpConnectionForServer::onReadable()
         close(false);
         return;
     }
+    onTcpRecvMessage(shared_from_this(), sockBuf);
     /*
         BufferRef &bufRef = sockBuf.getBufRef();
         PacketHeader *header = (PacketHeader *)(bufRef->data());

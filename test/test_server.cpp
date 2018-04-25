@@ -19,10 +19,11 @@ void OnTcpDisconnected(PtrConn conn)
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
 }
 
-void OnTcpRecvMessage(PtrConn conn, uint8_t *p, size_t len)
+void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
 {
 
-    log_debug("[test.OnTcpRecvMessage] %d, %s", conn->connectId(), (const char *)p);
+    log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
+    sockBuf.readOut(sockBuf.readableSize());
 }
 
 /*

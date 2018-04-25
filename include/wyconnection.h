@@ -41,7 +41,7 @@ class TcpConnection : public SocketBase
 
     typedef void (*OnTcpDisconnected)(PtrConn conn);
 
-    typedef void (*OnTcpRecvMessage)(PtrConn conn, uint8_t *, size_t);
+    typedef void (*OnTcpRecvMessage)(PtrConn conn, SockBuffer &sockBuf);
 
     TcpConnection(int fd) : SocketBase(fd),
                             m_loop(nullptr),

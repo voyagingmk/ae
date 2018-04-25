@@ -6,6 +6,18 @@
 namespace wynet
 {
 
+void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
+{
+    std::shared_ptr<FDRef> sfdRef = fdRef.lock();
+    if (!sfdRef)
+    {
+        return;
+    }
+    log_debug("OnTcpMessage fd %d", sfdRef->fd());
+    std::shared_ptr<TCPClient> tcpClient = std::dynamic_pointer_cast<TCPClient>(sfdRef);
+    tcpClient->_onTcpMessage();
+}
+
 // http://man7.org/linux/man-pages/man2/connect.2.html
 void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
@@ -25,17 +37,19 @@ void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
     }
     else
     {
-        PtrClient client = tcpClient->parent;
+        PtrClient client = tcpClient->m_parent;
         // connect ok, remove event
         client->getNet()->getLoop().deleteFileEvent(tcpClient, LOOP_EVT_WRITABLE);
         tcpClient->onConnected();
     }
 }
 
-TCPClient::TCPClient(PtrClient client)
+TCPClient::TCPClient(PtrClient client) : onTcpConnected(nullptr),
+                                         onTcpDisconnected(nullptr),
+                                         onTcpRecvMessage(nullptr)
 {
 
-    parent = client;
+    m_parent = client;
 }
 
 void TCPClient::connect(const char *host, int port)
@@ -72,8 +86,8 @@ void TCPClient::connect(const char *host, int port)
         log_debug("connect: %d", ret);
         if ((ret == -1) && (errno == EINPROGRESS))
         {
-            parent->getNet()->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
-                                                        OnTcpWritable);
+            m_parent->getNet()->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
+                                                          OnTcpWritable);
             break;
         }
         if (ret == 0)
@@ -98,14 +112,14 @@ void TCPClient::connect(const char *host, int port)
 
 void TCPClient::Close()
 {
-    if (!connected)
+    if (!m_connected)
     {
         return;
     }
     log_info("tcp client closed");
-    connected = false;
+    m_connected = false;
     close(sockfd());
-    parent->_onTcpDisconnected();
+    _onTcpDisconnected();
 }
 
 void TCPClient::Recvfrom()
@@ -126,9 +140,33 @@ void TCPClient::Send(uint8_t *data, size_t len)
     // Sendto(sockfd(), data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 
+EventLoop &TCPClient::getLoop()
+{
+    return m_parent->getNet()->getLoop();
+}
+
 void TCPClient::onConnected()
 {
-    connected = true;
-    parent->_onTcpConnected();
+    m_connected = true;
+    _onTcpConnected();
+}
+
+void TCPClient::_onTcpConnected()
+{
+    getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
+    LogSocketState(sockfd());
+    if (onTcpConnected)
+        onTcpConnected(shared_from_this());
+}
+
+void TCPClient::_onTcpDisconnected()
+{
+    getLoop().deleteFileEvent(shared_from_this(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    if (onTcpDisconnected)
+        onTcpDisconnected(shared_from_this());
+}
+
+void TCPClient::_onTcpMessage()
+{
 }
 };
