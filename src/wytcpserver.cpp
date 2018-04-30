@@ -225,7 +225,7 @@ void TCPServer::acceptConnection()
 	conn->setCallBack_Message(onTcpRecvMessage);
 	//if (onTcpConnected)
 	//	onTcpConnected(conn);
-	ioLoop->runInLoop(std::bind(&SerConn::onEstablished, conn));
+	ioLoop->runInLoop(std::bind(&TcpConnection::onEstablished, conn));
 }
 
 void TCPServer::_onTcpDisconnected(int connfdTcp)

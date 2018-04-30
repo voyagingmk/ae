@@ -132,12 +132,11 @@ class TcpConnection : public SocketBase
         onTcpRecvMessage = cb;
     }
 
-  protected:
-    virtual void onEstablished() {}
+    virtual void onEstablished();
 
-    virtual void onReadable() {}
+    virtual void onReadable();
 
-    virtual void onWritable() {}
+    virtual void onWritable();
 
     void close(bool force);
 
@@ -160,11 +159,11 @@ class TcpConnectionForServer : public TcpConnection
     {
     }
 
-    void onEstablished() override;
+    //void onEstablished() override;
 
-    void onReadable() override;
+    //void onReadable() override;
 
-    void onWritable() override;
+    //void onWritable() override;
 
     void send(const uint8_t *data, size_t len);
 
@@ -182,11 +181,11 @@ class TcpConnectionForClient : public TcpConnection
     {
     }
 
-    void onEstablished() override;
+    //void onEstablished() override;
 
-    void onReadable() override;
+    //void onReadable() override;
 
-    void onWritable() override;
+    //void onWritable() override;
 
   private:
     PtrTCPClient m_tcpClient;

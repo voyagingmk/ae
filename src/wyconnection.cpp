@@ -20,7 +20,7 @@ void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mas
     {
         return;
     }
-    std::shared_ptr<TcpConnectionForServer> conn = std::dynamic_pointer_cast<TcpConnectionForServer>(sfdRef);
+    std::shared_ptr<TcpConnection> conn = std::dynamic_pointer_cast<TcpConnection>(sfdRef);
     if (mask & LOOP_EVT_READABLE)
     {
         log_debug("onReadable connfd=%d", conn->connectFd());
@@ -49,24 +49,13 @@ void TcpConnection ::close(bool force)
     // _onTcpDisconnected(connfdTcp);
 }
 
-void TcpConnectionForServer::onEstablished()
+void TcpConnection::onEstablished()
 {
     getLoop()->assertInLoopThread();
     getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
-
-    onTcpConnected(shared_from_this());
-    /*
-    protocol::TcpHandshake handshake;
-    handshake.connectId = connectId();
-    handshake.udpPort = udpPort();
-    handshake.key = key();
-    sendByTcp(connectId, SerializeProtocol<protocol::TcpHandshake>(handshake));
-    log_info("[Server][tcp] connected, connectId: %d, connfdTcp: %d, key: %d", connectId(), connectFd(), handshake.key);
-    */
-    // LogSocketState(fd());
 }
 
-void TcpConnectionForServer::onReadable()
+void TcpConnection::onReadable()
 {
     getLoop()->assertInLoopThread();
     SockBuffer &sockBuf = sockBuffer();
@@ -116,14 +105,43 @@ void TcpConnectionForServer::onReadable()
     }*/
 }
 
+void TcpConnection::onWritable()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
 void TcpConnectionForServer::send(const uint8_t *data, size_t len)
 {
     // getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, OnConnectionEvent);
 }
 
+/*
+void TcpConnectionForServer::onEstablished()
+{
+    protocol::TcpHandshake handshake;
+    handshake.connectId = connectId();
+    handshake.udpPort = udpPort();
+    handshake.key = key();
+    sendByTcp(connectId, SerializeProtocol<protocol::TcpHandshake>(handshake));
+    log_info("[Server][tcp] connected, connectId: %d, connfdTcp: %d, key: %d", connectId(), connectFd(), handshake.key);
+
+    // LogSocketState(fd());
+}
+
 void TcpConnectionForServer::onWritable()
 {
 }
+
+void TcpConnectionForServer::onReadable()
+{
+}
+
 
 void TcpConnectionForClient::onEstablished()
 {
@@ -138,3 +156,5 @@ void TcpConnectionForClient::onReadable()
 void TcpConnectionForClient::onWritable()
 {
 }
+
+*/
