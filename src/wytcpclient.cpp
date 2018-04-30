@@ -153,17 +153,12 @@ void TCPClient::onConnected()
 
 void TCPClient::_onTcpConnected()
 {
-    getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnTcpMessage);
-    LogSocketState(sockfd());
-    if (onTcpConnected)
-        onTcpConnected(shared_from_this());
+    m_conn = std::make_shared<CliConn>(shared_from_this(), sockfd());
 }
 
 void TCPClient::_onTcpDisconnected()
 {
-    getLoop().deleteFileEvent(shared_from_this(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
-    if (onTcpDisconnected)
-        onTcpDisconnected(shared_from_this());
+    m_conn = nullptr;
 }
 
 void TCPClient::_onTcpMessage()

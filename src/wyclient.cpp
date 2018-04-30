@@ -22,7 +22,7 @@ std::shared_ptr<TCPClient> Client::initTcpClient(const char *host, int tcpPort)
     m_tcpClient->connect(host, tcpPort);
     return m_tcpClient;
 }
-
+/*
 void Client::sendByTcp(const uint8_t *data, size_t len)
 {
     // protocol::UserPacket *p = (protocol::UserPacket *)data;
@@ -33,7 +33,7 @@ void Client::sendByTcp(const uint8_t *data, size_t len)
 void Client::sendByTcp(PacketHeader *header)
 {
     m_tcpClient->Send((uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen));
-}
+}*/
 
 /*
 void Client::_onTcpMessage()

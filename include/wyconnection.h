@@ -13,8 +13,10 @@ namespace wynet
 class EventLoop;
 
 class TCPServer;
+class TCPClient;
 
 typedef std::shared_ptr<TCPServer> PtrTCPServer;
+typedef std::shared_ptr<TCPClient> PtrTCPClient;
 
 class TcpConnection;
 
@@ -137,6 +139,8 @@ class TcpConnection : public SocketBase
 
     virtual void onWritable() {}
 
+    void close(bool force);
+
   protected:
     EventLoop *m_loop;
     uint32_t m_key;
@@ -167,25 +171,25 @@ class TcpConnectionForServer : public TcpConnection
     friend void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 
   private:
-    void close(bool force);
-
-  private:
     PtrTCPServer m_tcpServer;
 };
 
 class TcpConnectionForClient : public TcpConnection
 {
   public:
-    TcpConnectionForClient(int fd) : TcpConnection(fd)
+    TcpConnectionForClient(PtrTCPClient tcpClient, int fd) : TcpConnection(fd),
+                                                             m_tcpClient(tcpClient)
     {
-    }
-    void setUdpPort(int udpPort)
-    {
-        m_udpPort = udpPort;
     }
 
+    void onEstablished() override;
+
+    void onReadable() override;
+
+    void onWritable() override;
+
   private:
-    int m_udpPort;
+    PtrTCPClient m_tcpClient;
 };
 };
 

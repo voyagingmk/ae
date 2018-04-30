@@ -34,6 +34,21 @@ void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mas
     // eventLoop->createTimerInLoop(1000, testOnTimerEvent, std::weak_ptr<FDRef>(), nullptr);
 }
 
+void TcpConnection ::close(bool force)
+{
+    getLoop()->assertInLoopThread();
+    getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    if (force)
+    {
+        struct linger l;
+        l.l_onoff = 1; /* cause RST to be sent on close() */
+        l.l_linger = 0;
+        Setsockopt(connectFd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+    }
+
+    // _onTcpDisconnected(connfdTcp);
+}
+
 void TcpConnectionForServer::onEstablished()
 {
     getLoop()->assertInLoopThread();
@@ -101,26 +116,25 @@ void TcpConnectionForServer::onReadable()
     }*/
 }
 
-void TcpConnectionForServer ::close(bool force)
-{
-    getLoop()->assertInLoopThread();
-    getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
-    if (force)
-    {
-        struct linger l;
-        l.l_onoff = 1; /* cause RST to be sent on close() */
-        l.l_linger = 0;
-        Setsockopt(connectFd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
-    }
-
-    // _onTcpDisconnected(connfdTcp);
-}
-
 void TcpConnectionForServer::send(const uint8_t *data, size_t len)
 {
     // getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, OnConnectionEvent);
 }
 
 void TcpConnectionForServer::onWritable()
+{
+}
+
+void TcpConnectionForClient::onEstablished()
+{
+    getLoop()->assertInLoopThread();
+    getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
+}
+
+void TcpConnectionForClient::onReadable()
+{
+}
+
+void TcpConnectionForClient::onWritable()
 {
 }

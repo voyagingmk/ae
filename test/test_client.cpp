@@ -9,15 +9,16 @@ void Stop(int signo)
     g_net->stopLoop();
 }
 
-void OnTcpConnected(PtrClient client)
+void OnTcpConnected(PtrConn conn)
 {
-    log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
+    //client->getTcpClient();
+    //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
     // client->sendByTcp((const uint8_t *)"hello", 5);
 }
 
-void OnTcpDisconnected(PtrClient client)
+void OnTcpDisconnected(PtrConn conn)
 {
-    log_info("OnTcpDisconnected: %d", client->getTcpClient()->sockfd());
+    //log_info("OnTcpDisconnected: %d", client->getTcpClient()->sockfd());
     g_net->stopLoop();
 }
 

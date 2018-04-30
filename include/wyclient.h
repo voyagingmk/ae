@@ -37,10 +37,6 @@ class Client : public FDRef
 
     std::shared_ptr<TCPClient> initTcpClient(const char *host, int tcpPort);
 
-    void sendByTcp(const uint8_t *data, size_t len);
-
-    void sendByTcp(PacketHeader *header);
-
     const std::shared_ptr<TCPClient> getTcpClient() const
     {
         return m_tcpClient;
