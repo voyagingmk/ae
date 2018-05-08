@@ -96,8 +96,6 @@ void TCPServer::startListen(int port)
 
 	getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE,
 							  OnTcpNewConnection);
-
-	LogSocketState(sockfd());
 }
 
 TCPServer::~TCPServer()

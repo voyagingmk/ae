@@ -143,12 +143,15 @@ class TcpConnection : public SocketBase
 
     void close(bool force);
 
+    void send(const uint8_t *data, size_t len);
+
   protected:
     EventLoop *m_loop;
     uint32_t m_key;
     KCPObject *m_kcpObj;
     UniqID m_connectId;
     SockBuffer m_buf;
+    SockBuffer m_pendingBuf;
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;
     OnTcpRecvMessage onTcpRecvMessage;
@@ -167,8 +170,6 @@ class TcpConnectionForServer : public TcpConnection
     //void onReadable() override;
 
     //void onWritable() override;
-
-    void send(const uint8_t *data, size_t len);
 
     friend void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 

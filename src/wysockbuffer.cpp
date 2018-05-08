@@ -3,24 +3,36 @@
 
 using namespace wynet;
 
-void SockBuffer::append(uint8_t *data, size_t n)
+void SockBuffer::append(const uint8_t *data, size_t n)
 {
-    assert(tailFreeSize() == 0);
-    std::vector<uint8_t> &dataVec = m_bufRef->getDataVector();
-    // make sure there is enough space
-    if (headFreeSize() >= n)
-    {
-        // move
-        std::copy(dataVec.begin() + m_pos2, dataVec.end(), dataVec.begin());
-        m_pos2 = m_pos2 - m_pos1;
-        m_pos1 = 0;
+    if (tailFreeSize() > 0) {
+        int size = tailFreeSize();
+        if (n <= size) {
+            std::copy(data, data + n, begin() + m_pos2);
+            m_pos2 += n;
+        } else {
+            std::copy(data, data + size, begin() + m_pos2);
+            m_pos2 += size;
+            int remain = n - size;
+            append(data + size, remain);
+        }
+    } else {
+        std::vector<uint8_t> &dataVec = m_bufRef->getDataVector();
+        // make sure there is enough space
+        if (headFreeSize() >= n)
+        {
+            // move
+            std::copy(dataVec.begin() + m_pos2, dataVec.end(), dataVec.begin());
+            m_pos2 = m_pos2 - m_pos1;
+            m_pos1 = 0;
+        }
+        else
+        {
+            dataVec.resize(dataVec.size() + n);
+        }
+        std::copy(data, data + n, begin());
+        m_pos2 += n;
     }
-    else
-    {
-        dataVec.resize(dataVec.size() + n);
-    }
-    std::copy(data, data + n, begin());
-    m_pos2 += n;
 }
 
 size_t SockBuffer::readIn(int sockfd)

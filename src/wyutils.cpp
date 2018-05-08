@@ -19,6 +19,8 @@ void Getsockopt(int socket, int level, int option_name,
     CheckReturnValue(ret);
 }
 
+
+
 void LogSocketState(int sockfd)
 {
     log_debug("---- LogSocketState %d ----", sockfd);
@@ -68,27 +70,31 @@ void LogSocketState(int sockfd)
     log_debug("---- LogSocketState End %d ----", sockfd);
 }
 
-int SetSockSendBufSize(int fd, int newSndbuf)
+int SetSockSendBufSize(int fd, int newSndbuf, bool force)
 {
-    int sndbuf = 0;
-    socklen_t len = sizeof(sndbuf);
-    Getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
-    if (sndbuf >= newSndbuf)
-    {
-        return -1;
+    if (!force) {
+        int sndbuf = 0;
+        socklen_t len = sizeof(sndbuf);
+        Getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
+        if (sndbuf >= newSndbuf)
+        {
+            return -1;
+        }
     }
     return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&newSndbuf, sizeof(int));
     log_debug("SetSockSendBufSize = %d", newSndbuf);
 }
 
-int SetSockRecvBufSize(int fd, int newRcvbuf)
+int SetSockRecvBufSize(int fd, int newRcvbuf, bool force)
 {
-    int rcvbuf = 0;
-    socklen_t len = sizeof(rcvbuf);
-    Getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
-    if (rcvbuf >= newRcvbuf)
-    {
-        return -1;
+    if (!force) {
+        int rcvbuf = 0;
+        socklen_t len = sizeof(rcvbuf);
+        Getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
+        if (rcvbuf >= newRcvbuf)
+        {
+            return -1;
+        }
     }
     return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&newRcvbuf, sizeof(int));
     log_debug("SetSockSendBufSize = %d", newRcvbuf);

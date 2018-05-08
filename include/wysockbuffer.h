@@ -103,7 +103,7 @@ class SockBuffer : public Noncopyable
         return &*(m_bufRef->getDataVector().begin());
     }
 
-    void append(uint8_t *data, size_t n);
+    void append(const uint8_t *data, size_t n);
 
     // return value = readv/read
     size_t readIn(int sockfd);

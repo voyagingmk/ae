@@ -1,5 +1,6 @@
 #include "wynet.h"
 #include "logger/logger.h"
+#include "wyutils.h"
 using namespace wynet;
 
 WyNet *g_net;
@@ -12,9 +13,10 @@ void Stop(int signo)
 void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected] %d", conn->connectId());
+    SetSockSendBufSize(conn->fd(), 3, true);
     //client->getTcpClient();
     //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
-    // client->sendByTcp((const uint8_t *)"hello", 5);
+   conn->send((const uint8_t *)"hello", 5);
 }
 
 void OnTcpDisconnected(PtrConn conn)
