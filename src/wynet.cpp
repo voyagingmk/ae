@@ -3,10 +3,10 @@
 namespace wynet
 {
 
-WyNet::WyNet()
+WyNet::WyNet(int threadNum)
 {
     m_threadPool = std::make_shared<EventLoopThreadPool>(&m_loop, "WyNet");
-    m_threadPool->setThreadNum(4);
+    m_threadPool->setThreadNum(threadNum);
     m_threadPool->start([](EventLoop *loop) -> void {
         log_debug("ThreadInitCallback");
     });

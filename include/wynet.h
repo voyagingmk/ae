@@ -21,7 +21,7 @@ public:
   typedef std::map<UniqID, std::shared_ptr<Client>> Clients;
 
 public:
-  WyNet();
+  WyNet(int threadNum = 4);
 
   ~WyNet();
 

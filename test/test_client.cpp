@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     log_lineinfo(false);
     // log_start();
 
-    WyNet net;
+    WyNet net(1);
     g_net = &net;
 
     log_info("aeGetApiName: %s", aeGetApiName());
