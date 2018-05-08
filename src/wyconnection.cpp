@@ -9,7 +9,7 @@ using namespace wynet;
 
 int testOnTimerEvent(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *data)
 {
-    log_debug("testOnTimerEvent %lld", tr.Id());
+    log_debug("[conn] testOnTimerEvent %lld", tr.Id());
     return LOOP_EVT_NOMORE;
 }
 
@@ -23,12 +23,12 @@ void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mas
     std::shared_ptr<TcpConnection> conn = std::dynamic_pointer_cast<TcpConnection>(sfdRef);
     if (mask & LOOP_EVT_READABLE)
     {
-        log_debug("onReadable connfd=%d", conn->connectFd());
+        log_debug("[conn] onReadable connfd=%d", conn->connectFd());
         conn->onReadable();
     }
     if (mask & LOOP_EVT_WRITABLE)
     {
-        log_debug("onWritable connfd=%d", conn->connectFd());
+        log_debug("[conn] onWritable connfd=%d", conn->connectFd());
         conn->onWritable();
     }
     // eventLoop->createTimerInLoop(1000, testOnTimerEvent, std::weak_ptr<FDRef>(), nullptr);
@@ -53,6 +53,7 @@ void TcpConnection::onEstablished()
 {
     getLoop()->assertInLoopThread();
     getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
+    onTcpConnected(shared_from_this());
 }
 
 void TcpConnection::onReadable()
@@ -60,7 +61,7 @@ void TcpConnection::onReadable()
     getLoop()->assertInLoopThread();
     SockBuffer &sockBuf = sockBuffer();
     int ret = sockBuf.readIn(connectFd());
-    log_debug("[Server][tcp] readIn connectFd %d ret %d", connectFd(), ret);
+    log_debug("[conn] readIn connectFd %d ret %d", connectFd(), ret);
     if (ret <= 0)
     {
         if (ret < 0)
@@ -69,7 +70,7 @@ void TcpConnection::onReadable()
             {
                 return;
             }
-            log_error("readIn error: %d", errno);
+            log_error("[conn] readIn error: %d", errno);
         }
         // has unknown error or has closed
         close(false);

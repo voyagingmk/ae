@@ -49,7 +49,10 @@ class TcpConnection : public SocketBase
                             m_loop(nullptr),
                             m_key(0),
                             m_kcpObj(nullptr),
-                            m_connectId(0)
+                            m_connectId(0),
+                            onTcpConnected(nullptr),
+                            onTcpDisconnected(nullptr),
+                            onTcpRecvMessage(nullptr)
     {
     }
 

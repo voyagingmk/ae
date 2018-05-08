@@ -154,6 +154,10 @@ void TCPClient::onConnected()
 void TCPClient::_onTcpConnected()
 {
     m_conn = std::make_shared<CliConn>(shared_from_this(), sockfd());
+	m_conn->setCallBack_Connected(onTcpConnected);
+	m_conn->setCallBack_Disconnected(onTcpDisconnected);
+	m_conn->setCallBack_Message(onTcpRecvMessage);
+	m_parent->getNet()->getLoop().runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
 }
 
 void TCPClient::_onTcpDisconnected()

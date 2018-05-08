@@ -44,14 +44,14 @@ EventLoop *EventLoopThread::startLoop()
 
 void EventLoopThread::threadEntry()
 {
-    log_debug("threadEntry");
+    log_debug("threadEntry step 1");
     EventLoop loop;
 
     if (m_callback)
     {
         m_callback(&loop);
     }
-    log_debug("threadMain2");
+    log_debug("threadMain step 2");
 
     {
         MutexLockGuard<MutexLock> lock(m_mutex); // 和startLoop里的lock的竞争
@@ -59,7 +59,7 @@ void EventLoopThread::threadEntry()
         m_cond.notify();
     }
 
-    log_debug("threadMain3");
+    log_debug("threadMain step 3");
     loop.loop();
     m_loop = NULL; // TODO
 }

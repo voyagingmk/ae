@@ -11,6 +11,7 @@ void Stop(int signo)
 
 void OnTcpConnected(PtrConn conn)
 {
+    log_debug("[test.OnTcpConnected] %d", conn->connectId());
     //client->getTcpClient();
     //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
     // client->sendByTcp((const uint8_t *)"hello", 5);
@@ -18,8 +19,15 @@ void OnTcpConnected(PtrConn conn)
 
 void OnTcpDisconnected(PtrConn conn)
 {
+    log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
     //log_info("OnTcpDisconnected: %d", client->getTcpClient()->sockfd());
     g_net->stopLoop();
+}
+
+void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
+{
+    log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
+    sockBuf.readOut(sockBuf.readableSize());
 }
 
 int main(int argc, char **argv)
@@ -40,6 +48,7 @@ int main(int argc, char **argv)
     std::shared_ptr<TCPClient> tcpClient = client->initTcpClient("127.0.0.1", 9998);
     tcpClient->onTcpConnected = &OnTcpConnected;
     tcpClient->onTcpDisconnected = &OnTcpDisconnected;
+    tcpClient->onTcpRecvMessage = &OnTcpRecvMessage;
     net.addClient(client);
     net.startLoop();
     log_info("exit");
