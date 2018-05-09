@@ -39,7 +39,8 @@ typedef std::shared_ptr<CliConn> PtrCliConn;
 class TcpConnection : public SocketBase
 {
   public:
-    enum class State {
+    enum class State
+    {
         Disconnected,
         Connecting,
         Connected,
@@ -154,6 +155,10 @@ class TcpConnection : public SocketBase
     void send(const uint8_t *data, size_t len);
 
     void sendInLoop(const uint8_t *data, size_t len);
+
+    bool isPending();
+
+    int getPendingSize();
 
   protected:
     EventLoop *m_loop;

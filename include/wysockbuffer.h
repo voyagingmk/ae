@@ -108,10 +108,11 @@ class SockBuffer : public Noncopyable
     // return value = readv/read
     size_t readIn(int sockfd);
 
-    void readOut(int expected)
+    int readOut(int expected)
     {
         expected = std::min(std::max(expected, 0), readableSize());
         m_pos1 += expected;
+        return expected;
     }
 };
 };

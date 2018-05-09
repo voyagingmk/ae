@@ -51,10 +51,11 @@ void TcpConnection ::close(bool force)
     }
 }
 
-
-void TcpConnection ::closeInLoop(bool force) {
+void TcpConnection ::closeInLoop(bool force)
+{
     getLoop()->assertInLoopThread();
-    if (m_state == State::Disconnected) {
+    if (m_state == State::Disconnected)
+    {
         return;
     }
     log_debug("[conn] close in thread: %s", CurrentThread::name());
@@ -67,7 +68,8 @@ void TcpConnection ::closeInLoop(bool force) {
         l.l_linger = 0;
         Setsockopt(connectFd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
     }
-    if (onTcpDisconnected) onTcpDisconnected(shared_from_this());
+    if (onTcpDisconnected)
+        onTcpDisconnected(shared_from_this());
 }
 
 void TcpConnection::onEstablished()
@@ -77,7 +79,8 @@ void TcpConnection::onEstablished()
     log_debug("[conn] establish in thread: %s", CurrentThread::name());
     m_state = State::Connected;
     getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
-    if (onTcpConnected) onTcpConnected(shared_from_this());
+    if (onTcpConnected)
+        onTcpConnected(shared_from_this());
 }
 
 void TcpConnection::onReadable()
@@ -145,7 +148,9 @@ void TcpConnection::onWritable()
             log_debug("[conn] onWritable, no remain");
             getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_WRITABLE);
         }
-    } else if (nwrote == -1) {
+    }
+    else if (nwrote == -1)
+    {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
             return;
@@ -158,7 +163,8 @@ void TcpConnection::onWritable()
 
 void TcpConnection::send(const uint8_t *data, size_t len)
 {
-    if (m_state != State::Connected) {
+    if (m_state != State::Connected)
+    {
         return;
     }
     if (getLoop()->isInLoopThread())
@@ -179,7 +185,8 @@ void TcpConnection::send(const uint8_t *data, size_t len)
 void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
 {
     getLoop()->assertInLoopThread();
-    if (m_state != State::Connected) {
+    if (m_state != State::Connected)
+    {
         return;
     }
     if (m_pendingBuf.readableSize() > 0)
@@ -199,7 +206,9 @@ void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
                 m_pendingBuf.append(data + nwrote, remain);
                 getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, OnConnectionEvent);
             }
-        } else if (nwrote == -1) {
+        }
+        else if (nwrote == -1)
+        {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
                 return;
@@ -209,6 +218,17 @@ void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
             closeInLoop(false);
         }
     }
+}
+
+bool TcpConnection::isPending()
+{
+    return getPendingSize() > 0;
+}
+
+int TcpConnection::getPendingSize()
+{
+    int remain = m_pendingBuf.readableSize();
+    return remain;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
