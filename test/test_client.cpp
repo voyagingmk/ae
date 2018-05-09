@@ -18,7 +18,6 @@ int OnHeartbeat(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *
         return 0;
     }
     PtrConn conn = std::dynamic_pointer_cast<TcpConnection>(sfdRef);
-    
     conn->send((const uint8_t *)"hello", 5);
     return 1000;
 }

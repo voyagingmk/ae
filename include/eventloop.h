@@ -167,6 +167,10 @@ class EventLoop : Noncopyable
 
     bool deleteTimerInLoop(AeTimerId aeTimerId);
 
+    friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
+    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, WyTimerId timerId, void *clientData);
+
+  private:
     const pid_t m_threadId;
     aeEventLoop *m_aeloop;
     std::map<int, FDData> m_fdData;
@@ -176,9 +180,6 @@ class EventLoop : Noncopyable
     bool m_doingTask;
     mutable MutexLock m_mutex;
     std::vector<TaskFunction> m_taskFuncQueue;
-
-    friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
-    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, WyTimerId timerId, void *clientData);
 };
 }; // namespace wynet
 

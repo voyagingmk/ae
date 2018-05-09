@@ -52,6 +52,7 @@ void TcpConnection ::close(bool force)
 void TcpConnection::onEstablished()
 {
     getLoop()->assertInLoopThread();
+    log_debug("[conn] establish in thread: %s", CurrentThread::name());
     getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
     onTcpConnected(shared_from_this());
 }

@@ -33,7 +33,14 @@ void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
 
     log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
     sockBuf.readOut(sockBuf.readableSize());
-    conn->send((const uint8_t *)"world", 5);
+    
+    if (g_conn1 && g_conn2) {
+        if (g_conn1 == conn) {
+            g_conn2->send((const uint8_t *)"hello conn2", 11);
+        } else {
+            g_conn1->send((const uint8_t *)"hello conn1", 11);
+        } 
+    }
 }
 
 /*
