@@ -50,7 +50,7 @@ void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
     conn->send(sockBuf.begin() + sockBuf.headFreeSize(), sockBuf.readableSize());
     memcpy(lineBuffer, sockBuf.begin() + sockBuf.headFreeSize(), sockBuf.readableSize());
     lineBuffer[sockBuf.readableSize()] = '\0';
-    log_info("%s", lineBuffer);
+    log_info("%d:%s", sockBuf.readableSize(), lineBuffer);
     sockBuf.readOut(sockBuf.readableSize());
 }
 

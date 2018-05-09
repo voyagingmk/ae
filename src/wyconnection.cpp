@@ -165,7 +165,7 @@ void TcpConnection::onWritable()
     }
 }
 
-void TcpConnection::send(const uint8_t *data, size_t len)
+void TcpConnection::send(const uint8_t *data, const size_t len)
 {
     if (m_state != State::Connected)
     {
@@ -186,12 +186,17 @@ void TcpConnection::send(const uint8_t *data, size_t len)
     }
 }
 
+void TcpConnection::send(const std::string &msg)
+{
+    send((const uint8_t *)(msg.data()), msg.size());
+}
+
 void TcpConnection::sendInLoop(const std::string &msg)
 {
     sendInLoop((const uint8_t *)msg.data(), msg.size());
 }
 
-void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
+void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
 {
     getLoop()->assertInLoopThread();
     if (m_state != State::Connected)

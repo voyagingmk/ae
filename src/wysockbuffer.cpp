@@ -5,24 +5,30 @@ using namespace wynet;
 
 void SockBuffer::append(const uint8_t *data, size_t n)
 {
-    if (tailFreeSize() > 0) {
+    if (tailFreeSize() > 0)
+    {
         int size = tailFreeSize();
-        if (n <= size) {
+        if (n <= size)
+        {
             std::copy(data, data + n, begin() + m_pos2);
             m_pos2 += n;
-        } else {
+        }
+        else
+        {
             std::copy(data, data + size, begin() + m_pos2);
             m_pos2 += size;
             int remain = n - size;
             append(data + size, remain);
         }
-    } else {
+    }
+    else
+    {
         std::vector<uint8_t> &dataVec = m_bufRef->getDataVector();
         // make sure there is enough space
         if (headFreeSize() >= n)
         {
             // move
-            std::copy(dataVec.begin() + m_pos2, dataVec.end(), dataVec.begin());
+            std::copy(dataVec.begin() + m_pos1, dataVec.end(), dataVec.begin());
             m_pos2 = m_pos2 - m_pos1;
             m_pos1 = 0;
         }
@@ -30,7 +36,7 @@ void SockBuffer::append(const uint8_t *data, size_t n)
         {
             dataVec.resize(dataVec.size() + n);
         }
-        std::copy(data, data + n, begin());
+        std::copy(data, data + n, begin() + m_pos2);
         m_pos2 += n;
     }
 }
@@ -48,7 +54,7 @@ size_t SockBuffer::readIn(int sockfd)
     vec[1].iov_len = stackBufLength;
     const int iovcnt = (free < stackBufLength) ? 2 : 1;
     const size_t nRead = (size_t)::readv(sockfd, vec, iovcnt);
-    log_debug("readIn, nRead=%d", nRead);
+    // log_debug("readIn, nRead=%d, %d,%d,%d,%d", nRead, free, m_pos1, m_pos2, m_bufRef->length());
     if (nRead > 0)
     {
         if (nRead <= free)
@@ -57,7 +63,9 @@ size_t SockBuffer::readIn(int sockfd)
         }
         else
         {
+            m_pos2 += free;
             const int nStackBufUsed = nRead - free;
+            // log_debug("readIn,m_pos2=%d, nStackBufUsed=%d", m_pos2, nStackBufUsed);
             append((uint8_t *)stackBuf, nStackBufUsed);
         }
     }

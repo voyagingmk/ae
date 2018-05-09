@@ -160,9 +160,11 @@ class TcpConnection : public SocketBase
 
     void closeInLoop(bool force);
 
-    void send(const uint8_t *data, size_t len);
+    void send(const uint8_t *data, const size_t len);
 
-    void sendInLoop(const uint8_t *data, size_t len);
+    void send(const std::string &);
+
+    void sendInLoop(const uint8_t *data, const size_t len);
 
     void sendInLoop(const std::string &);
 

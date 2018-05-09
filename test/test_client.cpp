@@ -33,7 +33,8 @@ void OnTcpSendComplete(PtrConn conn)
     int ret_in = read(input_fd, &buffer, BUF_SIZE);
     if (ret_in > 0)
     {
-        conn->send((const uint8_t *)buffer, ret_in);
+        std::string msg(buffer, ret_in);
+        conn->send(msg);
         memcpy(lineBuffer, buffer, ret_in);
         lineBuffer[ret_in] = '\0';
         log_info(">> : %s [%d]", lineBuffer, ret_in);
@@ -54,7 +55,7 @@ void OnTcpConnected(PtrConn conn)
     }
 
     /* Create output file descriptor */
-    output_fd = open("testdata.out", O_WRONLY | O_CREAT, 0644);
+    output_fd = open("testdata.out", O_WRONLY | O_CREAT | O_TRUNC, 644);
     if (output_fd == -1)
     {
         log_fatal("open");
