@@ -11,7 +11,7 @@ void Stop(int signo)
 }
 
 int OnHeartbeat(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *data)
-{  
+{
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
     if (!sfdRef)
     {
@@ -22,13 +22,20 @@ int OnHeartbeat(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *
     return 1000;
 }
 
+void OnTcpSendComplete(PtrConn conn)
+{
+    log_debug("[test.OnTcpSendComplete]");
+}
+
 void OnTcpConnected(PtrConn conn)
 {
-    log_debug("[test.OnTcpConnected] %d", conn->connectId());
+    log_debug("[test.OnTcpConnected]");
     SetSockSendBufSize(conn->fd(), 3, true);
+    conn->setCallBack_SendComplete(OnTcpSendComplete);
+    conn->send((const uint8_t *)"hello", 5);
     //client->getTcpClient();
     //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
-    conn->getLoop()->createTimer(1000, OnHeartbeat, conn, nullptr);
+    // conn->getLoop()->createTimer(1000, OnHeartbeat, conn, nullptr);
 }
 
 void OnTcpDisconnected(PtrConn conn)

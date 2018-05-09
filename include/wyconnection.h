@@ -51,6 +51,8 @@ class TcpConnection : public SocketBase
 
     typedef void (*OnTcpRecvMessage)(PtrConn conn, SockBuffer &sockBuf);
 
+    typedef void (*OnTcpSendComplete)(PtrConn conn);
+
     TcpConnection(int fd) : SocketBase(fd),
                             m_loop(nullptr),
                             m_state(State::Connecting),
@@ -59,7 +61,8 @@ class TcpConnection : public SocketBase
                             m_connectId(0),
                             onTcpConnected(nullptr),
                             onTcpDisconnected(nullptr),
-                            onTcpRecvMessage(nullptr)
+                            onTcpRecvMessage(nullptr),
+                            onTcpSendComplete(nullptr)
     {
     }
 
@@ -142,6 +145,11 @@ class TcpConnection : public SocketBase
         onTcpRecvMessage = cb;
     }
 
+    void setCallBack_SendComplete(OnTcpSendComplete cb)
+    {
+        onTcpSendComplete = cb;
+    }
+
     virtual void onEstablished();
 
     virtual void onReadable();
@@ -171,6 +179,7 @@ class TcpConnection : public SocketBase
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;
     OnTcpRecvMessage onTcpRecvMessage;
+    OnTcpSendComplete onTcpSendComplete;
 };
 
 class TcpConnectionForServer : public TcpConnection

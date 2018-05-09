@@ -147,6 +147,10 @@ void TcpConnection::onWritable()
         {
             log_debug("[conn] onWritable, no remain");
             getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_WRITABLE);
+            if (onTcpSendComplete)
+            {
+                getLoop()->queueInLoop(std::bind(onTcpSendComplete, shared_from_this()));
+            }
         }
     }
     else if (nwrote == -1)
