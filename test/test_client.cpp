@@ -4,6 +4,10 @@
 using namespace wynet;
 
 WyNet *g_net;
+int input_fd;
+int output_fd;
+#define BUF_SIZE 8
+char buffer[BUF_SIZE];
 
 void Stop(int signo)
 {
@@ -25,14 +29,39 @@ int OnHeartbeat(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *
 void OnTcpSendComplete(PtrConn conn)
 {
     log_debug("[test.OnTcpSendComplete]");
+    int ret_in = read(input_fd, &buffer, BUF_SIZE);
+    if (ret_in > 0)
+    {
+        conn->send((const uint8_t *)buffer, ret_in);
+    }
 }
 
 void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected]");
-    SetSockSendBufSize(conn->fd(), 3, true);
+    // SetSockSendBufSize(conn->fd(), 3, true);
     conn->setCallBack_SendComplete(OnTcpSendComplete);
-    conn->send((const uint8_t *)"hello", 5);
+
+    input_fd = open("testdata", O_RDONLY);
+    if (input_fd == -1)
+    {
+        log_fatal("open");
+        return;
+    }
+
+    /* Create output file descriptor */
+    output_fd = open("testdata.out", O_WRONLY | O_CREAT, 0644);
+    if (output_fd == -1)
+    {
+        log_fatal("open");
+        return;
+    }
+
+    int ret_in = read(input_fd, &buffer, BUF_SIZE);
+    if (ret_in > 0)
+    {
+        conn->send((const uint8_t *)buffer, ret_in);
+    }
     //client->getTcpClient();
     //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
     // conn->getLoop()->createTimer(1000, OnHeartbeat, conn, nullptr);
@@ -43,11 +72,15 @@ void OnTcpDisconnected(PtrConn conn)
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
     //log_info("OnTcpDisconnected: %d", client->getTcpClient()->sockfd());
     g_net->stopLoop();
+    ::close(input_fd);
 }
 
 void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
 {
-    log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
+    int readOutSize = write(output_fd,
+                            sockBuf.begin() + sockBuf.headFreeSize(),
+                            sockBuf.readableSize());
+    log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", sockBuf.readableSize(), readOutSize);
     sockBuf.readOut(sockBuf.readableSize());
 }
 

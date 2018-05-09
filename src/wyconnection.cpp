@@ -210,6 +210,13 @@ void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
                 m_pendingBuf.append(data + nwrote, remain);
                 getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, OnConnectionEvent);
             }
+            else
+            {
+                if (onTcpSendComplete)
+                {
+                    getLoop()->queueInLoop(std::bind(onTcpSendComplete, shared_from_this()));
+                }
+            }
         }
         else if (nwrote == -1)
         {
