@@ -39,6 +39,11 @@ typedef std::shared_ptr<CliConn> PtrCliConn;
 class TcpConnection : public SocketBase
 {
   public:
+    enum class State {
+        Disconnected,
+        Connecting,
+        Connected,
+    };
     typedef void (*OnTcpConnected)(PtrConn conn);
 
     typedef void (*OnTcpDisconnected)(PtrConn conn);
@@ -47,6 +52,7 @@ class TcpConnection : public SocketBase
 
     TcpConnection(int fd) : SocketBase(fd),
                             m_loop(nullptr),
+                            m_state(State::Connecting),
                             m_key(0),
                             m_kcpObj(nullptr),
                             m_connectId(0),
@@ -143,12 +149,15 @@ class TcpConnection : public SocketBase
 
     void close(bool force);
 
+    void closeInLoop(bool force);
+
     void send(const uint8_t *data, size_t len);
 
     void sendInLoop(const uint8_t *data, size_t len);
 
   protected:
     EventLoop *m_loop;
+    State m_state;
     uint32_t m_key;
     KCPObject *m_kcpObj;
     UniqID m_connectId;

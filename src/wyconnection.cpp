@@ -36,7 +36,29 @@ void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mas
 
 void TcpConnection ::close(bool force)
 {
+    if (getLoop()->isInLoopThread())
+    {
+        log_debug("[conn] close, already in loop");
+        closeInLoop(force);
+    }
+    else
+    {
+        log_debug("[conn] close, not in loop");
+        getLoop()->runInLoop(
+            std::bind(&TcpConnection::closeInLoop,
+                      shared_from_this(),
+                      force));
+    }
+}
+
+
+void TcpConnection ::closeInLoop(bool force) {
     getLoop()->assertInLoopThread();
+    if (m_state == State::Disconnected) {
+        return;
+    }
+    log_debug("[conn] close in thread: %s", CurrentThread::name());
+    m_state = State::Disconnected;
     getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (force)
     {
@@ -45,16 +67,17 @@ void TcpConnection ::close(bool force)
         l.l_linger = 0;
         Setsockopt(connectFd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
     }
-
-    // _onTcpDisconnected(connfdTcp);
+    if (onTcpDisconnected) onTcpDisconnected(shared_from_this());
 }
 
 void TcpConnection::onEstablished()
 {
     getLoop()->assertInLoopThread();
+    assert(m_state == State::Connecting);
     log_debug("[conn] establish in thread: %s", CurrentThread::name());
+    m_state = State::Connected;
     getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
-    onTcpConnected(shared_from_this());
+    if (onTcpConnected) onTcpConnected(shared_from_this());
 }
 
 void TcpConnection::onReadable()
@@ -62,7 +85,7 @@ void TcpConnection::onReadable()
     getLoop()->assertInLoopThread();
     SockBuffer &sockBuf = sockBuffer();
     int ret = sockBuf.readIn(connectFd());
-    log_debug("[conn] readIn connectFd %d ret %d", connectFd(), ret);
+    log_debug("[conn] onReadable, readIn connectFd %d ret %d", connectFd(), ret);
     if (ret <= 0)
     {
         if (ret < 0)
@@ -74,7 +97,7 @@ void TcpConnection::onReadable()
             log_error("[conn] readIn error: %d", errno);
         }
         // has unknown error or has closed
-        close(false);
+        closeInLoop(false);
         return;
     }
     onTcpRecvMessage(shared_from_this(), sockBuf);
@@ -109,6 +132,7 @@ void TcpConnection::onReadable()
 
 void TcpConnection::onWritable()
 {
+    getLoop()->assertInLoopThread();
     int remain = m_pendingBuf.readableSize();
     log_debug("[conn] onWritable, remain:%d", remain);
     int nwrote = ::send(fd(), m_pendingBuf.begin() + m_pendingBuf.headFreeSize(), m_pendingBuf.readableSize(), 0);
@@ -121,11 +145,22 @@ void TcpConnection::onWritable()
             log_debug("[conn] onWritable, no remain");
             getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_WRITABLE);
         }
+    } else if (nwrote == -1) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            return;
+        }
+        log_error("[conn] onWritable send error: %d", errno);
+        // has unknown error or has closed
+        closeInLoop(false);
     }
 }
 
 void TcpConnection::send(const uint8_t *data, size_t len)
 {
+    if (m_state != State::Connected) {
+        return;
+    }
     if (getLoop()->isInLoopThread())
     {
         log_debug("[conn] send, already in loop");
@@ -144,6 +179,9 @@ void TcpConnection::send(const uint8_t *data, size_t len)
 void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
 {
     getLoop()->assertInLoopThread();
+    if (m_state != State::Connected) {
+        return;
+    }
     if (m_pendingBuf.readableSize() > 0)
     {
         m_pendingBuf.append(data, len);
@@ -161,6 +199,14 @@ void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
                 m_pendingBuf.append(data + nwrote, remain);
                 getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, OnConnectionEvent);
             }
+        } else if (nwrote == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                return;
+            }
+            log_error("[conn] sendInLoop send error: %d", errno);
+            // has unknown error or has closed
+            closeInLoop(false);
         }
     }
 }
