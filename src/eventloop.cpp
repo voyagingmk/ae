@@ -5,7 +5,7 @@ namespace wynet
 
 // thread local
 __thread EventLoop *t_threadLoop = nullptr;
-std::atomic<TimerId> TimerRef::g_numCreated;
+std::atomic<WyTimerId> TimerRef::g_numCreated;
 
 int OnlyForWakeup(EventLoop *, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *data)
 {
@@ -26,10 +26,10 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int 
     }
 }
 
-int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientData)
+int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
-    TimerRef tr = loop->m_timerId2ref[timerid];
+    TimerRef tr = loop->m_aeTimerId2ref[aeTimerId];
     do
     {
         if (!tr.validate())
@@ -53,7 +53,7 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientD
         }
         return ret;
     } while (0);
-    loop->m_timerId2ref.erase(timerid);
+    loop->m_aeTimerId2ref.erase(aeTimerId);
     return AE_NOMORE;
 }
 
@@ -82,7 +82,7 @@ void EventLoop::loop()
 {
     assertInLoopThread();
     m_aeloop->stop = 0;
-    TimerRef tr = createTimerInLoop(m_wakeupInterval, OnlyForWakeup, std::weak_ptr<FDRef>(), (void *)&m_wakeupInterval);
+    AeTimerId aeTimerId = createTimerInLoop(m_wakeupInterval, OnlyForWakeup, std::weak_ptr<FDRef>(), (void *)&m_wakeupInterval);
     while (!m_aeloop->stop)
     {
         if (m_aeloop->beforesleep != NULL)
@@ -90,7 +90,7 @@ void EventLoop::loop()
         aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
         processTaskQueue();
     }
-    deleteTimerInLoop(tr);
+    deleteTimerInLoop(aeTimerId);
 }
 
 void EventLoop::stop()
@@ -137,42 +137,61 @@ void EventLoop ::deleteFileEvent(int fd, int mask)
     }
 }
 
-TimerRef EventLoop ::createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data)
+TimerRef EventLoop ::createTimer(int ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data)
 {
     TimerRef tr = TimerRef::newTimerRef();
     runInLoop([&]() {
-        createTimer(tr, ms, onTimerEvent, fdRef, data);
+        createTimerInLoop(tr, ms, onTimerEvent, fdRef, data);
     });
     return tr;
 }
 
-void EventLoop ::deleteTimerInLoop(TimerRef tr)
+void EventLoop ::deleteTimer(TimerRef tr)
 {
     runInLoop([&]() {
-        deleteTimer(tr);
+        deleteTimerInLoop(tr);
     });
 }
 
-bool EventLoop ::deleteTimer(TimerRef tr)
+bool EventLoop ::deleteTimerInLoop(AeTimerId aeTimerId)
 {
+    assertInLoopThread();
+    auto it = m_aeTimerId2ref.find(aeTimerId);
+    if (it == m_aeTimerId2ref.end()) {
+        return false;
+    }
+    TimerRef tr = it->second;
+    return deleteTimerInLoop(tr);
+}
+
+bool EventLoop ::deleteTimerInLoop(TimerRef tr)
+{
+    assertInLoopThread();
     if (m_timerData.find(tr) != m_timerData.end())
     {
-        TimerId timerid = m_timerData[tr].timerid;
+        WyTimerId timerId = m_timerData[tr].timerId;
         m_timerData.erase(tr);
-        int ret = aeDeleteTimeEvent(m_aeloop, timerid);
+        int ret = aeDeleteTimeEvent(m_aeloop, timerId);
         return AE_ERR != ret;
     }
     return false;
 }
 
-TimerId EventLoop ::createTimer(TimerRef tr, TimerId ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data)
+AeTimerId EventLoop ::createTimerInLoop(int delay, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data)
 {
-    TimerId timerid = aeCreateTimeEvent(m_aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
-    assert(AE_ERR != timerid);
+    TimerRef tr = TimerRef::newTimerRef();
+    return createTimerInLoop(tr, delay, onTimerEvent, fdRef, data);
+}
+
+AeTimerId EventLoop ::createTimerInLoop(TimerRef tr, int ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data)
+{
+    assertInLoopThread();
+    AeTimerId aeTimerId = aeCreateTimeEvent(m_aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
+    assert(AE_ERR != aeTimerId);
     assert(m_timerData.find(tr) == m_timerData.end());
-    m_timerData[tr] = {onTimerEvent, fdRef, data, timerid};
-    m_timerId2ref.insert({timerid, tr});
-    return timerid;
+    m_timerData[tr] = {onTimerEvent, fdRef, data, aeTimerId};
+    m_aeTimerId2ref.insert({aeTimerId, tr});
+    return aeTimerId;
 }
 
 void EventLoop::runInLoop(const TaskFunction &cb)
@@ -220,4 +239,4 @@ EventLoop *EventLoop::getCurrentThreadLoop()
 {
     return t_threadLoop;
 }
-};
+}; // namespace wynet

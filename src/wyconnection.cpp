@@ -112,9 +112,11 @@ void TcpConnection::onWritable()
     log_debug("[conn] onWritable, remain:%d", remain);
     int nwrote = ::send(fd(), m_pendingBuf.begin() + m_pendingBuf.headFreeSize(), m_pendingBuf.readableSize(), 0);
     log_debug("[conn] onWritable, nwrote:%d", nwrote);
-    if (nwrote > 0) {
+    if (nwrote > 0)
+    {
         m_pendingBuf.readOut(nwrote);
-        if (m_pendingBuf.readableSize() == 0) {
+        if (m_pendingBuf.readableSize() == 0)
+        {
             log_debug("[conn] onWritable, no remain");
             getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_WRITABLE);
         }
@@ -123,15 +125,38 @@ void TcpConnection::onWritable()
 
 void TcpConnection::send(const uint8_t *data, size_t len)
 {
-    if(m_pendingBuf.readableSize() > 0) {
+    if (getLoop()->isInLoopThread())
+    {
+        log_debug("[conn] send, already in loop");
+        sendInLoop(data, len);
+    }
+    else
+    {
+        log_debug("[conn] send, not in loop");
+        getLoop()->runInLoop(
+            std::bind(&TcpConnection::sendInLoop,
+                      shared_from_this(),
+                      data, len));
+    }
+}
+
+void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
+{
+    getLoop()->assertInLoopThread();
+    if (m_pendingBuf.readableSize() > 0)
+    {
         m_pendingBuf.append(data, len);
-    } else {
+    }
+    else
+    {
         // write directly
         int nwrote = ::send(fd(), data, len, 0);
-        if (nwrote > 0) {
+        if (nwrote > 0)
+        {
             int remain = len - nwrote;
             log_debug("[conn] send, len:%d, nwrote:%d, remain:%d", len, nwrote, remain);
-            if (remain > 0) {
+            if (remain > 0)
+            {
                 m_pendingBuf.append(data + nwrote, remain);
                 getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, OnConnectionEvent);
             }
@@ -139,15 +164,12 @@ void TcpConnection::send(const uint8_t *data, size_t len)
     }
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 /*
 void TcpConnectionForServer::onEstablished()

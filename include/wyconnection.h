@@ -145,6 +145,8 @@ class TcpConnection : public SocketBase
 
     void send(const uint8_t *data, size_t len);
 
+    void sendInLoop(const uint8_t *data, size_t len);
+
   protected:
     EventLoop *m_loop;
     uint32_t m_key;
@@ -194,6 +196,6 @@ class TcpConnectionForClient : public TcpConnection
   private:
     PtrTCPClient m_tcpClient;
 };
-};
+}; // namespace wynet
 
 #endif

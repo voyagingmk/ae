@@ -15,14 +15,16 @@ namespace wynet
 #define LOOP_EVT_WRITABLE AE_WRITABLE
 #define LOOP_EVT_NOMORE AE_NOMORE
 
-typedef long long TimerId;
+typedef long long WyTimerId;
+
+typedef long long AeTimerId;
 
 class TimerRef
 {
-    TimerId m_id;
+    WyTimerId m_id;
 
   public:
-    explicit TimerRef(const TimerId _id = 0) : m_id(_id)
+    explicit TimerRef(const WyTimerId _id = 0) : m_id(_id)
     {
     }
 
@@ -46,7 +48,7 @@ class TimerRef
         return *this;
     }
 
-    TimerId Id() const
+    WyTimerId Id() const
     {
         return m_id;
     }
@@ -63,10 +65,10 @@ class TimerRef
 
     static TimerRef newTimerRef()
     {
-        TimerId _id = ++g_numCreated;
+        WyTimerId _id = ++g_numCreated;
         return TimerRef(_id);
     }
-    static std::atomic<TimerId> g_numCreated;
+    static std::atomic<WyTimerId> g_numCreated;
 };
 
 class EventLoop : Noncopyable
@@ -90,9 +92,9 @@ class EventLoop : Noncopyable
 
     void deleteFileEvent(std::shared_ptr<FDRef> fdRef, int mask);
 
-    TimerRef createTimerInLoop(TimerId ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data);
+    TimerRef createTimer(int ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data);
 
-    void deleteTimerInLoop(TimerRef tr);
+    void deleteTimer(TimerRef tr);
 
     bool isInLoopThread() const
     {
@@ -136,44 +138,48 @@ class EventLoop : Noncopyable
     {
         TimerData() : onTimerEvent(nullptr),
                       data(nullptr),
-                      timerid(0)
+                      timerId(0)
         {
         }
         TimerData(OnTimerEvent _evt,
                   std::weak_ptr<FDRef> _fdRef,
                   void *_data,
-                  TimerId _timerid) : onTimerEvent(_evt),
-                                      fdRef(_fdRef),
-                                      data(_data),
-                                      timerid(_timerid)
+                  WyTimerId _timerid) : onTimerEvent(_evt),
+                                        fdRef(_fdRef),
+                                        data(_data),
+                                        timerId(_timerid)
         {
         }
         OnTimerEvent onTimerEvent;
         std::weak_ptr<FDRef> fdRef;
         void *data;
-        TimerId timerid;
+        WyTimerId timerId;
     };
 
   private:
     void processTaskQueue();
 
-    TimerId createTimer(TimerRef tr, TimerId delay, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data);
+    AeTimerId createTimerInLoop(int delay, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data);
 
-    bool deleteTimer(TimerRef tr);
+    AeTimerId createTimerInLoop(TimerRef tr, int delay, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data);
+
+    bool deleteTimerInLoop(TimerRef tr);
+
+    bool deleteTimerInLoop(AeTimerId aeTimerId);
 
     const pid_t m_threadId;
     aeEventLoop *m_aeloop;
     std::map<int, FDData> m_fdData;
     std::map<TimerRef, TimerData> m_timerData;
-    std::map<TimerId, TimerRef> m_timerId2ref;
+    std::map<AeTimerId, TimerRef> m_aeTimerId2ref;
     const int m_wakeupInterval;
     bool m_doingTask;
     mutable MutexLock m_mutex;
     std::vector<TaskFunction> m_taskFuncQueue;
 
     friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
-    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, TimerId timerid, void *clientData);
+    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, WyTimerId timerId, void *clientData);
 };
-};
+}; // namespace wynet
 
 #endif
