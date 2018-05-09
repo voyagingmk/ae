@@ -4,6 +4,7 @@ using namespace wynet;
 
 WyNet *g_net;
 PtrConn g_conn1, g_conn2;
+char lineBuffer[1024];
 
 void Stop(int signo)
 {
@@ -47,6 +48,9 @@ void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
     }
     */
     conn->send(sockBuf.begin() + sockBuf.headFreeSize(), sockBuf.readableSize());
+    memcpy(lineBuffer, sockBuf.begin() + sockBuf.headFreeSize(), sockBuf.readableSize());
+    lineBuffer[sockBuf.readableSize()] = '\0';
+    log_info("%s", lineBuffer);
     sockBuf.readOut(sockBuf.readableSize());
 }
 
@@ -66,7 +70,7 @@ int main(int argc, char **argv)
     signal(SIGINT, Stop);
 
     // log_file("test_server");
-    log_level(LOG_LEVEL::LOG_DEBUG);
+    log_level(LOG_LEVEL::LOG_INFO);
     log_lineinfo(false);
     // log_start();
 

@@ -8,6 +8,7 @@ int input_fd;
 int output_fd;
 #define BUF_SIZE 8
 char buffer[BUF_SIZE];
+char lineBuffer[1024];
 
 void Stop(int signo)
 {
@@ -33,6 +34,9 @@ void OnTcpSendComplete(PtrConn conn)
     if (ret_in > 0)
     {
         conn->send((const uint8_t *)buffer, ret_in);
+        memcpy(lineBuffer, buffer, ret_in);
+        lineBuffer[ret_in] = '\0';
+        log_info(">> : %s [%d]", lineBuffer, ret_in);
     }
 }
 
@@ -61,6 +65,9 @@ void OnTcpConnected(PtrConn conn)
     if (ret_in > 0)
     {
         conn->send((const uint8_t *)buffer, ret_in);
+        memcpy(lineBuffer, buffer, ret_in);
+        lineBuffer[ret_in] = '\0';
+        log_info(">> : %s [%d]", lineBuffer, ret_in);
     }
     //client->getTcpClient();
     //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
@@ -81,6 +88,9 @@ void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
                             sockBuf.begin() + sockBuf.headFreeSize(),
                             sockBuf.readableSize());
     log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", sockBuf.readableSize(), readOutSize);
+    memcpy(lineBuffer, sockBuf.begin() + sockBuf.headFreeSize(), sockBuf.readableSize());
+    lineBuffer[sockBuf.readableSize()] = '\0';
+    log_info("<< : %s [%d]", lineBuffer, sockBuf.readableSize());
     sockBuf.readOut(sockBuf.readableSize());
 }
 
@@ -90,7 +100,7 @@ int main(int argc, char **argv)
     signal(SIGINT, Stop);
 
     // log_file("test_client");
-    log_level(LOG_LEVEL::LOG_DEBUG);
+    log_level(LOG_LEVEL::LOG_INFO);
     log_lineinfo(false);
     // log_start();
 
