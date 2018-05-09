@@ -164,6 +164,8 @@ class TcpConnection : public SocketBase
 
     void sendInLoop(const uint8_t *data, size_t len);
 
+    void sendInLoop(const std::string &);
+
     bool isPending();
 
     int getPendingSize();

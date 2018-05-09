@@ -180,10 +180,15 @@ void TcpConnection::send(const uint8_t *data, size_t len)
     {
         log_debug("[conn] send, not in loop");
         getLoop()->runInLoop(
-            std::bind(&TcpConnection::sendInLoop,
+            std::bind((void (TcpConnection::*)(const std::string &)) & TcpConnection::sendInLoop,
                       shared_from_this(),
-                      data, len));
+                      std::string((const char *)data, len)));
     }
+}
+
+void TcpConnection::sendInLoop(const std::string &msg)
+{
+    sendInLoop((const uint8_t *)msg.data(), msg.size());
 }
 
 void TcpConnection::sendInLoop(const uint8_t *data, size_t len)
