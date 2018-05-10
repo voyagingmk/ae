@@ -18,7 +18,6 @@ public:
   struct hostent *h;
   PtrCliConn m_conn;
   PtrClient m_parent;
-  bool m_connected;
 
 public:
   TcpConnection::OnTcpConnected onTcpConnected;
@@ -35,17 +34,9 @@ public:
 
   void connect(const char *host, int port);
 
-  void Close();
-
-  void Send(uint8_t *data, size_t len);
-
-  void Recvfrom();
-
   EventLoop &getLoop();
 
 private:
-  void onConnected();
-
   void _onTcpConnected();
 
   void _onTcpDisconnected();

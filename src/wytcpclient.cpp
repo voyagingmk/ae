@@ -27,8 +27,8 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
     {
         PtrClient client = tcpClient->m_parent;
         // connect ok, remove event
-        client->getNet()->getLoop().deleteFileEvent(tcpClient, LOOP_EVT_WRITABLE);
-        tcpClient->onConnected();
+        client->getLoop().deleteFileEvent(tcpClient, LOOP_EVT_WRITABLE);
+        tcpClient->_onTcpConnected();
     }
 }
 
@@ -74,8 +74,8 @@ void TCPClient::connect(const char *host, int port)
         log_debug("connect: %d", ret);
         if ((ret == -1) && (errno == EINPROGRESS))
         {
-            m_parent->getNet()->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
-                                                          TCPClient::OnTcpWritable);
+            getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
+                                      TCPClient::OnTcpWritable);
             break;
         }
         if (ret == 0)
@@ -94,38 +94,8 @@ void TCPClient::connect(const char *host, int port)
     freeaddrinfo(ressave);
     if (ret == 0)
     {
-        onConnected();
+        _onTcpConnected();
     }
-}
-
-void TCPClient::Close()
-{
-    if (!m_connected)
-    {
-        return;
-    }
-    log_info("tcp client closed");
-    m_connected = false;
-    close(sockfd());
-    _onTcpDisconnected();
-}
-
-void TCPClient::Recvfrom()
-{
-}
-
-void TCPClient::Send(uint8_t *data, size_t len)
-{
-    int ret = send(sockfd(), data, len, 0);
-    if (ret < 0)
-    {
-        if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-        {
-            return;
-        }
-        Close();
-    }
-    // Sendto(sockfd(), data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
 
 EventLoop &TCPClient::getLoop()
@@ -133,20 +103,14 @@ EventLoop &TCPClient::getLoop()
     return m_parent->getNet()->getLoop();
 }
 
-void TCPClient::onConnected()
-{
-    m_connected = true;
-    _onTcpConnected();
-}
-
 void TCPClient::_onTcpConnected()
 {
     m_conn = std::make_shared<CliConn>(shared_from_this(), sockfd());
-    m_conn->setEventLoop(&m_parent->getNet()->getLoop());
+    m_conn->setEventLoop(&getLoop());
     m_conn->setCallBack_Connected(onTcpConnected);
     m_conn->setCallBack_Disconnected(onTcpDisconnected);
     m_conn->setCallBack_Message(onTcpRecvMessage);
-    m_parent->getNet()->getLoop().runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
+    getLoop().runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
 }
 
 void TCPClient::_onTcpDisconnected()
