@@ -36,13 +36,6 @@ public:
 
   void startListen(int port);
 
-  // only use in unusal cases
-  void closeConnect(UniqID connectId);
-
-  void sendByTcp(UniqID connectId, const uint8_t *data, size_t len);
-
-  void sendByTcp(UniqID connectId, PacketHeader *header);
-
 private:
   std::shared_ptr<TCPServer> shared_from_this()
   {
@@ -67,6 +60,6 @@ private:
 
   friend void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 };
-};
+}; // namespace wynet
 
 #endif

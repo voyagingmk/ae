@@ -25,9 +25,8 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
     }
     else
     {
-        PtrClient client = tcpClient->m_parent;
         // connect ok, remove event
-        client->getLoop().deleteFileEvent(tcpClient, LOOP_EVT_WRITABLE);
+        tcpClient->getLoop().deleteFileEvent(tcpClient, LOOP_EVT_WRITABLE);
         tcpClient->_onTcpConnected();
     }
 }

@@ -103,57 +103,11 @@ TCPServer::~TCPServer()
 	getLoop().deleteFileEvent(sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
 }
 
-void TCPServer::closeConnect(UniqID connectId)
-{
-	auto it = m_connDict.find(connectId);
-	if (it == m_connDict.end())
-	{
-		return;
-	}
-	_closeConnectByFd(it->second->fd(), true);
-}
-
 void TCPServer::_closeConnectByFd(int connfdTcp, bool force)
 {
-	if (force)
-	{
-		struct linger l;
-		l.l_onoff = 1; /* cause RST to be sent on close() */
-		l.l_linger = 0;
-		Setsockopt(connfdTcp, SOL_SOCKET, SO_LINGER, &l, sizeof(l));
-	}
 	_onTcpDisconnected(connfdTcp);
 }
 
-void TCPServer::sendByTcp(UniqID connectId, const uint8_t *m_data, size_t len)
-{
-	protocol::UserPacket *p = (protocol::UserPacket *)m_data;
-	PacketHeader *header = SerializeProtocol<protocol::UserPacket>(*p, len);
-	sendByTcp(connectId, header);
-}
-
-void TCPServer::sendByTcp(UniqID connectId, PacketHeader *header)
-{
-	assert(header != nullptr);
-	auto it = m_connDict.find(connectId);
-	if (it == m_connDict.end())
-	{
-		return;
-	}
-	PtrSerConn conn = it->second;
-	int ret = send(conn->fd(), (uint8_t *)header, header->getUInt32(HeaderFlag::PacketLen), 0);
-	if (ret < 0)
-	{
-		// should never EMSGSIZE ENOBUFS
-		if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-		{
-			return;
-		}
-		// close the client
-		log_error("[TCPServer][tcp] sendByTcp err %d", errno);
-		_closeConnectByFd(conn->fd(), true);
-	}
-}
 WyNet *TCPServer::getNet() const
 {
 	return m_parent->getNet();
@@ -289,4 +243,4 @@ void TCPServer::_onTcpMessage(int connfdTcp)
 		}
 	} while (1);
 }*/
-};
+}; // namespace wynet
