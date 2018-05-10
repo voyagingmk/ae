@@ -10,23 +10,26 @@ namespace wynet
 {
 class ConnectionManager : public Noncopyable
 {
-  public:
-    ConnectionManager();
+public:
+  ConnectionManager();
 
-    UniqID refConnection(PtrConn conn);
+  PtrConn getConncetion(UniqID connectId);
 
-    bool unrefConnection(PtrConn conn);
+  UniqID refConnection(PtrConn conn);
 
-    bool unrefConnection(UniqID connectId);
+  bool unrefConnection(PtrConn conn);
 
-    void onTcpDisconnected(int connfdTcp);
+  void onTcpDisconnected(PtrConn conn);
 
-  public:
-    std::map<UniqID, PtrConn> m_connDict;
-    std::map<int, UniqID> m_connfd2cid;
-    std::map<ConvID, UniqID> m_convId2cid;
-    UniqIDGenerator m_connectIdGen;
-    UniqIDGenerator m_convIdGen;
+protected:
+  bool unrefConnection(UniqID connectId);
+
+protected:
+  std::map<UniqID, PtrConn> m_connDict;
+  std::map<int, UniqID> m_connfd2cid;
+  std::map<ConvID, UniqID> m_convId2cid;
+  UniqIDGenerator m_connectIdGen;
+  UniqIDGenerator m_convIdGen;
 };
 
 }; // namespace wynet

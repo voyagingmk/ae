@@ -9,6 +9,16 @@ ConnectionManager::ConnectionManager()
     m_convIdGen.setRecycleEnabled(true);
 }
 
+PtrConn ConnectionManager::getConncetion(UniqID connectId)
+{
+    auto it = m_connDict.find(connectId);
+    if (it == m_connDict.end())
+    {
+        return PtrConn();
+    }
+    return it->second;
+}
+
 UniqID ConnectionManager::refConnection(PtrConn conn)
 {
     UniqID connectId = m_connectIdGen.getNewID();
@@ -41,14 +51,9 @@ bool ConnectionManager::unrefConnection(UniqID connectId)
     return true;
 }
 
-void ConnectionManager::onTcpDisconnected(int connfdTcp)
+void ConnectionManager::onTcpDisconnected(PtrConn conn)
 {
-    if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
-    {
-        UniqID connectId = m_connfd2cid[connfdTcp];
-        unrefConnection(connectId);
-        log_info("[connMgr]closed, connectId: %d connfdTcp: %d", connectId, connfdTcp);
-    }
+    unrefConnection(conn);
 }
 
 }; // namespace wynet
