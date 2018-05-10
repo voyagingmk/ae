@@ -6,6 +6,7 @@
 #include "protocol_define.h"
 #include "wynet.h"
 #include "wysockbuffer.h"
+#include "connection_manager.h"
 
 namespace wynet
 {
@@ -26,6 +27,7 @@ TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
 										 onTcpDisconnected(nullptr),
 										 onTcpRecvMessage(nullptr)
 {
+	m_connMgr = std::make_shared<ConnectionManager>();
 }
 
 void TCPServer::startListen(int port)

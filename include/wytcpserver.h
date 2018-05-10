@@ -13,11 +13,14 @@ class Server;
 typedef std::shared_ptr<Server> PtrServer;
 class TCPServer;
 typedef std::shared_ptr<TCPServer> PtrTCPServer;
+class ConnectionManager;
+typedef std::shared_ptr<ConnectionManager> PtrConnMgr;
 
 class TCPServer : public SocketBase
 {
   PtrServer m_parent;
   int m_tcpPort;
+  PtrConnMgr m_connMgr;
 
 public:
   TcpConnection::OnTcpConnected onTcpConnected;
@@ -30,6 +33,8 @@ public:
   ~TCPServer();
 
   void startListen(int port);
+
+  PtrConnMgr getConnMgr() const { return m_connMgr; }
 
 protected:
   std::shared_ptr<TCPServer> shared_from_this()

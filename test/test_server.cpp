@@ -3,7 +3,6 @@
 using namespace wynet;
 
 WyNet *g_net;
-PtrConn g_conn1, g_conn2;
 char lineBuffer[1024];
 
 void Stop(int signo)
@@ -14,14 +13,6 @@ void Stop(int signo)
 void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected] %d", conn->connectId());
-    if (!g_conn1)
-    {
-        g_conn1 = conn;
-    }
-    if (!g_conn2)
-    {
-        g_conn2 = conn;
-    }
 }
 
 void OnTcpDisconnected(PtrConn conn)
@@ -33,24 +24,7 @@ void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
 {
 
     log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
-
-    /*
-    if (g_conn1 && g_conn2)
-    {
-        if (g_conn1 == conn)
-        {
-            g_conn2->send((const uint8_t *)"hello conn2", 11);
-        }
-        else
-        {
-            g_conn1->send((const uint8_t *)"hello conn1", 11);
-        }
-    }
-    */
     conn->send(sockBuf.readBegin(), sockBuf.readableSize());
-    memcpy(lineBuffer, sockBuf.readBegin(), sockBuf.readableSize());
-    lineBuffer[sockBuf.readableSize()] = '\0';
-    log_info("%d:%s", sockBuf.readableSize(), lineBuffer);
     sockBuf.readOut(sockBuf.readableSize());
 }
 

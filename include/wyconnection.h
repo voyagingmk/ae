@@ -22,10 +22,6 @@ class TcpConnection;
 
 typedef std::shared_ptr<TcpConnection> PtrConn;
 
-typedef std::shared_ptr<TcpConnection> PtrConn;
-
-void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
-
 class TcpConnection : public SocketBase
 {
   public:

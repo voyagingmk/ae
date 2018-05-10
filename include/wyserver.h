@@ -44,6 +44,6 @@ public:
     return m_tcpServer;
   }
 };
-};
+}; // namespace wynet
 
 #endif
