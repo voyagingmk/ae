@@ -9,7 +9,7 @@
 
 namespace wynet
 {
-void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
+void TCPServer::OnNewTcpConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
 	std::shared_ptr<FDRef> sfdRef = fdRef.lock();
 	if (!sfdRef)
@@ -93,7 +93,7 @@ void TCPServer::startListen(int port)
 	log_info("TCP TCPServer created: %s", str);
 
 	getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE,
-							  OnTcpNewConnection);
+							  TCPServer::OnNewTcpConnection);
 }
 
 TCPServer::~TCPServer()

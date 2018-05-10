@@ -44,4 +44,4 @@ std::shared_ptr<UDPServer> Server::initUdpServer(int udpPort)
                                      OnUdpMessage);
     return m_udpServer;
 }
-};
+}; // namespace wynet

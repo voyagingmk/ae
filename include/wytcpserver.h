@@ -31,7 +31,7 @@ public:
 
   void startListen(int port);
 
-private:
+protected:
   std::shared_ptr<TCPServer> shared_from_this()
   {
     return FDRef::downcasted_shared_from_this<TCPServer>();
@@ -45,9 +45,7 @@ private:
 
   void _onTcpDisconnected(int connfdTcp);
 
-  friend void OnTcpNewConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
-
-  friend void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
+  static void OnNewTcpConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 };
 }; // namespace wynet
 
