@@ -22,19 +22,7 @@ class TcpConnection;
 
 typedef std::shared_ptr<TcpConnection> PtrConn;
 
-class TcpConnectionForServer;
-
-class TcpConnectionForClient;
-
-typedef TcpConnectionForServer SerConn;
-
-typedef TcpConnectionForClient CliConn;
-
 typedef std::shared_ptr<TcpConnection> PtrConn;
-
-typedef std::shared_ptr<SerConn> PtrSerConn;
-
-typedef std::shared_ptr<CliConn> PtrCliConn;
 
 void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 
@@ -195,30 +183,6 @@ class TcpConnection : public SocketBase
     OnTcpSendComplete onTcpSendComplete;
 };
 
-class TcpConnectionForServer : public TcpConnection
-{
-  public:
-    TcpConnectionForServer(PtrTCPServer tcpServer, int fd) : TcpConnection(fd),
-                                                             m_tcpServer(tcpServer)
-    {
-    }
-    friend void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
-
-  private:
-    PtrTCPServer m_tcpServer;
-};
-
-class TcpConnectionForClient : public TcpConnection
-{
-  public:
-    TcpConnectionForClient(PtrTCPClient tcpClient, int fd) : TcpConnection(fd),
-                                                             m_tcpClient(tcpClient)
-    {
-    }
-
-  private:
-    PtrTCPClient m_tcpClient;
-};
 }; // namespace wynet
 
 #endif

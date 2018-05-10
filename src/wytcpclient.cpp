@@ -104,7 +104,7 @@ EventLoop &TCPClient::getLoop()
 
 void TCPClient::_onTcpConnected()
 {
-    m_conn = std::make_shared<CliConn>(shared_from_this(), sockfd());
+    m_conn = std::make_shared<TcpConnection>(sockfd());
     m_conn->setEventLoop(&getLoop());
     m_conn->setCallBack_Connected(onTcpConnected);
     m_conn->setCallBack_Disconnected(onTcpDisconnected);

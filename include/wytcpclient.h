@@ -16,7 +16,7 @@ class TCPClient : public SocketBase
 public:
   sockaddr_in m_serSockaddr;
   struct hostent *h;
-  PtrCliConn m_conn;
+  PtrConn m_conn;
   PtrClient m_parent;
 
 public:

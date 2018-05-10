@@ -16,11 +16,6 @@ typedef std::shared_ptr<TCPServer> PtrTCPServer;
 
 class TCPServer : public SocketBase
 {
-  std::map<UniqID, PtrSerConn> m_connDict;
-  std::map<int, UniqID> m_connfd2cid;
-  std::map<ConvID, UniqID> m_convId2cid;
-  UniqIDGenerator m_connectIdGen;
-  UniqIDGenerator m_convIdGen;
   PtrServer m_parent;
   int m_tcpPort;
 
@@ -46,13 +41,7 @@ private:
 
   EventLoop &getLoop();
 
-  UniqID refConnection(PtrSerConn conn);
-
-  bool unrefConnection(UniqID connectId);
-
   void acceptConnection();
-
-  void _closeConnectByFd(int connfdTcp, bool force = false);
 
   void _onTcpDisconnected(int connfdTcp);
 

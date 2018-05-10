@@ -49,6 +49,7 @@ FILE(GLOB MY_SOURCERS
     src/eventloop_thread.cpp
     src/eventloop_threadpool.cpp
     src/wyconnection.cpp
+    src/connection_manager.cpp
     src/uniqid.cpp
     src/wythreadbase.cpp
     src/wythread.cpp
@@ -71,6 +72,7 @@ FILE(GLOB MY_HEADERS
     include/protocol.h
     include/wynet.h
     include/wyconnection.h
+    include/connection_manager.h
     include/wykcp.h
     include/wysockbase.h
     include/wybuffer.h

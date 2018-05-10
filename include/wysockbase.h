@@ -5,7 +5,6 @@
 #include "logger/log.h"
 #include "wybuffer.h"
 #include "protocol.h"
-#include "noncopyable.h"
 #include "multiple_inherit.h"
 
 namespace wynet
@@ -13,48 +12,48 @@ namespace wynet
 
 class FDRef : public inheritable_enable_shared_from_this<FDRef>
 {
-  public:
-    FDRef(int fd)
-    {
-        setfd(fd);
-    }
-    virtual ~FDRef() {}
+public:
+  FDRef(int fd)
+  {
+    setfd(fd);
+  }
+  virtual ~FDRef() {}
 
-    inline int fd() const { return m_fd; }
+  inline int fd() const { return m_fd; }
 
-  protected:
-    inline void setfd(int fd) { m_fd = fd; }
+protected:
+  inline void setfd(int fd) { m_fd = fd; }
 
-  private:
-    int m_fd;
+private:
+  int m_fd;
 };
 
 class SocketBase : public FDRef
 {
-  protected:
-    SocketBase(int fd = 0) : FDRef(fd),
-                             m_socklen(0),
-                             m_family(0)
-    {
-    }
-    virtual ~SocketBase()
-    {
-        ::close(sockfd());
-        setfd(0);
-    }
+protected:
+  SocketBase(int fd = 0) : FDRef(fd),
+                           m_socklen(0),
+                           m_family(0)
+  {
+  }
+  virtual ~SocketBase()
+  {
+    ::close(sockfd());
+    setfd(0);
+  }
 
-  public:
-    inline void setSockfd(int fd) { setfd(fd); }
-    inline int sockfd() const { return fd(); }
-    inline bool valid() const { return fd() > 0; }
-    inline bool isIPv4() const { return m_family == PF_INET; }
-    inline bool isIPv6() const { return m_family == PF_INET6; }
+public:
+  inline void setSockfd(int fd) { setfd(fd); }
+  inline int sockfd() const { return fd(); }
+  inline bool valid() const { return fd() > 0; }
+  inline bool isIPv4() const { return m_family == PF_INET; }
+  inline bool isIPv6() const { return m_family == PF_INET6; }
 
-  public:
-    sockaddr_in6 m_sockaddr;
-    socklen_t m_socklen;
-    int m_family;
+public:
+  sockaddr_in6 m_sockaddr;
+  socklen_t m_socklen;
+  int m_family;
 };
-};
+}; // namespace wynet
 
 #endif

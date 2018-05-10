@@ -31,8 +31,6 @@ TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
 void TCPServer::startListen(int port)
 {
 	m_tcpPort = port;
-	m_convIdGen.setRecycleThreshold(2 << 15);
-	m_convIdGen.setRecycleEnabled(true);
 	int listenfd, n;
 	const int on = 1;
 	struct addrinfo hints, *res, *ressave;
@@ -103,11 +101,6 @@ TCPServer::~TCPServer()
 	getLoop().deleteFileEvent(sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
 }
 
-void TCPServer::_closeConnectByFd(int connfdTcp, bool force)
-{
-	_onTcpDisconnected(connfdTcp);
-}
-
 WyNet *TCPServer::getNet() const
 {
 	return m_parent->getNet();
@@ -116,32 +109,6 @@ WyNet *TCPServer::getNet() const
 EventLoop &TCPServer::getLoop()
 {
 	return m_parent->getNet()->getLoop();
-}
-
-UniqID TCPServer::refConnection(PtrSerConn conn)
-{
-	UniqID connectId = m_connectIdGen.getNewID();
-	UniqID convId = m_convIdGen.getNewID();
-	m_connDict[connectId] = conn;
-	conn->setConnectId(connectId);
-	uint16_t password = random();
-	conn->setKey((password << 16) | convId);
-	m_connfd2cid[conn->connectFd()] = connectId;
-	m_convId2cid[convId] = connectId;
-	return connectId;
-}
-
-bool TCPServer::unrefConnection(UniqID connectId)
-{
-	if (m_connDict.find(connectId) == m_connDict.end())
-	{
-		return false;
-	}
-	PtrSerConn conn = m_connDict[connectId];
-	m_connfd2cid.erase(conn->connectFd());
-	m_convId2cid.erase(conn->convId());
-	m_connDict.erase(connectId);
-	return true;
 }
 
 void TCPServer::acceptConnection()
@@ -169,9 +136,8 @@ void TCPServer::acceptConnection()
 
 	getLoop().assertInLoopThread();
 	EventLoop *ioLoop = getNet()->getThreadPool()->getNextLoop();
-	PtrSerConn conn = std::make_shared<SerConn>(shared_from_this(), connfdTcp);
+	PtrConn conn = std::make_shared<TcpConnection>(connfdTcp);
 	conn->setEventLoop(ioLoop);
-	refConnection(conn);
 	conn->setCallBack_Connected(onTcpConnected);
 	conn->setCallBack_Disconnected(onTcpDisconnected);
 	conn->setCallBack_Message(onTcpRecvMessage);
@@ -180,67 +146,4 @@ void TCPServer::acceptConnection()
 	ioLoop->runInLoop(std::bind(&TcpConnection::onEstablished, conn));
 }
 
-void TCPServer::_onTcpDisconnected(int connfdTcp)
-{
-	if (m_connfd2cid.find(connfdTcp) != m_connfd2cid.end())
-	{
-		UniqID connectId = m_connfd2cid[connfdTcp];
-		PtrSerConn conn = m_connDict[connectId];
-		unrefConnection(connectId);
-		log_info("[TCPServer][tcp] closed, connectId: %d connfdTcp: %d", connectId, connfdTcp);
-		if (onTcpDisconnected)
-			onTcpDisconnected(conn);
-	}
-}
-
-/*
-void TCPServer::_onTcpMessage(int connfdTcp)
-{
-	UniqID connectId = m_connfd2cid[connfdTcp];
-	PtrSerConn conn = m_connDict[connectId];
-	SockBuffer &sockBuffer = conn->sockBuffer();
-	do
-	{
-		int nreadTotal = 0;
-		int ret = sockBuffer.readIn(connfdTcp, &nreadTotal);
-		log_debug("[TCPServer][tcp] readIn connfdTcp %d ret %d nreadTotal %d", connfdTcp, ret, nreadTotal);
-		if (ret <= 0)
-		{
-			// has error or has closed
-			_closeConnectByFd(connfdTcp, true);
-			return;
-		}
-		if (ret == 2)
-		{
-			break;
-		}
-		if (ret == 1)
-		{
-			BufferRef &bufRef = sockBuffer.getBufRef();
-			PacketHeader *header = (PacketHeader *)(bufRef->data());
-			Protocol protocol = static_cast<Protocol>(header->getProtocol());
-			switch (protocol)
-			{
-			case Protocol::UdpHandshake:
-			{
-				break;
-			}
-			case Protocol::UserPacket:
-			{
-				protocol::UserPacket *p = (protocol::UserPacket *)(bufRef->data() + header->getHeaderLength());
-				size_t dataLength = header->getUInt32(HeaderFlag::PacketLen) - header->getHeaderLength();
-				// log_debug("getHeaderLength: %d", header->getHeaderLength());
-				if (onTcpRecvMessage)
-				{
-					onTcpRecvMessage(conn, (uint8_t *)p, dataLength);
-				}
-				break;
-			}
-			default:
-				break;
-			}
-			sockBuffer.resetBuffer();
-		}
-	} while (1);
-}*/
 }; // namespace wynet
