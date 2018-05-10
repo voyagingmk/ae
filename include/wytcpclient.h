@@ -41,21 +41,18 @@ public:
 
   void Recvfrom();
 
-  void onConnected();
-
   EventLoop &getLoop();
 
 private:
+  void onConnected();
+
   void _onTcpConnected();
 
   void _onTcpDisconnected();
 
-  void _onTcpMessage();
-
-  friend void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask);
-
-  friend void OnTcpWritable(struct aeEventLoop *eventLoop, void *clientData, int mask);
+  static void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 };
-};
+
+}; // namespace wynet
 
 #endif

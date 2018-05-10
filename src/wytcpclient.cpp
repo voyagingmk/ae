@@ -6,20 +6,8 @@
 namespace wynet
 {
 
-void OnTcpMessage(EventLoop *loop, std::weak_ptr<FDRef> fdRef, int mask)
-{
-    std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-    if (!sfdRef)
-    {
-        return;
-    }
-    log_debug("OnTcpMessage fd %d", sfdRef->fd());
-    std::shared_ptr<TCPClient> tcpClient = std::dynamic_pointer_cast<TCPClient>(sfdRef);
-    tcpClient->_onTcpMessage();
-}
-
 // http://man7.org/linux/man-pages/man2/connect.2.html
-void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
+void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
     log_debug("OnTcpWritable");
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
@@ -87,7 +75,7 @@ void TCPClient::connect(const char *host, int port)
         if ((ret == -1) && (errno == EINPROGRESS))
         {
             m_parent->getNet()->getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
-                                                          OnTcpWritable);
+                                                          TCPClient::OnTcpWritable);
             break;
         }
         if (ret == 0)
@@ -155,10 +143,10 @@ void TCPClient::_onTcpConnected()
 {
     m_conn = std::make_shared<CliConn>(shared_from_this(), sockfd());
     m_conn->setEventLoop(&m_parent->getNet()->getLoop());
-	m_conn->setCallBack_Connected(onTcpConnected);
-	m_conn->setCallBack_Disconnected(onTcpDisconnected);
-	m_conn->setCallBack_Message(onTcpRecvMessage);
-	m_parent->getNet()->getLoop().runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
+    m_conn->setCallBack_Connected(onTcpConnected);
+    m_conn->setCallBack_Disconnected(onTcpDisconnected);
+    m_conn->setCallBack_Message(onTcpRecvMessage);
+    m_parent->getNet()->getLoop().runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
 }
 
 void TCPClient::_onTcpDisconnected()
@@ -166,7 +154,4 @@ void TCPClient::_onTcpDisconnected()
     m_conn = nullptr;
 }
 
-void TCPClient::_onTcpMessage()
-{
-}
-};
+}; // namespace wynet

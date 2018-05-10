@@ -36,6 +36,8 @@ typedef std::shared_ptr<SerConn> PtrSerConn;
 
 typedef std::shared_ptr<CliConn> PtrCliConn;
 
+void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
+
 class TcpConnection : public SocketBase
 {
   public:
@@ -150,27 +152,34 @@ class TcpConnection : public SocketBase
         onTcpSendComplete = cb;
     }
 
-    virtual void onEstablished();
-
-    virtual void onReadable();
-
-    virtual void onWritable();
-
     void close(bool force);
-
-    void closeInLoop(bool force);
 
     void send(const uint8_t *data, const size_t len);
 
     void send(const std::string &);
 
+    bool isPending();
+
+    int getPendingSize();
+
+  protected:
+    friend class TCPServer;
+
+    friend class TCPClient;
+
+    static void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
+
+    void onEstablished();
+
+    void onReadable();
+
+    void onWritable();
+
     void sendInLoop(const uint8_t *data, const size_t len);
 
     void sendInLoop(const std::string &);
 
-    bool isPending();
-
-    int getPendingSize();
+    void closeInLoop(bool force);
 
   protected:
     EventLoop *m_loop;
@@ -193,13 +202,6 @@ class TcpConnectionForServer : public TcpConnection
                                                              m_tcpServer(tcpServer)
     {
     }
-
-    //void onEstablished() override;
-
-    //void onReadable() override;
-
-    //void onWritable() override;
-
     friend void OnTcpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 
   private:
@@ -213,12 +215,6 @@ class TcpConnectionForClient : public TcpConnection
                                                              m_tcpClient(tcpClient)
     {
     }
-
-    //void onEstablished() override;
-
-    //void onReadable() override;
-
-    //void onWritable() override;
 
   private:
     PtrTCPClient m_tcpClient;

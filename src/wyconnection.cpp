@@ -13,7 +13,7 @@ int testOnTimerEvent(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, v
     return LOOP_EVT_NOMORE;
 }
 
-void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
+void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
     if (!sfdRef)
@@ -78,7 +78,7 @@ void TcpConnection::onEstablished()
     assert(m_state == State::Connecting);
     log_debug("[conn] establish in thread: %s", CurrentThread::name());
     m_state = State::Connected;
-    getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, OnConnectionEvent);
+    getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, TcpConnection::OnConnectionEvent);
     if (onTcpConnected)
         onTcpConnected(shared_from_this());
 }
@@ -218,7 +218,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             if (remain > 0)
             {
                 m_pendingBuf.append(data + nwrote, remain);
-                getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, OnConnectionEvent);
+                getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
             {
