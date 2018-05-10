@@ -62,8 +62,8 @@ class TcpConnection : public SocketBase
     }
 
     TcpConnection &operator=(TcpConnection &&c)
-    {
-        m_buf = std::move(c.m_buf);
+    {       
+        m_pendingRecvBuf = std::move(c.m_pendingRecvBuf);
         m_key = c.m_key;
         m_kcpObj = c.m_kcpObj;
         c.m_key = 0;
@@ -113,7 +113,7 @@ class TcpConnection : public SocketBase
 
     inline SockBuffer &sockBuffer()
     {
-        return m_buf;
+        return m_pendingRecvBuf;
     }
 
     void setCallBack_Connected(OnTcpConnected cb)
@@ -171,8 +171,9 @@ class TcpConnection : public SocketBase
     uint32_t m_key;
     KCPObject *m_kcpObj;
     UniqID m_connectId;
-    SockBuffer m_buf;
-    SockBuffer m_pendingBuf;
+    SockBuffer m_pendingRecvBuf;
+    SockBuffer m_pendingSendBuf;
+
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;
     OnTcpRecvMessage onTcpRecvMessage;

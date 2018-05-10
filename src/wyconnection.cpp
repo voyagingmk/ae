@@ -136,14 +136,14 @@ void TcpConnection::onReadable()
 void TcpConnection::onWritable()
 {
     getLoop()->assertInLoopThread();
-    int remain = m_pendingBuf.readableSize();
+    int remain = m_pendingSendBuf.readableSize();
     log_debug("[conn] onWritable, remain:%d", remain);
-    int nwrote = ::send(fd(), m_pendingBuf.readBegin(), m_pendingBuf.readableSize(), 0);
+    int nwrote = ::send(fd(), m_pendingSendBuf.readBegin(), m_pendingSendBuf.readableSize(), 0);
     log_debug("[conn] onWritable, nwrote:%d", nwrote);
     if (nwrote > 0)
     {
-        m_pendingBuf.readOut(nwrote);
-        if (m_pendingBuf.readableSize() == 0)
+        m_pendingSendBuf.readOut(nwrote);
+        if (m_pendingSendBuf.readableSize() == 0)
         {
             log_debug("[conn] onWritable, no remain");
             getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_WRITABLE);
@@ -203,9 +203,9 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
     {
         return;
     }
-    if (m_pendingBuf.readableSize() > 0)
+    if (m_pendingSendBuf.readableSize() > 0)
     {
-        m_pendingBuf.append(data, len);
+        m_pendingSendBuf.append(data, len);
     }
     else
     {
@@ -217,7 +217,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             log_debug("[conn] send, len:%d, nwrote:%d, remain:%d", len, nwrote, remain);
             if (remain > 0)
             {
-                m_pendingBuf.append(data + nwrote, remain);
+                m_pendingSendBuf.append(data + nwrote, remain);
                 getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
@@ -248,6 +248,6 @@ bool TcpConnection::isPending()
 
 int TcpConnection::getPendingSize()
 {
-    int remain = m_pendingBuf.readableSize();
+    int remain = m_pendingSendBuf.readableSize();
     return remain;
 }

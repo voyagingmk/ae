@@ -26,7 +26,7 @@ std::shared_ptr<TCPClient> Client::initTcpClient(const char *host, int tcpPort)
 /*
 void Client::_onTcpMessage()
 {
-    SockBuffer &sockBuffer = m_tcpClient->m_buf;
+    SockBuffer &sockBuffer = m_tcpClient->m_pendingRecvBuf;
     // validate packet
     do
     {
