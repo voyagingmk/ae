@@ -98,11 +98,6 @@ class SockBuffer : public Noncopyable
         m_pos2 = 0;
     }
 
-    uint8_t *begin()
-    {
-        return &*(m_bufRef->getDataVector().begin());
-    }
-
     void append(const uint8_t *data, size_t n);
 
     // return value = readv/read
@@ -114,7 +109,18 @@ class SockBuffer : public Noncopyable
         m_pos1 += expected;
         return expected;
     }
+
+    uint8_t *readBegin()
+    {
+        return begin() + headFreeSize();
+    }
+
+  private:
+    uint8_t *begin()
+    {
+        return &*(m_bufRef->getDataVector().begin());
+    }
 };
-};
+}; // namespace wynet
 
 #endif

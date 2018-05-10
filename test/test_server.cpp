@@ -47,8 +47,8 @@ void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
         }
     }
     */
-    conn->send(sockBuf.begin() + sockBuf.headFreeSize(), sockBuf.readableSize());
-    memcpy(lineBuffer, sockBuf.begin() + sockBuf.headFreeSize(), sockBuf.readableSize());
+    conn->send(sockBuf.readBegin(), sockBuf.readableSize());
+    memcpy(lineBuffer, sockBuf.readBegin(), sockBuf.readableSize());
     lineBuffer[sockBuf.readableSize()] = '\0';
     log_info("%d:%s", sockBuf.readableSize(), lineBuffer);
     sockBuf.readOut(sockBuf.readableSize());

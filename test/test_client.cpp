@@ -86,10 +86,10 @@ void OnTcpDisconnected(PtrConn conn)
 void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
 {
     int readOutSize = write(output_fd,
-                            sockBuf.begin() + sockBuf.headFreeSize(),
+                            sockBuf.readBegin(),
                             sockBuf.readableSize());
     log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", sockBuf.readableSize(), readOutSize);
-    memcpy(lineBuffer, sockBuf.begin() + sockBuf.headFreeSize(), sockBuf.readableSize());
+    memcpy(lineBuffer, sockBuf.readBegin(), sockBuf.readableSize());
     lineBuffer[sockBuf.readableSize()] = '\0';
     log_info("<< : %s [%d]", lineBuffer, sockBuf.readableSize());
     sockBuf.readOut(sockBuf.readableSize());
