@@ -51,7 +51,7 @@ void OnTcpConnected(PtrConn conn)
     }
 
     /* Create output file descriptor */
-    output_fd = open("testdata.out", O_CREAT | O_TRUNC, 0644);
+    output_fd = open("testdata.out", O_RDWR | O_CREAT | O_TRUNC, 0644);
     if (output_fd == -1)
     {
         log_fatal("open");
