@@ -19,8 +19,6 @@ void Getsockopt(int socket, int level, int option_name,
     CheckReturnValue(ret);
 }
 
-
-
 void LogSocketState(int sockfd)
 {
     log_debug("---- LogSocketState %d ----", sockfd);
@@ -46,10 +44,10 @@ void LogSocketState(int sockfd)
     Getsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &isReuseAddr, &len);
     log_debug("SO_REUSEADDR = %d", isReuseAddr);
 
-    int keepAlive = 0;
     int keepInterval = 0;
     int keepCount = 0;
 #ifdef TCP_KEEPALIVE
+    int keepAlive = 0;
     len = sizeof(keepAlive);
     Getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPALIVE, &keepAlive, &len);
     log_debug("TCP_KEEPALIVE = %d", keepAlive);
@@ -72,7 +70,8 @@ void LogSocketState(int sockfd)
 
 int SetSockSendBufSize(int fd, int newSndbuf, bool force)
 {
-    if (!force) {
+    if (!force)
+    {
         int sndbuf = 0;
         socklen_t len = sizeof(sndbuf);
         Getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
@@ -87,7 +86,8 @@ int SetSockSendBufSize(int fd, int newSndbuf, bool force)
 
 int SetSockRecvBufSize(int fd, int newRcvbuf, bool force)
 {
-    if (!force) {
+    if (!force)
+    {
         int rcvbuf = 0;
         socklen_t len = sizeof(rcvbuf);
         Getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);

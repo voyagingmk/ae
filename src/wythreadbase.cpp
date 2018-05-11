@@ -4,7 +4,10 @@ namespace wynet
 {
 namespace CurrentThread
 {
+
+#if __APPLE__
 static pid_t g_mainThreadId = 0;
+#endif
 __thread pid_t t_tidCached = 0;
 __thread char t_tidString[32];
 __thread int t_tidStringLength = 8;
@@ -78,5 +81,5 @@ class ThreadNameInit
 };
 
 const static ThreadNameInit init;
-};
-};
+}; // namespace CurrentThread
+}; // namespace wynet
