@@ -8,10 +8,12 @@
 
 namespace wynet
 {
-class ConnectionManager : public Noncopyable
+class ConnectionManager : public std::enable_shared_from_this<ConnectionManager>, public Noncopyable
 {
 public:
   ConnectionManager();
+
+  PtrConn newConnection();
 
   PtrConn getConncetion(UniqID connectId);
 
@@ -22,12 +24,12 @@ public:
   void onTcpDisconnected(PtrConn conn);
 
 protected:
+  static void weakDeleteCallback(std::weak_ptr<ConnectionManager>, TcpConnection *);
+
   bool unrefConnection(UniqID connectId);
 
 protected:
-  std::map<UniqID, PtrConn> m_connDict;
-  std::map<int, UniqID> m_connfd2cid;
-  std::map<ConvID, UniqID> m_convId2cid;
+  std::map<UniqID, PtrConnWeak> m_connDict;
   UniqIDGenerator m_connectIdGen;
   UniqIDGenerator m_convIdGen;
 };

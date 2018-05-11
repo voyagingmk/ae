@@ -47,13 +47,13 @@ size_t SockBuffer::readIn(int sockfd)
     uint8_t *buf = m_bufRef->data() + m_pos2;
     const int stackBufLength = 65536;
     char stackBuf[stackBufLength];
-    struct iovec vec[2];
-    vec[0].iov_base = buf;
-    vec[0].iov_len = free;
-    vec[1].iov_base = stackBuf;
-    vec[1].iov_len = stackBufLength;
+    struct iovec iov[2];
+    iov[0].iov_base = buf;
+    iov[0].iov_len = free;
+    iov[1].iov_base = stackBuf;
+    iov[1].iov_len = stackBufLength;
     const int iovcnt = (free < stackBufLength) ? 2 : 1;
-    const size_t nRead = (size_t)::readv(sockfd, vec, iovcnt);
+    const int nRead = ::readv(sockfd, iov, iovcnt);
     // log_debug("readIn, nRead=%d, %d,%d,%d,%d", nRead, free, m_pos1, m_pos2, m_bufRef->length());
     if (nRead > 0)
     {
@@ -65,9 +65,14 @@ size_t SockBuffer::readIn(int sockfd)
         {
             m_pos2 += free;
             const int nStackBufUsed = nRead - free;
-            // log_debug("readIn,m_pos2=%d, nStackBufUsed=%d", m_pos2, nStackBufUsed);
+            // log_debug("readIn, nRead %d free %d", nRead, free);
+            // log_debug("readIn, m_pos2=%d, nStackBufUsed=%d", m_pos2, nStackBufUsed);
             append((uint8_t *)stackBuf, nStackBufUsed);
         }
+    }
+    else if (nRead < 0)
+    {
+        // log_error("%s", explain_readv(errno, sockfd, iov, iovcnt));
     }
     return nRead;
 

@@ -14,7 +14,9 @@ void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 
 Server::Server(WyNet *net) : FDRef(0),
                              m_net(net),
-                             m_udpPort(0)
+                             m_udpPort(0),
+                             m_tcpServer(nullptr),
+                             m_udpServer(nullptr)
 {
 }
 
@@ -28,9 +30,12 @@ Server::~Server()
 
 std::shared_ptr<TCPServer> Server::initTcpServer(int tcpPort)
 {
-    m_tcpServer = std::make_shared<TCPServer>(shared_from_this());
-    m_tcpServer->startListen(tcpPort);
-    log_info("[Server] TCPServer created, tcp sockfd: %d", m_tcpServer->sockfd());
+    if (!m_tcpServer)
+    {
+        m_tcpServer = std::make_shared<TCPServer>(shared_from_this());
+        m_tcpServer->startListen(tcpPort);
+        log_info("[Server] TCPServer created, tcp sockfd: %d", m_tcpServer->sockfd());
+    }
     return m_tcpServer;
 }
 

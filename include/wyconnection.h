@@ -21,6 +21,7 @@ typedef std::shared_ptr<TCPClient> PtrTCPClient;
 class TcpConnection;
 
 typedef std::shared_ptr<TcpConnection> PtrConn;
+typedef std::weak_ptr<TcpConnection> PtrConnWeak;
 
 class TcpConnection : public SocketBase
 {
@@ -39,16 +40,16 @@ class TcpConnection : public SocketBase
 
     typedef void (*OnTcpSendComplete)(PtrConn conn);
 
-    TcpConnection(int fd) : SocketBase(fd),
-                            m_loop(nullptr),
-                            m_state(State::Connecting),
-                            m_key(0),
-                            m_kcpObj(nullptr),
-                            m_connectId(0),
-                            onTcpConnected(nullptr),
-                            onTcpDisconnected(nullptr),
-                            onTcpRecvMessage(nullptr),
-                            onTcpSendComplete(nullptr)
+    TcpConnection(int fd = 0) : SocketBase(fd),
+                                m_loop(nullptr),
+                                m_state(State::Connecting),
+                                m_key(0),
+                                m_kcpObj(nullptr),
+                                m_connectId(0),
+                                onTcpConnected(nullptr),
+                                onTcpDisconnected(nullptr),
+                                onTcpRecvMessage(nullptr),
+                                onTcpSendComplete(nullptr)
     {
     }
 
@@ -62,7 +63,7 @@ class TcpConnection : public SocketBase
     }
 
     TcpConnection &operator=(TcpConnection &&c)
-    {       
+    {
         m_pendingRecvBuf = std::move(c.m_pendingRecvBuf);
         m_key = c.m_key;
         m_kcpObj = c.m_kcpObj;

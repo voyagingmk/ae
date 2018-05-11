@@ -23,11 +23,22 @@ void TCPServer::OnNewTcpConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fd
 }
 
 TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
+										 m_tcpPort(0),
+										 m_connMgr(nullptr),
 										 onTcpConnected(nullptr),
 										 onTcpDisconnected(nullptr),
 										 onTcpRecvMessage(nullptr)
 {
-	m_connMgr = std::make_shared<ConnectionManager>();
+	initConnMgr();
+}
+
+PtrConnMgr TCPServer::initConnMgr()
+{
+	if (!m_connMgr)
+	{
+		m_connMgr = std::make_shared<ConnectionManager>();
+	}
+	return m_connMgr;
 }
 
 void TCPServer::startListen(int port)
@@ -138,13 +149,21 @@ void TCPServer::acceptConnection()
 
 	getLoop().assertInLoopThread();
 	EventLoop *ioLoop = getNet()->getThreadPool()->getNextLoop();
-	PtrConn conn = std::make_shared<TcpConnection>(connfdTcp);
+	PtrConn conn;
+	if (m_connMgr)
+	{
+		conn = m_connMgr->newConnection();
+	}
+	else
+	{
+		conn = std::make_shared<TcpConnection>();
+	}
+	conn->setSockfd(connfdTcp);
 	conn->setEventLoop(ioLoop);
 	conn->setCallBack_Connected(onTcpConnected);
 	conn->setCallBack_Disconnected(onTcpDisconnected);
 	conn->setCallBack_Message(onTcpRecvMessage);
-	//if (onTcpConnected)
-	//	onTcpConnected(conn);
+
 	ioLoop->runInLoop(std::bind(&TcpConnection::onEstablished, conn));
 }
 

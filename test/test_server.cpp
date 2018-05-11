@@ -4,6 +4,7 @@ using namespace wynet;
 
 WyNet *g_net;
 char lineBuffer[1024];
+PtrConn g_conn;
 
 void Stop(int signo)
 {
@@ -13,11 +14,13 @@ void Stop(int signo)
 void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected] %d", conn->connectId());
+    g_conn = conn; // keep the refcount
 }
 
 void OnTcpDisconnected(PtrConn conn)
 {
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
+    g_conn = nullptr;
 }
 
 void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)

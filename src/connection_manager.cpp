@@ -2,11 +2,31 @@
 
 namespace wynet
 {
+void ConnectionManager::weakDeleteCallback(std::weak_ptr<ConnectionManager> wkConnMgr, TcpConnection *rawConn)
+{
+    log_info("<connMgr> weakDeleteCallback");
+    std::shared_ptr<ConnectionManager> connMgr(wkConnMgr.lock());
+    if (connMgr)
+    {
+        UniqID connectId = rawConn->connectId();
+        connMgr->unrefConnection(connectId);
+    }
+    delete rawConn;
+}
 
 ConnectionManager::ConnectionManager()
 {
     m_convIdGen.setRecycleThreshold(2 << 15);
     m_convIdGen.setRecycleEnabled(true);
+}
+
+PtrConn ConnectionManager::newConnection()
+{
+    using namespace std::placeholders;
+    PtrConn conn(new TcpConnection(), std::bind(ConnectionManager::weakDeleteCallback,
+                                                std::weak_ptr<ConnectionManager>(shared_from_this()), _1));
+    refConnection(conn);
+    return conn;
 }
 
 PtrConn ConnectionManager::getConncetion(UniqID connectId)
@@ -16,7 +36,12 @@ PtrConn ConnectionManager::getConncetion(UniqID connectId)
     {
         return PtrConn();
     }
-    return it->second;
+    PtrConn conn(it->second.lock());
+    if (!conn)
+    {
+        log_warn("<connMgr> getConncetion failed.");
+    }
+    return conn;
 }
 
 UniqID ConnectionManager::refConnection(PtrConn conn)
@@ -27,8 +52,7 @@ UniqID ConnectionManager::refConnection(PtrConn conn)
     conn->setConnectId(connectId);
     uint16_t password = random();
     conn->setKey((password << 16) | convId);
-    m_connfd2cid[conn->connectFd()] = connectId;
-    m_convId2cid[convId] = connectId;
+    log_info("<connMgr> ref %d", connectId);
     return connectId;
 }
 
@@ -44,9 +68,7 @@ bool ConnectionManager::unrefConnection(UniqID connectId)
     {
         return false;
     }
-    PtrConn conn = m_connDict[connectId];
-    m_connfd2cid.erase(conn->connectFd());
-    m_convId2cid.erase(conn->convId());
+    log_info("<connMgr> unref %d", connectId);
     m_connDict.erase(connectId);
     return true;
 }

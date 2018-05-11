@@ -34,6 +34,8 @@ public:
 
   void startListen(int port);
 
+  PtrConnMgr initConnMgr();
+
   PtrConnMgr getConnMgr() const { return m_connMgr; }
 
 protected:
