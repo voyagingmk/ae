@@ -4,7 +4,7 @@
 #include "common.h"
 #include "uniqid.h"
 #include "noncopyable.h"
-#include "wyconnection.h"
+#include "connection.h"
 
 namespace wynet
 {

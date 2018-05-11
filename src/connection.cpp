@@ -1,9 +1,9 @@
-#include "wyconnection.h"
-#include "wyutils.h"
+#include "connection.h"
+#include "utils.h"
 #include "eventloop.h"
 #include "protocol.h"
 #include "protocol_define.h"
-#include "wysockbuffer.h"
+#include "sockbuffer.h"
 
 using namespace wynet;
 

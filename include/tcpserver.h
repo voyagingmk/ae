@@ -3,8 +3,8 @@
 
 #include "common.h"
 #include "uniqid.h"
-#include "wysockbase.h"
-#include "wyconnection.h"
+#include "sockbase.h"
+#include "connection.h"
 
 namespace wynet
 {

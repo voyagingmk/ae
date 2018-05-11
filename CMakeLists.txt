@@ -34,25 +34,25 @@ endif()
 
 
 FILE(GLOB MY_SOURCERS
-    src/wykcp.cpp
-    src/wynet.cpp
-    src/wyserver.cpp
-    src/wyclient.cpp
-    src/wytcpclient.cpp
-    src/wytcpserver.cpp
-    src/wyudpclient.cpp
-    src/wyudpserver.cpp
-    src/wyutils.cpp
-    src/wybuffer.cpp
-    src/wysockbuffer.cpp
+    src/kcp.cpp
+    src/net.cpp
+    src/server.cpp
+    src/client.cpp
+    src/tcpclient.cpp
+    src/tcpserver.cpp
+    src/udpclient.cpp
+    src/udpserver.cpp
+    src/utils.cpp
+    src/buffer.cpp
+    src/sockbuffer.cpp
     src/eventloop.cpp
     src/eventloop_thread.cpp
     src/eventloop_threadpool.cpp
-    src/wyconnection.cpp
+    src/connection.cpp
     src/connection_manager.cpp
     src/uniqid.cpp
-    src/wythreadbase.cpp
-    src/wythread.cpp
+    src/threadbase.cpp
+    src/thread.cpp
     src/exception.cpp
     src/count_down_latch.cpp
     src/logger/logger.cpp
@@ -70,29 +70,29 @@ FILE(GLOB MY_SOURCERS
 FILE(GLOB MY_HEADERS
     include/protocol_define.h
     include/protocol.h
-    include/wynet.h
-    include/wyconnection.h
+    include/net.h
+    include/connection.h
     include/connection_manager.h
-    include/wykcp.h
-    include/wysockbase.h
-    include/wybuffer.h
-    include/wysockbuffer.h
-    include/wyclient.h
-    include/wyserver.h
-    include/wyudpclient.h
-    include/wytcpclient.h
-    include/wyudpserver.h
-    include/wytcpserver.h
+    include/kcp.h
+    include/sockbase.h
+    include/buffer.h
+    include/sockbuffer.h
+    include/client.h
+    include/server.h
+    include/udpclient.h
+    include/tcpclient.h
+    include/udpserver.h
+    include/tcpserver.h
     include/uniqid.h
-    include/wyutils.h
+    include/utils.h
     include/eventloop.h
     include/eventloop_thread.h
     include/eventloop_threadpool.h
     include/common.h
     include/mutex.h
     include/condition.h
-    include/wythreadbase.h
-    include/wythread.h
+    include/threadbase.h
+    include/thread.h
     include/exception.h
     include/count_down_latch.h
     include/logger/logging_buffer.h

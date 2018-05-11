@@ -2,8 +2,8 @@
 #define WY_TCPCLIENT_H
 
 #include "common.h"
-#include "wysockbase.h"
-#include "wyconnection.h"
+#include "sockbase.h"
+#include "connection.h"
 
 namespace wynet
 {

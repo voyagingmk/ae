@@ -1,7 +1,7 @@
-#include "wytcpclient.h"
-#include "wyclient.h"
-#include "wynet.h"
-#include "wyutils.h"
+#include "tcpclient.h"
+#include "client.h"
+#include "net.h"
+#include "utils.h"
 
 namespace wynet
 {

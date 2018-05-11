@@ -1,6 +1,6 @@
-#include "wynet.h"
+#include "net.h"
 #include "logger/logger.h"
-#include "wyutils.h"
+#include "utils.h"
 using namespace wynet;
 
 WyNet *g_net;

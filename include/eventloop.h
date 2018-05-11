@@ -3,8 +3,8 @@
 
 #include "noncopyable.h"
 #include "common.h"
-#include "wythread.h"
-#include "wysockbase.h"
+#include "thread.h"
+#include "sockbase.h"
 #include <functional>
 
 namespace wynet

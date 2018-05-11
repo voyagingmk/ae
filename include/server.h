@@ -3,9 +3,9 @@
 
 #include "common.h"
 #include "uniqid.h"
-#include "wytcpserver.h"
-#include "wyudpserver.h"
-#include "wyconnection.h"
+#include "tcpserver.h"
+#include "udpserver.h"
+#include "connection.h"
 #include "noncopyable.h"
 namespace wynet
 {

@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "noncopyable.h"
-#include "wybuffer.h"
+#include "buffer.h"
 
 namespace wynet
 {

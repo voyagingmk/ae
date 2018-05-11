@@ -3,9 +3,9 @@
 
 #include "common.h"
 #include "uniqid.h"
-#include "wykcp.h"
-#include "wysockbase.h"
-#include "wysockbuffer.h"
+#include "kcp.h"
+#include "sockbase.h"
+#include "sockbuffer.h"
 #include "noncopyable.h"
 
 namespace wynet

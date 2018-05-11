@@ -2,7 +2,7 @@
 #define WY_LOGGING_BUFFER_H
 
 #include <cstddef>
-#include "wybuffer.h"
+#include "buffer.h"
 
 namespace wynet
 {

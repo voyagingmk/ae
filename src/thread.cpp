@@ -1,4 +1,4 @@
-#include "wythread.h"
+#include "thread.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "exception.h"
-#include "wythreadbase.h"
+#include "threadbase.h"
 
 namespace wynet
 {

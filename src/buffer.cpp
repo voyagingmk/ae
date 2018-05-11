@@ -1,4 +1,4 @@
-#include "wybuffer.h"
+#include "buffer.h"
 
 using namespace wynet;
 

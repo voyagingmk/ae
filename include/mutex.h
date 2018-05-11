@@ -2,7 +2,7 @@
 #define WY_MUTEX_H
 
 #include "noncopyable.h"
-#include "wythreadbase.h"
+#include "threadbase.h"
 
 namespace wynet
 {

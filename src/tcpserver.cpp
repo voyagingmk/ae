@@ -1,11 +1,11 @@
-#include "wytcpserver.h"
-#include "wyutils.h"
-#include "wyserver.h"
+#include "tcpserver.h"
+#include "utils.h"
+#include "server.h"
 #include "eventloop.h"
 #include "protocol.h"
 #include "protocol_define.h"
-#include "wynet.h"
-#include "wysockbuffer.h"
+#include "net.h"
+#include "sockbuffer.h"
 #include "connection_manager.h"
 
 namespace wynet

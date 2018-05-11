@@ -1,4 +1,4 @@
-#include "wynet.h"
+#include "net.h"
 using namespace wynet;
 
 void AnotherLoop()

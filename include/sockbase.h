@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "logger/log.h"
-#include "wybuffer.h"
+#include "buffer.h"
 #include "protocol.h"
 #include "multiple_inherit.h"
 

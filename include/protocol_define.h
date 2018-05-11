@@ -1,7 +1,7 @@
 #ifndef WY_PROTOCOL_DEFINE_H
 #define WY_PROTOCOL_DEFINE_H
 #include "common.h"
-#include "wybuffer.h"
+#include "buffer.h"
 
 namespace wynet
 {

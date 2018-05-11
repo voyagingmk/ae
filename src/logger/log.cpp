@@ -1,7 +1,7 @@
 
 #include "logger/log.h"
 #include "logger/logger.h"
-#include "wythreadbase.h"
+#include "threadbase.h"
 #include <sys/time.h>
 
 namespace wynet

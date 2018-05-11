@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
-#include "wyutils.h"
+#include "utils.h"
 #include "logger/append_file.h"
 
 using namespace wynet;

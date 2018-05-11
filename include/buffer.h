@@ -7,7 +7,7 @@
 #include "noncopyable.h"
 #include "mutex.h"
 #include "condition.h"
-#include "wysingleton.h"
+#include "singleton.h"
 
 namespace wynet
 {

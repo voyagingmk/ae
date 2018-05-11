@@ -1,5 +1,5 @@
 #include "common.h"
-#include "wyudpserver.h"
+#include "udpserver.h"
 
 namespace wynet
 {

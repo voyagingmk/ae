@@ -2,10 +2,10 @@
 #define WY_CLIENT_H
 
 #include "common.h"
-#include "wykcp.h"
-#include "wytcpclient.h"
-#include "wyudpclient.h"
-#include "wyconnection.h"
+#include "kcp.h"
+#include "tcpclient.h"
+#include "udpclient.h"
+#include "connection.h"
 #include "noncopyable.h"
 #include "eventloop.h"
 

@@ -2,7 +2,7 @@
 #define WY_UDPCLIENT_H
 
 #include "common.h"
-#include "wysockbase.h"
+#include "sockbase.h"
 
 namespace wynet
 {

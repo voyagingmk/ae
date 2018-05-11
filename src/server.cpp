@@ -1,6 +1,6 @@
-#include "wyserver.h"
-#include "wyutils.h"
-#include "wynet.h"
+#include "server.h"
+#include "utils.h"
+#include "net.h"
 #include "eventloop.h"
 
 namespace wynet
