@@ -90,17 +90,9 @@ class TcpConnection : public SocketBase
         return ctrl;
     }
 
-    PtrTCPServer getCtrlAsServer()
-    {
-        PtrTCPServer tcpServer = std::dynamic_pointer_cast<TCPServer>(getCtrl());
-        return tcpServer;
-    }
+    PtrTCPServer getCtrlAsServer();
 
-    PtrTCPClient getCtrlAsClient()
-    {
-        PtrTCPClient tcpClient = std::dynamic_pointer_cast<TCPClient>(getCtrl());
-        return tcpClient;
-    }
+    PtrTCPClient getCtrlAsClient();
 
     EventLoop *getLoop() const
     {

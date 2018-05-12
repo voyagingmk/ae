@@ -4,6 +4,8 @@
 #include "protocol.h"
 #include "protocol_define.h"
 #include "sockbuffer.h"
+#include "tcpserver.h"
+#include "tcpclient.h"
 
 using namespace wynet;
 
@@ -250,4 +252,16 @@ int TcpConnection::getPendingSize()
 {
     int remain = m_pendingSendBuf.readableSize();
     return remain;
+}
+
+PtrTCPServer TcpConnection::getCtrlAsServer()
+{
+    PtrTCPServer tcpServer = std::dynamic_pointer_cast<TCPServer>(getCtrl());
+    return tcpServer;
+}
+
+PtrTCPClient TcpConnection::getCtrlAsClient()
+{
+    PtrTCPClient tcpClient = std::dynamic_pointer_cast<TCPClient>(getCtrl());
+    return tcpClient;
 }
