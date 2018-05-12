@@ -38,6 +38,10 @@ public:
 
   PtrConnMgr getConnMgr() const { return m_connMgr; }
 
+  bool addConnection(PtrConn conn);
+
+  bool removeConnection(PtrConn conn);
+
 protected:
   std::shared_ptr<TCPServer> shared_from_this()
   {

@@ -5,31 +5,39 @@
 #include "uniqid.h"
 #include "noncopyable.h"
 #include "connection.h"
+#include "thread.h"
 
 namespace wynet
 {
+
+// optional tool:
+// in order to collect PtrConn (keep the PtrConn alive)
+// so user need to explicitly add and delete the connection
 class ConnectionManager : public std::enable_shared_from_this<ConnectionManager>, public Noncopyable
 {
 public:
   ConnectionManager();
 
-  PtrConn newConnection();
+  bool addConnection(PtrConn conn);
+
+  bool removeConnection(PtrConn conn);
+
+  bool removeConnection(UniqID connectId);
 
   PtrConn getConncetion(UniqID connectId);
-
-  UniqID refConnection(PtrConn conn);
-
-  bool unrefConnection(PtrConn conn);
-
-  void onTcpDisconnected(PtrConn conn);
 
 protected:
   static void weakDeleteCallback(std::weak_ptr<ConnectionManager>, TcpConnection *);
 
+  UniqID refConnection(PtrConn conn);
+
   bool unrefConnection(UniqID connectId);
 
+  bool unrefConnection(PtrConn conn);
+
 protected:
-  std::map<UniqID, PtrConnWeak> m_connDict;
+  MutexLock m_mutex;
+  std::map<UniqID, PtrConn> m_connDict;
   UniqIDGenerator m_connectIdGen;
   UniqIDGenerator m_convIdGen;
 };

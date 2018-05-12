@@ -29,6 +29,7 @@ TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
 										 onTcpDisconnected(nullptr),
 										 onTcpRecvMessage(nullptr)
 {
+	// optional
 	initConnMgr();
 }
 
@@ -39,6 +40,16 @@ PtrConnMgr TCPServer::initConnMgr()
 		m_connMgr = std::make_shared<ConnectionManager>();
 	}
 	return m_connMgr;
+}
+
+bool TCPServer::addConnection(PtrConn conn)
+{
+	return getConnMgr()->addConnection(conn);
+}
+
+bool TCPServer::removeConnection(PtrConn conn)
+{
+	return getConnMgr()->removeConnection(conn);
 }
 
 void TCPServer::startListen(int port)
@@ -150,16 +161,10 @@ void TCPServer::acceptConnection()
 	getLoop().assertInLoopThread();
 	EventLoop *ioLoop = getNet()->getThreadPool()->getNextLoop();
 	PtrConn conn;
-	if (m_connMgr)
-	{
-		conn = m_connMgr->newConnection();
-	}
-	else
-	{
-		conn = std::make_shared<TcpConnection>();
-	}
-	conn->setSockfd(connfdTcp);
+	conn = std::make_shared<TcpConnection>();
 	conn->setEventLoop(ioLoop);
+	conn->setCtrl(shared_from_this());
+	conn->setSockfd(connfdTcp);
 	conn->setCallBack_Connected(onTcpConnected);
 	conn->setCallBack_Disconnected(onTcpDisconnected);
 	conn->setCallBack_Message(onTcpRecvMessage);

@@ -2,17 +2,6 @@
 
 namespace wynet
 {
-void ConnectionManager::weakDeleteCallback(std::weak_ptr<ConnectionManager> wkConnMgr, TcpConnection *rawConn)
-{
-    log_info("<connMgr> weakDeleteCallback");
-    std::shared_ptr<ConnectionManager> connMgr(wkConnMgr.lock());
-    if (connMgr)
-    {
-        UniqID connectId = rawConn->connectId();
-        connMgr->unrefConnection(connectId);
-    }
-    delete rawConn;
-}
 
 ConnectionManager::ConnectionManager()
 {
@@ -20,32 +9,36 @@ ConnectionManager::ConnectionManager()
     m_convIdGen.setRecycleEnabled(true);
 }
 
-PtrConn ConnectionManager::newConnection()
+bool ConnectionManager::addConnection(PtrConn conn)
 {
-    using namespace std::placeholders;
-    PtrConn conn(new TcpConnection(), std::bind(ConnectionManager::weakDeleteCallback,
-                                                std::weak_ptr<ConnectionManager>(shared_from_this()), _1));
     refConnection(conn);
-    return conn;
+    return true;
+}
+
+bool ConnectionManager::removeConnection(PtrConn conn)
+{
+    return unrefConnection(conn);
+}
+
+bool ConnectionManager::removeConnection(UniqID connectId)
+{
+    return unrefConnection(connectId);
 }
 
 PtrConn ConnectionManager::getConncetion(UniqID connectId)
 {
+    MutexLockGuard<MutexLock> lock(m_mutex);
     auto it = m_connDict.find(connectId);
     if (it == m_connDict.end())
     {
         return PtrConn();
     }
-    PtrConn conn(it->second.lock());
-    if (!conn)
-    {
-        log_warn("<connMgr> getConncetion failed.");
-    }
-    return conn;
+    return it->second;
 }
 
 UniqID ConnectionManager::refConnection(PtrConn conn)
 {
+    MutexLockGuard<MutexLock> lock(m_mutex);
     UniqID connectId = m_connectIdGen.getNewID();
     UniqID convId = m_convIdGen.getNewID();
     m_connDict[connectId] = conn;
@@ -64,6 +57,7 @@ bool ConnectionManager::unrefConnection(PtrConn conn)
 
 bool ConnectionManager::unrefConnection(UniqID connectId)
 {
+    MutexLockGuard<MutexLock> lock(m_mutex);
     if (m_connDict.find(connectId) == m_connDict.end())
     {
         return false;
@@ -71,11 +65,6 @@ bool ConnectionManager::unrefConnection(UniqID connectId)
     log_info("<connMgr> unref %d", connectId);
     m_connDict.erase(connectId);
     return true;
-}
-
-void ConnectionManager::onTcpDisconnected(PtrConn conn)
-{
-    unrefConnection(conn);
 }
 
 }; // namespace wynet

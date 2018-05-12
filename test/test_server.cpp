@@ -14,13 +14,13 @@ void Stop(int signo)
 void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected] %d", conn->connectId());
-    g_conn = conn; // keep the refcount
+    conn->getCtrlAsServer()->addConnection(conn);
 }
 
 void OnTcpDisconnected(PtrConn conn)
 {
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
-    g_conn = nullptr;
+    conn->getCtrlAsServer()->removeConnection(conn);
 }
 
 void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s", aeGetApiName());
     std::shared_ptr<Server> server = std::make_shared<Server>(&net);
-    std::shared_ptr<TCPServer> tcpServer = server->initTcpServer(9998);
+    PtrTCPServer tcpServer = server->initTcpServer(9998);
     server->initUdpServer(9999);
     tcpServer->onTcpConnected = &OnTcpConnected;
     tcpServer->onTcpDisconnected = &OnTcpDisconnected;

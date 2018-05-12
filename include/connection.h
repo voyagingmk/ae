@@ -12,19 +12,20 @@ namespace wynet
 {
 class EventLoop;
 
+class TcpConnection;
 class TCPServer;
 class TCPClient;
 
 typedef std::shared_ptr<TCPServer> PtrTCPServer;
 typedef std::shared_ptr<TCPClient> PtrTCPClient;
-
-class TcpConnection;
-
 typedef std::shared_ptr<TcpConnection> PtrConn;
 typedef std::weak_ptr<TcpConnection> PtrConnWeak;
 
 class TcpConnection : public SocketBase
 {
+    friend class TCPServer;
+    friend class TCPClient;
+
   public:
     enum class State
     {
@@ -75,6 +76,30 @@ class TcpConnection : public SocketBase
     inline void setEventLoop(EventLoop *l)
     {
         m_loop = l;
+    }
+
+    void setCtrl(PtrCtrl ctrl)
+    {
+        m_ctrl = ctrl;
+    }
+
+    // may not exist
+    PtrCtrl getCtrl()
+    {
+        PtrCtrl ctrl(m_ctrl.lock());
+        return ctrl;
+    }
+
+    PtrTCPServer getCtrlAsServer()
+    {
+        PtrTCPServer tcpServer = std::dynamic_pointer_cast<TCPServer>(getCtrl());
+        return tcpServer;
+    }
+
+    PtrTCPClient getCtrlAsClient()
+    {
+        PtrTCPClient tcpClient = std::dynamic_pointer_cast<TCPClient>(getCtrl());
+        return tcpClient;
     }
 
     EventLoop *getLoop() const
@@ -148,10 +173,6 @@ class TcpConnection : public SocketBase
     int getPendingSize();
 
   protected:
-    friend class TCPServer;
-
-    friend class TCPClient;
-
     static void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
 
     void onEstablished();
@@ -168,6 +189,7 @@ class TcpConnection : public SocketBase
 
   protected:
     EventLoop *m_loop;
+    PtrCtrlWeak m_ctrl;
     State m_state;
     uint32_t m_key;
     KCPObject *m_kcpObj;
@@ -179,8 +201,7 @@ class TcpConnection : public SocketBase
     OnTcpDisconnected onTcpDisconnected;
     OnTcpRecvMessage onTcpRecvMessage;
     OnTcpSendComplete onTcpSendComplete;
-};
-
+}; // namespace wynet
 }; // namespace wynet
 
 #endif

@@ -54,6 +54,10 @@ public:
   socklen_t m_socklen;
   int m_family;
 };
+
+typedef std::shared_ptr<SocketBase> PtrCtrl;
+typedef std::weak_ptr<SocketBase> PtrCtrlWeak;
+
 }; // namespace wynet
 
 #endif
