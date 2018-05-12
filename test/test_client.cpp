@@ -35,6 +35,10 @@ void OnTcpSendComplete(PtrConn conn)
         std::string msg(buffer, ret_in);
         conn->send(msg);
     }
+    else
+    {
+        g_net->stopLoop();
+    }
 }
 
 void OnTcpConnected(PtrConn conn)
@@ -63,6 +67,10 @@ void OnTcpConnected(PtrConn conn)
     {
         conn->send((const uint8_t *)buffer, ret_in);
     }
+    else
+    {
+        g_net->stopLoop();
+    }
     //client->getTcpClient();
     //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
     // conn->getLoop()->createTimer(1000, OnHeartbeat, conn, nullptr);
@@ -73,7 +81,6 @@ void OnTcpDisconnected(PtrConn conn)
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
     //log_info("OnTcpDisconnected: %d", client->getTcpClient()->sockfd());
     g_net->stopLoop();
-    ::close(input_fd);
 }
 
 void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
@@ -106,6 +113,7 @@ int main(int argc, char **argv)
     tcpClient->onTcpRecvMessage = &OnTcpRecvMessage;
     net.addClient(client);
     net.startLoop();
+    ::close(input_fd);
     log_info("exit");
     return 0;
 }
