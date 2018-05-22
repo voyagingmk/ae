@@ -15,7 +15,7 @@ UniqID BufferSet::newBuffer()
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     UniqID uid = m_uniqIDGen.getNewID();
-    if (uid > m_buffers.size())
+    if (static_cast<size_t>(uid) > m_buffers.size())
     {
         m_buffers.push_back(std::make_shared<DynamicBuffer>());
     }
