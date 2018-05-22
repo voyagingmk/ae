@@ -188,7 +188,10 @@ foreach( exe ${project_tests} )
         src
         external
         )
+    if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
     target_compile_features(${exe} PRIVATE cxx_range_for)
+    endif()
+    
     target_link_libraries(${exe} PRIVATE wynet ${CMAKE_THREAD_LIBS_INIT})    
 endforeach()
 
