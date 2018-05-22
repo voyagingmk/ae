@@ -77,10 +77,10 @@ class MutexLock2 : public MutexLock
 
     void setTid()
     {
-        m_tid = static_cast<uint64_t>(CurrentThread::gettid());
+        m_tid = CurrentThread::gettid();
     }
 
-    uint64_t m_tid;
+    pid_t m_tid;
 };
 
 template <typename ML>
@@ -102,6 +102,6 @@ class MutexLockGuard : Noncopyable
 };
 
 #define MutexLockGuard(x) static_assert(false, "MutexLockGuard error use")
-}
+} // namespace wynet
 
 #endif

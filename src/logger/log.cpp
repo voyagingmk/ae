@@ -3,6 +3,7 @@
 #include "logger/logger.h"
 #include "threadbase.h"
 #include <sys/time.h>
+#include <cstdarg>
 
 namespace wynet
 {
@@ -137,4 +138,4 @@ void log_log(LOG_LEVEL level, const char *file, int line, const char *fmt, ...)
         ptr->append(buff, total);
     }
 }
-}
+} // namespace wynet
