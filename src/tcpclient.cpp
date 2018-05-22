@@ -16,19 +16,25 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
         return;
     }
     std::shared_ptr<TCPClient> tcpClient = std::dynamic_pointer_cast<TCPClient>(sfdRef);
+    tcpClient->getLoop().deleteFileEvent(tcpClient, LOOP_EVT_WRITABLE);
     int error;
     socklen_t len;
     len = sizeof(error);
     if (getsockopt(tcpClient->sockfd(), SOL_SOCKET, SO_ERROR, &error, &len) < 0)
     {
-        // close it
+        log_debug("OnTcpWritable getsockopt failed, errno = %d", strerror(errno));
+        tcpClient->_onTcpDisconnected();
+        return;
     }
-    else
+    log_debug("OnTcpWritable getsockopt SO_ERROR = %d", error);
+    if (error != 0)
     {
-        // connect ok, remove event
-        tcpClient->getLoop().deleteFileEvent(tcpClient, LOOP_EVT_WRITABLE);
-        tcpClient->_onTcpConnected();
+        tcpClient->_onTcpDisconnected();
+        return;
     }
+    log_debug("OnTcpWritable _onTcpConnected");
+    // connect ok, remove event
+    tcpClient->_onTcpConnected();
 }
 
 TCPClient::TCPClient(PtrClient client) : onTcpConnected(nullptr),
@@ -70,7 +76,7 @@ void TCPClient::connect(const char *host, int port)
         SetSockSendBufSize(sockfd(), 32 * 1024);
 
         ret = ::connect(sockfd(), res->ai_addr, res->ai_addrlen);
-        log_debug("connect: %d", ret);
+        log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));
         if ((ret == -1) && (errno == EINPROGRESS))
         {
             getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,

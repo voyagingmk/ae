@@ -22,7 +22,7 @@ int OnHeartbeat(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *
         return 0;
     }
     PtrConn conn = std::dynamic_pointer_cast<TcpConnection>(sfdRef);
-    conn->send((const uint8_t *)"hello", 5);
+    // conn->send((const uint8_t *)"hello", 5);
     return 1000;
 }
 
@@ -46,31 +46,10 @@ void OnTcpConnected(PtrConn conn)
     log_debug("[test.OnTcpConnected]");
     // SetSockSendBufSize(conn->fd(), 3, true);
     conn->setCallBack_SendComplete(OnTcpSendComplete);
-
-    input_fd = open("testdata", O_RDONLY);
-    if (input_fd == -1)
-    {
-        log_fatal("open");
-        return;
-    }
-
-    /* Create output file descriptor */
-    output_fd = open("testdata.out", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    if (output_fd == -1)
-    {
-        log_fatal("open");
-        return;
-    }
-
-    int ret_in = read(input_fd, &buffer, BUF_SIZE);
-    if (ret_in > 0)
-    {
-        conn->send((const uint8_t *)buffer, ret_in);
-    }
-    else
-    {
-        g_net->stopLoop();
-    }
+    // int ret_in = read(input_fd, &buffer, BUF_SIZE);
+    const char *hello = "hello";
+    conn->send((const uint8_t *)hello, sizeof(hello));
+    // g_net->stopLoop();
     //client->getTcpClient();
     //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
     // conn->getLoop()->createTimer(1000, OnHeartbeat, conn, nullptr);
@@ -94,6 +73,11 @@ void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
 
 int main(int argc, char **argv)
 {
+    if (argc < 3)
+    {
+        fprintf(stderr, "cmd args: <address> <port>\n");
+        return -1;
+    }
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
 
@@ -102,12 +86,15 @@ int main(int argc, char **argv)
     log_lineinfo(false);
     // log_file_start();
 
-    WyNet net(1);
+    const char *ip = argv[1];
+    int port = static_cast<int>(atoi(argv[2]));
+    const int threadsNum = 1;
+    WyNet net(threadsNum);
     g_net = &net;
 
     log_info("aeGetApiName: %s", aeGetApiName());
-    std::shared_ptr<Client> client = std::make_shared<Client>(&net);
-    std::shared_ptr<TCPClient> tcpClient = client->initTcpClient("127.0.0.1", 9998);
+    PtrClient client = std::make_shared<Client>(&net);
+    PtrTCPClient tcpClient = client->initTcpClient(ip, port);
     tcpClient->onTcpConnected = &OnTcpConnected;
     tcpClient->onTcpDisconnected = &OnTcpDisconnected;
     tcpClient->onTcpRecvMessage = &OnTcpRecvMessage;

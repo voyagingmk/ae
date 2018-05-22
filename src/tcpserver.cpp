@@ -140,6 +140,7 @@ void TCPServer::acceptConnection()
 	struct sockaddr_storage cliAddr;
 	socklen_t len = sizeof(cliAddr);
 	int connfdTcp = accept(listenfd, (SA *)&cliAddr, &len);
+	log_debug("acceptConnection fd:%d", connfdTcp);
 	if (connfdTcp < 0)
 	{
 		if ((errno == EAGAIN) ||

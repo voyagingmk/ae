@@ -48,6 +48,11 @@ public:
   inline bool valid() const { return fd() > 0; }
   inline bool isIPv4() const { return m_family == PF_INET; }
   inline bool isIPv6() const { return m_family == PF_INET6; }
+  void setTcpNoDelay(bool enabled)
+  {
+    int val = enabled ? 1 : 0;
+    ::setsockopt(fd(), IPPROTO_TCP, TCP_NODELAY, &val, static_cast<socklen_t>(sizeof val));
+  }
 
 public:
   sockaddr_in6 m_sockaddr;

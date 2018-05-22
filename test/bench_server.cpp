@@ -15,6 +15,7 @@ void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected] %d", conn->connectId());
     conn->getCtrlAsServer()->addConnection(conn);
+    conn->setTcpNoDelay(true);
 }
 
 void OnTcpDisconnected(PtrConn conn)
@@ -51,7 +52,7 @@ int main(int argc, char **argv)
     signal(SIGINT, Stop);
 
     // log_file("bench_server");
-    log_level(LOG_LEVEL::LOG_INFO);
+    log_level(LOG_LEVEL::LOG_DEBUG);
     log_lineinfo(false);
     // log_file_start();
 
