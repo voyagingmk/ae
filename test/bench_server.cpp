@@ -45,18 +45,27 @@ int main(int argc, char **argv)
     if (argc < 4)
     {
         fprintf(stderr, "cmd args: <address> <port> <threads num>\n");
+        return -1;
     }
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
 
+    // log_file("bench_server");
     log_level(LOG_LEVEL::LOG_INFO);
     log_lineinfo(false);
-    log_start();
+    // log_file_start();
 
-    WyNet net;
+    const char *ip = argv[1];
+    int port = static_cast<int>(atoi(argv[2]));
+    int threadsNum = atoi(argv[3]);
+    if (threadsNum < 1)
+    {
+        threadsNum = 1;
+    }
+    WyNet net(threadsNum);
     g_net = &net;
     std::shared_ptr<Server> server = std::make_shared<Server>(&net);
-    PtrTCPServer tcpServer = server->initTcpServer(NULL, 9998);
+    PtrTCPServer tcpServer = server->initTcpServer(ip, port);
     tcpServer->onTcpConnected = &OnTcpConnected;
     tcpServer->onTcpDisconnected = &OnTcpDisconnected;
     tcpServer->onTcpRecvMessage = &OnTcpRecvMessage;

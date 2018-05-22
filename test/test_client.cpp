@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     // log_file("test_client");
     log_level(LOG_LEVEL::LOG_DEBUG);
     log_lineinfo(false);
-    // log_start();
+    // log_file_start();
 
     WyNet net(1);
     g_net = &net;

@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     // log_file("test_server");
     log_level(LOG_LEVEL::LOG_INFO);
     log_lineinfo(false);
-    // log_start();
+    // log_file_start();
 
     WyNet net;
     g_net = &net;

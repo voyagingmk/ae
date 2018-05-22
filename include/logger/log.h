@@ -31,7 +31,7 @@ enum class LOG_LEVEL
     static std::shared_ptr<wynet::Logger> __logger__ = std::make_shared<wynet::Logger>(filename); \
     setLogger(__logger__);
 
-#define log_start() __logger__->start();
+#define log_file_start() __logger__->start();
 
 #define log_level(level) setLogLevel(level);
 
@@ -51,11 +51,11 @@ LOG_LEVEL logLevel();
 
 void setLogger(std::shared_ptr<Logger> logger);
 
-// Note: change setting before log_start
+// Note: change setting before log_file_start
 
 void setEnableLogLineInfo(bool enabled);
 
 void setEnableOutputToConsole(bool enabled);
-};
+}; // namespace wynet
 
 #endif

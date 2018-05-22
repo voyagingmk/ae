@@ -136,6 +136,8 @@ set( project_tests
     test_buffer
     test_concurrentqueue
     test_logging
+    bench_client
+    bench_server
    )
 
 set( EXE_test_client_SOURCES
@@ -167,6 +169,16 @@ set( EXE_test_concurrentqueue_SOURCES
 set( EXE_test_logging_SOURCES
     test/test_logging.cpp
 )
+
+set( EXE_bench_client_SOURCES
+    test/bench_client.cpp
+)
+
+set( EXE_bench_server_SOURCES
+    test/bench_server.cpp
+)
+
+
 
 # For each executable in the list...
 foreach( exe ${project_tests} )

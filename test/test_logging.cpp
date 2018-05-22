@@ -26,7 +26,7 @@ int main()
         log_file("test");
         log_level(LOG_LEVEL::LOG_DEBUG);
         log_console(false);
-        log_start();
+        log_file_start();
     }
 
     vector<shared_ptr<Thread>> threads;
