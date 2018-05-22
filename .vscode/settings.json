@@ -57,6 +57,7 @@
         "valarray": "cpp",
         "cctype": "cpp",
         "cstdlib": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "queue": "cpp"
     }
 }

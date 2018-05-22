@@ -38,7 +38,7 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBuffer(UniqID uid)
 {
     int32_t idx = uid - 1;
     MutexLockGuard<MutexLock> lock(m_mutex);
-    if (idx < 0 || idx >= m_buffers.size())
+    if (idx < 0 || idx >= static_cast<int32_t>(m_buffers.size()))
     {
         return nullptr;
     }
@@ -52,7 +52,7 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
         return nullptr;
     }
     MutexLockGuard<MutexLock> lock(m_mutex);
-    while ((idx + 1) > m_buffers.size())
+    while ((idx + 1) > static_cast<int32_t>(m_buffers.size()))
     {
         m_buffers.push_back(std::make_shared<DynamicBuffer>());
     }

@@ -7,7 +7,7 @@ void SockBuffer::append(const uint8_t *data, size_t n)
 {
     if (tailFreeSize() > 0)
     {
-        int size = tailFreeSize();
+        size_t size = static_cast<size_t>(tailFreeSize());
         if (n <= size)
         {
             std::copy(data, data + n, begin() + m_pos2);
@@ -25,7 +25,7 @@ void SockBuffer::append(const uint8_t *data, size_t n)
     {
         std::vector<uint8_t> &dataVec = m_bufRef->getDataVector();
         // make sure there is enough space
-        if (headFreeSize() >= n)
+        if (static_cast<size_t>(headFreeSize()) >= n)
         {
             // move
             std::copy(dataVec.begin() + m_pos1, dataVec.end(), dataVec.begin());
@@ -57,14 +57,14 @@ size_t SockBuffer::readIn(int sockfd)
     // log_debug("readIn, nRead=%d, %d,%d,%d,%d", nRead, free, m_pos1, m_pos2, m_bufRef->length());
     if (nRead > 0)
     {
-        if (nRead <= free)
+        if (static_cast<size_t>(nRead) <= free)
         {
             m_pos2 += nRead;
         }
         else
         {
             m_pos2 += free;
-            const int nStackBufUsed = nRead - free;
+            const size_t nStackBufUsed = static_cast<size_t>(nRead) - free;
             // log_debug("readIn, nRead %d free %d", nRead, free);
             // log_debug("readIn, m_pos2=%d, nStackBufUsed=%d", m_pos2, nStackBufUsed);
             append((uint8_t *)stackBuf, nStackBufUsed);
