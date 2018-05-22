@@ -1,9 +1,6 @@
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 include(cotire)
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
-
-project(wynet_project LANGUAGES C CXX VERSION 0.0.0)
-
+cmake_minimum_required(VERSION 2.8)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(MACOSX TRUE)
