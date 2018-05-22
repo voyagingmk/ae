@@ -23,10 +23,19 @@ SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 ")
 #if(MACOSX)
 #    MESSAGE(STATUS "It is MACOSX")  
 if(UNIX)
-    MESSAGE(STATUS "It is UNIX")  
-    
+    MESSAGE("It is UNIX")
+endif()
+
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    MESSAGE("Using Clang")
     SET (CMAKE_C_COMPILER             "/usr/bin/clang")
-    SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
+    SET (CMAKE_CXX_COMPILER           "/usr/bin/clang++")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    MESSAGE("Using GCC")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    MESSAGE("Using Intel C++")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  MESSAGE("Using Visual Studio C++")
 endif()
 
 
