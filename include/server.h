@@ -23,7 +23,7 @@ class Server : public FDRef, public Noncopyable
 public:
   Server(WyNet *net);
 
-  std::shared_ptr<TCPServer> initTcpServer(int tcpPort);
+  std::shared_ptr<TCPServer> initTcpServer(const char *host, int tcpPort);
 
   std::shared_ptr<UDPServer> initUdpServer(int udpPort);
 

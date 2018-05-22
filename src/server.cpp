@@ -28,12 +28,12 @@ Server::~Server()
     log_info("[Server] destoryed.");
 }
 
-std::shared_ptr<TCPServer> Server::initTcpServer(int tcpPort)
+std::shared_ptr<TCPServer> Server::initTcpServer(const char *host, int tcpPort)
 {
     if (!m_tcpServer)
     {
         m_tcpServer = std::make_shared<TCPServer>(shared_from_this());
-        m_tcpServer->startListen(tcpPort);
+        m_tcpServer->startListen(host, tcpPort);
         log_info("[Server] TCPServer created, tcp sockfd: %d", m_tcpServer->sockfd());
     }
     return m_tcpServer;

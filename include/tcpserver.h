@@ -32,7 +32,7 @@ public:
 
   ~TCPServer();
 
-  void startListen(int port);
+  void startListen(const char *host, int port);
 
   PtrConnMgr initConnMgr();
 

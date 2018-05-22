@@ -52,7 +52,7 @@ bool TCPServer::removeConnection(PtrConn conn)
 	return getConnMgr()->removeConnection(conn);
 }
 
-void TCPServer::startListen(int port)
+void TCPServer::startListen(const char *host, int port)
 {
 	m_tcpPort = port;
 	int listenfd, n;
@@ -64,7 +64,6 @@ void TCPServer::startListen(int port)
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	const char *host = NULL;
 	char buf[5];
 	sprintf(buf, "%d", m_tcpPort);
 	const char *serv = (char *)&buf;

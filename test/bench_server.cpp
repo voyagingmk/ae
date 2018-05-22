@@ -42,23 +42,21 @@ static int SocketOutput(const char *buf, int len, ikcpcb *kcp, void *user)
 
 int main(int argc, char **argv)
 {
+    if (argc < 4)
+    {
+        fprintf(stderr, "cmd args: <address> <port> <threads num>\n");
+    }
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
 
-    // log_file("test_server");
     log_level(LOG_LEVEL::LOG_INFO);
     log_lineinfo(false);
-    // log_start();
+    log_start();
 
     WyNet net;
     g_net = &net;
-
-    //  UDPServer server(9999);
-    //  KCPObject kcpObject(9999, &server, &SocketOutput);
-    log_info("aeGetApiName: %s", aeGetApiName());
     std::shared_ptr<Server> server = std::make_shared<Server>(&net);
     PtrTCPServer tcpServer = server->initTcpServer(NULL, 9998);
-    server->initUdpServer(9999);
     tcpServer->onTcpConnected = &OnTcpConnected;
     tcpServer->onTcpDisconnected = &OnTcpDisconnected;
     tcpServer->onTcpRecvMessage = &OnTcpRecvMessage;

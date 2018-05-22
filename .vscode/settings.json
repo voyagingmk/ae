@@ -53,6 +53,10 @@
         "thread": "cpp",
         "array": "cpp",
         "streambuf": "cpp",
-        "stdarg.h": "c"
+        "stdarg.h": "c",
+        "valarray": "cpp",
+        "cctype": "cpp",
+        "cstdlib": "cpp",
+        "*.ipp": "cpp"
     }
 }
