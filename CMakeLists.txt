@@ -140,7 +140,7 @@ set( project_tests
     test_eventloop2
     test_eventloopthread
     test_buffer
-    test_concurrentqueue
+   # test_concurrentqueue
     test_logging
     bench_client
     bench_server

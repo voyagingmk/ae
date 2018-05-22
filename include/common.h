@@ -26,9 +26,10 @@
 
 #define LOG_USE_COLOR 1
 
-#include "concurrentqueue.h"
+// #include "concurrentqueue.h"
 
-extern "C" {
+extern "C"
+{
 #include "wrapsock.h"
 #include "error.h"
 #include "ae.h"
