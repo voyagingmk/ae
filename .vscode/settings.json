@@ -58,6 +58,12 @@
         "cctype": "cpp",
         "cstdlib": "cpp",
         "*.ipp": "cpp",
-        "queue": "cpp"
-    }
+        "queue": "cpp",
+        "stat.h": "c",
+        "netdb.h": "c",
+        "un.h": "c",
+        "cstring": "cpp",
+        "random": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }

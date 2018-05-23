@@ -2,6 +2,7 @@
 #include "client.h"
 #include "net.h"
 #include "utils.h"
+#include "socket_utils.h"
 
 namespace wynet
 {
@@ -32,6 +33,12 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
         tcpClient->_onTcpDisconnected();
         return;
     }
+    if (socketUtils::isSelfConnect(tcpClient->sockfd()))
+    {
+        log_warn("OnTcpWritable isSelfConnect = true");
+        return;
+    }
+
     log_debug("OnTcpWritable _onTcpConnected");
     // connect ok, remove event
     tcpClient->_onTcpConnected();

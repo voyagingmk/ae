@@ -51,6 +51,7 @@ FILE(GLOB MY_SOURCERS
     src/utils.cpp
     src/buffer.cpp
     src/sockbuffer.cpp
+    src/socket_utils.cpp
     src/eventloop.cpp
     src/eventloop_thread.cpp
     src/eventloop_threadpool.cpp
@@ -83,6 +84,7 @@ FILE(GLOB MY_HEADERS
     include/sockbase.h
     include/buffer.h
     include/sockbuffer.h
+    include/socket_utils.h
     include/client.h
     include/server.h
     include/udpclient.h

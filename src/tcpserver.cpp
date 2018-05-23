@@ -7,6 +7,7 @@
 #include "net.h"
 #include "sockbuffer.h"
 #include "connection_manager.h"
+#include "socket_utils.h"
 
 namespace wynet
 {
@@ -100,6 +101,8 @@ void TCPServer::startListen(const char *host, int port)
 	if (res == NULL) /* errno from final socket() or bind() */
 		err_sys("tcp_listen error for %s, %s", host, serv);
 
+	socketUtils::log_debug_addr(res->ai_addr, "tcpserver listen to");
+
 	SetSockRecvBufSize(listenfd, 32 * 1024);
 	SetSockSendBufSize(listenfd, 32 * 1024);
 
@@ -109,7 +112,6 @@ void TCPServer::startListen(const char *host, int port)
 	m_family = res->ai_family;
 	memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
 	m_socklen = res->ai_addrlen; /* return size of protocol address */
-
 	freeaddrinfo(ressave);
 
 	char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
