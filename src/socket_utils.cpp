@@ -104,7 +104,12 @@ void log_debug_addr(struct sockaddr *addr, const char *tag)
     }
 
     getNameInfo((struct sockaddr_storage *)addr, ipBuf, NI_MAXHOST, portBuf, NI_MAXSERV);
-    log_debug("debug_addr, tag=%s, ip=%s, port=%d|%s", tag, ipBuf, port, portBuf);
+    log_debug("%s, ip=%s, port=%d|%s", tag, ipBuf, port, portBuf);
+}
+
+void log_debug_addr(struct sockaddr_storage *addr, const char *tag)
+{
+    log_debug_addr((struct sockaddr *)(addr), tag);
 }
 
 }; // namespace socketUtils

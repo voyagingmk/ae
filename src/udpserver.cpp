@@ -53,9 +53,6 @@ void UDPServer::init(int port)
     memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
     m_socklen = res->ai_addrlen; /* return size of protocol address */
     freeaddrinfo(ressave);
-
-    char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
-    log_info("UDP Server created: %s", str);
 }
 
 UDPServer::~UDPServer()
@@ -78,23 +75,6 @@ void UDPServer::Recvfrom()
         err_msg("Recvfrom %d", errno);
         return;
     }
-
-    log_debug("Recvfrom %s : %s ",
-              Sock_ntop((SA *)&cliAddr, len),
-              msg);
-
-    switch (cliAddr.ss_family)
-    {
-    case AF_INET:
-    {
-        struct sockaddr_in *addr = (struct sockaddr_in *)&cliAddr;
-        break;
-    }
-    case AF_INET6:
-    {
-        struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&cliAddr;
-        break;
-    }
-    }*/
+*/
 }
 }; // namespace wynet

@@ -55,7 +55,7 @@ public:
   }
 
 public:
-  sockaddr_in6 m_sockaddr;
+  sockaddr_storage m_sockaddr;
   socklen_t m_socklen;
   int m_family;
 };

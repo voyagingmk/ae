@@ -8,7 +8,6 @@ namespace wynet
 {
 class UDPClient : public SocketBase
 {
-  // sockaddr_in m_serSockaddr;
   // struct hostent *h;
 
 public:
@@ -16,6 +15,6 @@ public:
   ~UDPClient();
   void Send(const char *data, size_t len);
 };
-};
+}; // namespace wynet
 
 #endif

@@ -71,7 +71,6 @@ void TCPServer::startListen(const char *host, int port)
 	char buf[6] = {0};
 	sprintf(buf, "%d", m_tcpPort);
 	const char *serv = (char *)&buf;
-	log_debug("sprintf buf port %s, %d", buf, port);
 	if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
 		log_fatal("<TCPServer.startListen> getaddrinfo error for %s, %s: %s",
 				  host, serv, gai_strerror(n));
@@ -98,7 +97,6 @@ void TCPServer::startListen(const char *host, int port)
 			Close(listenfd); /* bind error, close and try next one */
 			continue;
 		}
-		socketUtils::log_debug_addr(res->ai_addr, "<TcpServer.bind> success");
 		break; /* success */
 	} while ((res = res->ai_next) != NULL);
 
@@ -115,10 +113,7 @@ void TCPServer::startListen(const char *host, int port)
 	memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
 	m_socklen = res->ai_addrlen; /* return size of protocol address */
 	freeaddrinfo(ressave);
-
-	char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
-	log_info("TCP TCPServer created: %s", str);
-
+	socketUtils::log_debug_addr(&m_sockaddr, "<TcpServer.startListen>");
 	getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE,
 							  TCPServer::OnNewTcpConnection);
 }

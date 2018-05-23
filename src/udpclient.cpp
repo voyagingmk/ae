@@ -42,8 +42,6 @@ UDPClient::UDPClient(const char *host, int port)
     m_family = res->ai_family;
 
     Connect(sockfd(), (struct sockaddr *)&m_sockaddr, m_socklen);
-    char *str = Sock_ntop((struct sockaddr *)&m_sockaddr, m_socklen);
-    log_info("connected: %s", str);
 }
 
 UDPClient::~UDPClient()
