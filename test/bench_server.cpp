@@ -15,7 +15,7 @@ void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected] %d", conn->connectId());
     conn->getCtrlAsServer()->addConnection(conn);
-    setTcpNoDelay(conn->fd(), true);
+    socketUtils::setTcpNoDelay(conn->fd(), true);
 }
 
 void OnTcpDisconnected(PtrConn conn)

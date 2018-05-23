@@ -11,6 +11,7 @@
 #include "eventloop.h"
 #include "eventloop_thread.h"
 #include "eventloop_threadpool.h"
+#include "socket_utils.h"
 
 namespace wynet
 {
@@ -54,6 +55,6 @@ private:
   MutexLock m_mutexLock;
   PtrThreadPool m_threadPool;
 };
-};
+}; // namespace wynet
 
 #endif

@@ -112,10 +112,10 @@ void log_debug_addr(struct sockaddr_storage *addr, const char *tag)
     log_debug_addr((struct sockaddr *)(addr), tag);
 }
 
-void setTcpNoDelay(int sockfd, bool enabled)
+int setTcpNoDelay(int sockfd, bool enabled)
 {
     int val = enabled ? 1 : 0;
-    ::setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &val, static_cast<socklen_t>(sizeof val));
+    return ::setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &val, static_cast<socklen_t>(sizeof val));
 }
 
 }; // namespace socketUtils
