@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     WyNet net(threadsNum);
     g_net = &net;
     std::shared_ptr<Server> server = std::make_shared<Server>(&net);
-    PtrTCPServer tcpServer = server->initTcpServer(ip, port);
+    PtrTCPServer tcpServer = server->initTcpServer(strcmp(ip, "") == 0 ? NULL : ip, port);
     tcpServer->onTcpConnected = &OnTcpConnected;
     tcpServer->onTcpDisconnected = &OnTcpDisconnected;
     tcpServer->onTcpRecvMessage = &OnTcpRecvMessage;

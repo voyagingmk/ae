@@ -29,8 +29,8 @@ void UDPServer::init(int port)
     const char *serv = (char *)&buf;
 
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-        err_quit("udp_server error for %s, %s: %s",
-                 host, serv, gai_strerror(n));
+        log_fatal("udp_server error for %s, %s: %s",
+                  host, serv, gai_strerror(n));
     ressave = res;
 
     do
@@ -97,4 +97,4 @@ void UDPServer::Recvfrom()
     }
     }*/
 }
-};
+}; // namespace wynet

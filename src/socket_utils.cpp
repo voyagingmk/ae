@@ -91,8 +91,20 @@ void log_debug_addr(struct sockaddr *addr, const char *tag)
 {
     char ipBuf[NI_MAXHOST];
     char portBuf[NI_MAXSERV];
+    int port = 0;
+    if (addr->sa_family == AF_INET)
+    {
+        sockaddr_in *addr_v4 = (struct sockaddr_in *)(addr);
+        port = (int)ntohs(addr_v4->sin_port);
+    }
+    else if (addr->sa_family == AF_INET6)
+    {
+        sockaddr_in6 *addr_v6 = (struct sockaddr_in6 *)(addr);
+        port = (int)ntohs(addr_v6->sin6_port);
+    }
+
     getNameInfo((struct sockaddr_storage *)addr, ipBuf, NI_MAXHOST, portBuf, NI_MAXSERV);
-    log_debug("debug_addr, tag=%s, ip=%s, port=%s", tag, ipBuf, portBuf);
+    log_debug("debug_addr, tag=%s, ip=%s, port=%d|%s", tag, ipBuf, port, portBuf);
 }
 
 }; // namespace socketUtils

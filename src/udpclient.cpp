@@ -18,8 +18,8 @@ UDPClient::UDPClient(const char *host, int port)
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_ALL;
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-        err_quit("udp_client error for %s, %s: %s",
-                 host, serv, gai_strerror(n));
+        log_fatal("udp_client error for %s, %s: %s",
+                  host, serv, gai_strerror(n));
     ressave = res;
 
     do
@@ -56,4 +56,4 @@ void UDPClient::Send(const char *data, size_t len)
     ::Send(sockfd(), data, len, 0);
     // Sendto(sockfd(), data, len, 0, (struct sockaddr *)&m_sockaddr, m_socklen);
 }
-};
+}; // namespace wynet

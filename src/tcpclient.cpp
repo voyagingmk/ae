@@ -72,8 +72,8 @@ void TCPClient::connect(const char *host, int port)
     const char *serv = (char *)&buf;
 
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-        err_quit("tcp_connect error for %s, %s: %s",
-                 host, serv, gai_strerror(n));
+        log_fatal("tcp_connect error for %s, %s: %s",
+                  host, serv, gai_strerror(n));
     ressave = res;
     int ret;
     do

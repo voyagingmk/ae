@@ -11,6 +11,9 @@
 
 namespace wynet
 {
+
+const size_t LISTENQUEUEMAX = 128;
+
 void TCPServer::OnNewTcpConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
 {
 	std::shared_ptr<FDRef> sfdRef = fdRef.lock();
@@ -65,13 +68,13 @@ void TCPServer::startListen(const char *host, int port)
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	char buf[5];
+	char buf[6] = {0};
 	sprintf(buf, "%d", m_tcpPort);
 	const char *serv = (char *)&buf;
-
+	log_debug("sprintf buf port %s, %d", buf, port);
 	if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-		err_quit("tcp_listen error for %s, %s: %s",
-				 host, serv, gai_strerror(n));
+		log_fatal("<TCPServer.startListen> getaddrinfo error for %s, %s: %s",
+				  host, serv, gai_strerror(n));
 	ressave = res;
 
 	do
@@ -95,18 +98,17 @@ void TCPServer::startListen(const char *host, int port)
 			Close(listenfd); /* bind error, close and try next one */
 			continue;
 		}
+		socketUtils::log_debug_addr(res->ai_addr, "<TcpServer.bind> success");
 		break; /* success */
 	} while ((res = res->ai_next) != NULL);
 
 	if (res == NULL) /* errno from final socket() or bind() */
 		err_sys("tcp_listen error for %s, %s", host, serv);
 
-	socketUtils::log_debug_addr(res->ai_addr, "tcpserver listen to");
-
 	SetSockRecvBufSize(listenfd, 32 * 1024);
 	SetSockSendBufSize(listenfd, 32 * 1024);
 
-	Listen(listenfd, LISTENQ);
+	Listen(listenfd, LISTENQUEUEMAX);
 
 	setSockfd(listenfd);
 	m_family = res->ai_family;
