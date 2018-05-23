@@ -16,7 +16,7 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
         return;
     }
     std::shared_ptr<TCPClient> tcpClient = std::dynamic_pointer_cast<TCPClient>(sfdRef);
-    tcpClient->listenWritable(true);
+    tcpClient->listenWritable(false);
     int error;
     socklen_t len;
     len = sizeof(error);
@@ -134,12 +134,13 @@ void TCPClient::listenWritable(bool enabled)
 {
     if (enabled == m_listenWritable)
     {
+        log_debug("listenWritable repeated! %d", (int)enabled);
         return;
     }
     m_listenWritable = enabled;
     if (m_listenWritable)
     {
-        getLoop().createFileEvent(fd(), LOOP_EVT_WRITABLE,
+        getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
                                   TCPClient::OnTcpWritable);
     }
     else
