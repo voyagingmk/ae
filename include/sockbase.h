@@ -32,8 +32,7 @@ class SocketBase : public FDRef
 {
 protected:
   SocketBase(int fd = 0) : FDRef(fd),
-                           m_socklen(0),
-                           m_family(0)
+                           m_socklen(0)
   {
   }
   virtual ~SocketBase()
@@ -46,18 +45,12 @@ public:
   inline void setSockfd(int fd) { setfd(fd); }
   inline int sockfd() const { return fd(); }
   inline bool valid() const { return fd() > 0; }
-  inline bool isIPv4() const { return m_family == PF_INET; }
-  inline bool isIPv6() const { return m_family == PF_INET6; }
-  void setTcpNoDelay(bool enabled)
-  {
-    int val = enabled ? 1 : 0;
-    ::setsockopt(fd(), IPPROTO_TCP, TCP_NODELAY, &val, static_cast<socklen_t>(sizeof val));
-  }
+  inline bool isIPv4() const { return m_sockaddr.ss_family == PF_INET; }
+  inline bool isIPv6() const { return m_sockaddr.ss_family == PF_INET6; }
 
 public:
   sockaddr_storage m_sockaddr;
   socklen_t m_socklen;
-  int m_family;
 };
 
 typedef std::shared_ptr<SocketBase> PtrCtrl;

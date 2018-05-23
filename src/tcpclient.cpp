@@ -104,7 +104,6 @@ void TCPClient::connect(const char *host, int port)
     if (res == NULL) /* errno set from final connect() */
         err_sys("tcp_connect error for %s, %s", host, serv);
 
-    m_family = res->ai_family;
     memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
     m_socklen = res->ai_addrlen; /* return size of protocol address */
 

@@ -109,7 +109,6 @@ void TCPServer::startListen(const char *host, int port)
 	Listen(listenfd, LISTENQUEUEMAX);
 
 	setSockfd(listenfd);
-	m_family = res->ai_family;
 	memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
 	m_socklen = res->ai_addrlen; /* return size of protocol address */
 	freeaddrinfo(ressave);

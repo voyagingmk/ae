@@ -39,7 +39,6 @@ UDPClient::UDPClient(const char *host, int port)
     m_socklen = res->ai_addrlen;
     freeaddrinfo(ressave);
     setSockfd(fd);
-    m_family = res->ai_family;
 
     Connect(sockfd(), (struct sockaddr *)&m_sockaddr, m_socklen);
 }

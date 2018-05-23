@@ -63,7 +63,8 @@
         "netdb.h": "c",
         "un.h": "c",
         "cstring": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "stack": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
