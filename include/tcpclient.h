@@ -18,8 +18,6 @@ public:
   struct hostent *h;
   PtrConn m_conn;
   PtrClient m_parent;
-
-public:
   TcpConnection::OnTcpConnected onTcpConnected;
   TcpConnection::OnTcpDisconnected onTcpDisconnected;
   TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
@@ -32,16 +30,23 @@ public:
 
   TCPClient(PtrClient client);
 
+  ~TCPClient();
+
   void connect(const char *host, int port);
 
   EventLoop &getLoop();
 
 private:
+  void listenWritable(bool);
+
   void _onTcpConnected();
 
   void _onTcpDisconnected();
 
   static void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
+
+private:
+  bool m_listenWritable;
 };
 
 }; // namespace wynet

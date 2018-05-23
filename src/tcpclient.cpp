@@ -16,7 +16,7 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
         return;
     }
     std::shared_ptr<TCPClient> tcpClient = std::dynamic_pointer_cast<TCPClient>(sfdRef);
-    tcpClient->getLoop().deleteFileEvent(tcpClient, LOOP_EVT_WRITABLE);
+    tcpClient->listenWritable(true);
     int error;
     socklen_t len;
     len = sizeof(error);
@@ -39,10 +39,16 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
 
 TCPClient::TCPClient(PtrClient client) : onTcpConnected(nullptr),
                                          onTcpDisconnected(nullptr),
-                                         onTcpRecvMessage(nullptr)
+                                         onTcpRecvMessage(nullptr),
+                                         m_listenWritable(false)
 {
 
     m_parent = client;
+}
+
+TCPClient::~TCPClient()
+{
+    listenWritable(false);
 }
 
 void TCPClient::connect(const char *host, int port)
@@ -79,8 +85,7 @@ void TCPClient::connect(const char *host, int port)
         log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));
         if ((ret == -1) && (errno == EINPROGRESS))
         {
-            getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
-                                      TCPClient::OnTcpWritable);
+            listenWritable(true);
             break;
         }
         if (ret == 0)
@@ -123,6 +128,24 @@ void TCPClient::_onTcpConnected()
 void TCPClient::_onTcpDisconnected()
 {
     m_conn = nullptr;
+}
+
+void TCPClient::listenWritable(bool enabled)
+{
+    if (enabled == m_listenWritable)
+    {
+        return;
+    }
+    m_listenWritable = enabled;
+    if (m_listenWritable)
+    {
+        getLoop().createFileEvent(fd(), LOOP_EVT_WRITABLE,
+                                  TCPClient::OnTcpWritable);
+    }
+    else
+    {
+        getLoop().deleteFileEvent(fd(), LOOP_EVT_WRITABLE);
+    }
 }
 
 }; // namespace wynet
