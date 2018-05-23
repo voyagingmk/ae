@@ -30,16 +30,6 @@ void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
     sockBuf.readOut(sockBuf.readableSize());
 }
 
-/*
-static int SocketOutput(const char *buf, int len, ikcpcb *kcp, void *user)
-{
-    SocketBase *s = (SocketBase *)user;
-    assert(s);
-    // s->send(buf, len);
-    return len;
-}
-*/
-
 int main(int argc, char **argv)
 {
     signal(SIGPIPE, SIG_IGN);
