@@ -14,7 +14,6 @@ typedef std::shared_ptr<Client> PtrClient;
 class TCPClient : public SocketBase
 {
 public:
-  struct hostent *h;
   PtrConn m_conn;
   PtrClient m_parent;
   TcpConnection::OnTcpConnected onTcpConnected;

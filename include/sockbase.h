@@ -45,11 +45,11 @@ public:
   inline void setSockfd(int fd) { setfd(fd); }
   inline int sockfd() const { return fd(); }
   inline bool valid() const { return fd() > 0; }
-  inline bool isIPv4() const { return m_sockaddr.ss_family == PF_INET; }
-  inline bool isIPv6() const { return m_sockaddr.ss_family == PF_INET6; }
+  inline bool isIPv4() const { return m_sockAddr.ss_family == PF_INET; }
+  inline bool isIPv6() const { return m_sockAddr.ss_family == PF_INET6; }
 
 public:
-  sockaddr_storage m_sockaddr;
+  sockaddr_storage m_sockAddr;
   socklen_t m_socklen;
 };
 

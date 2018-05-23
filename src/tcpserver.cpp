@@ -109,10 +109,10 @@ void TCPServer::startListen(const char *host, int port)
 	Listen(listenfd, LISTENQUEUEMAX);
 
 	setSockfd(listenfd);
-	memcpy(&m_sockaddr, res->ai_addr, res->ai_addrlen);
+	memcpy(&m_sockAddr, res->ai_addr, res->ai_addrlen);
 	m_socklen = res->ai_addrlen; /* return size of protocol address */
 	freeaddrinfo(ressave);
-	socketUtils::log_debug_addr(&m_sockaddr, "<TcpServer.startListen>");
+	socketUtils::log_debug_addr(&m_sockAddr, "<TcpServer.startListen>");
 	getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE,
 							  TCPServer::OnNewTcpConnection);
 }

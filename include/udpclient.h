@@ -8,8 +8,6 @@ namespace wynet
 {
 class UDPClient : public SocketBase
 {
-  // struct hostent *h;
-
 public:
   UDPClient(const char *host, int port);
   ~UDPClient();

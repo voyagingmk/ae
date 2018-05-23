@@ -14,12 +14,19 @@ namespace wynet
 namespace socketUtils
 {
 sockaddr_storage getSrcAddr(int sockfd);
+
 sockaddr_storage getDestAddr(int sockfd);
+
 bool isSelfConnect(int sockfd);
+
 void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, char *portBuf, size_t portBufSize);
+
 void log_debug_addr(struct sockaddr *addr, const char *tag = "");
+
 void log_debug_addr(struct sockaddr_storage *addr, const char *tag = "");
+
 int setTcpNoDelay(int sockfd, bool enabled);
+
 }; // namespace socketUtils
 }; // namespace wynet
 
