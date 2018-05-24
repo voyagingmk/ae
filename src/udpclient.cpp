@@ -1,5 +1,6 @@
 #include "common.h"
 #include "udpclient.h"
+#include "socket_utils.h"
 
 namespace wynet
 {
@@ -26,7 +27,7 @@ UDPClient::UDPClient(const char *host, int port)
     {
         if (res->ai_family == PF_INET || res->ai_family == PF_INET6)
         {
-            fd = Socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+            fd = socketUtils ::sock_socket(res->ai_family, res->ai_socktype, res->ai_protocol);
             if (fd >= 0)
                 break; /* success */
         }

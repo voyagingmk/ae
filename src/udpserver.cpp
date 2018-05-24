@@ -40,7 +40,7 @@ void UDPServer::init(int port)
         if (sockfd() < 0)
             continue; 
 
-    Setsockopt(sockfd(), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    socketUtils ::sock_setsockopt(sockfd(), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
     if (bind(sockfd(), res->ai_addr, res->ai_addrlen) == 0)
         break; 
 

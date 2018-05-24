@@ -6,6 +6,7 @@
 #include "sockbuffer.h"
 #include "tcpserver.h"
 #include "tcpclient.h"
+#include "socket_utils.h"
 
 using namespace wynet;
 
@@ -69,7 +70,7 @@ void TcpConnection ::closeInLoop(bool force)
         struct linger l;
         l.l_onoff = 1; /* cause RST to be sent on close() */
         l.l_linger = 0;
-        Setsockopt(connectFd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+        socketUtils ::sock_setsockopt(connectFd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
     }
     if (onTcpDisconnected)
         onTcpDisconnected(shared_from_this());

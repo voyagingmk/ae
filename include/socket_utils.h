@@ -8,11 +8,21 @@ namespace wynet
 namespace socketUtils
 {
 
+extern int sock_socket(int family, int type, int protocol);
+
+extern void sock_close(int fd);
+
+extern void sock_listen(int fd, int backlog);
+
+extern void sock_setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen);
+
 extern bool valid(SockFd sockfd);
 
 extern bool isIPv4(sockaddr_storage sockAddr);
 
 extern bool isIPv6(sockaddr_storage sockAddr);
+
+extern int sock_fcntl(int sockfd, int cmd, int arg);
 
 extern sockaddr_storage getSrcAddr(SockFd sockfd);
 

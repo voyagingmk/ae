@@ -110,7 +110,6 @@ FILE(GLOB MY_HEADERS
     include/logger/append_file.h
     include/logger/log_file.h
     include/logger/log.h
-    external/wrapsock.h
     external/error.h
     external/ikcp.h
     external/ae.h

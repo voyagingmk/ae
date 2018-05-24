@@ -144,7 +144,7 @@ void Listen(int fd, int backlog)
 	if (listen(fd, backlog) < 0)
 		err_sys("listen error");
 }
-	/* end Listen */
+/* end Listen */
 
 #ifdef HAVE_POLL
 int Poll(struct pollfd *fdarray, unsigned long nfds, int timeout)

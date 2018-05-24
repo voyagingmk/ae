@@ -117,7 +117,7 @@ void TCPClient::connect(const char *host, int port)
 
         if (needContinue)
         {
-            ::Close(sockfd);
+            socketUtils ::sock_close(sockfd);
         }
         else
         {

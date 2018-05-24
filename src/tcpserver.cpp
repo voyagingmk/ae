@@ -85,19 +85,19 @@ void TCPServer::startListen(const char *host, int port)
 		if (listenfd < 0)
 			continue; /* error, try next one */
 
-		int flags = Fcntl(listenfd, F_GETFL, 0);
-		Fcntl(listenfd, F_SETFL, flags | O_NONBLOCK);
+		int flags = socketUtils ::sock_fcntl(listenfd, F_GETFL, 0);
+		socketUtils ::sock_fcntl(listenfd, F_SETFL, flags | O_NONBLOCK);
 
 		int ret = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 		if (ret < 0)
 		{
 			log_error("[TCPServer][tcp] setsockopt SO_REUSEADDR err %d", errno);
-			Close(listenfd);
+			socketUtils ::sock_close(listenfd);
 			continue;
 		}
 		if (::bind(listenfd, res->ai_addr, res->ai_addrlen) < 0)
 		{
-			Close(listenfd); /* bind error, close and try next one */
+			socketUtils ::sock_close(listenfd); /* bind error, close and try next one */
 			continue;
 		}
 		break; /* success */
@@ -109,7 +109,7 @@ void TCPServer::startListen(const char *host, int port)
 	socketUtils::SetSockRecvBufSize(listenfd, 32 * 1024);
 	socketUtils::SetSockSendBufSize(listenfd, 32 * 1024);
 
-	Listen(listenfd, LISTENQUEUEMAX);
+	socketUtils::sock_listen(listenfd, LISTENQUEUEMAX);
 
 	m_sockFdCtrl.setSockfd(listenfd);
 	m_evtListener->setSockfd(listenfd);
@@ -141,7 +141,7 @@ void TCPServer::acceptConnection()
 	int listenfd = m_sockFdCtrl.sockfd();
 	struct sockaddr_storage cliAddr;
 	socklen_t len = sizeof(cliAddr);
-	int connfdTcp = accept(listenfd, (SA *)&cliAddr, &len);
+	int connfdTcp = accept(listenfd, (struct sockaddr *)&cliAddr, &len);
 	log_debug("acceptConnection fd:%d", connfdTcp);
 	if (connfdTcp < 0)
 	{

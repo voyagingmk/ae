@@ -6,6 +6,37 @@ namespace wynet
 namespace socketUtils
 {
 
+int sock_socket(int family, int type, int protocol)
+{
+    int n;
+    if ((n = socket(family, type, protocol)) < 0)
+        log_fatal("socket error");
+    return n;
+}
+
+void sock_close(int fd)
+{
+    if (close(fd) == -1)
+        log_fatal("sock_close error");
+}
+
+void sock_listen(int fd, int backlog)
+{
+    char *ptr;
+
+    if ((ptr = getenv("LISTENQ")) != NULL)
+        backlog = atoi(ptr);
+
+    if (listen(fd, backlog) < 0)
+        log_fatal("listen error");
+}
+
+void sock_setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
+{
+    if (setsockopt(fd, level, optname, optval, optlen) < 0)
+        log_fatal("setsockopt error");
+}
+
 bool valid(SockFd sockfd) { return sockfd > 0; }
 
 bool isIPv4(sockaddr_storage sockAddr) { return sockAddr.ss_family == PF_INET; }
