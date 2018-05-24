@@ -72,14 +72,12 @@ void OnTcpConnected(PtrConn conn)
         g_net->stopLoop();
     }
     //client->getTcpClient();
-    //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
     // conn->getLoop()->createTimer(1000, OnHeartbeat, conn, nullptr);
 }
 
 void OnTcpDisconnected(PtrConn conn)
 {
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
-    //log_info("OnTcpDisconnected: %d", client->getTcpClient()->sockfd());
     g_net->stopLoop();
 }
 

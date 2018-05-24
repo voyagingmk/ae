@@ -11,40 +11,67 @@ namespace wynet
 class Client;
 typedef std::shared_ptr<Client> PtrClient;
 
-class TCPClient : public SocketBase
+class TCPClientEventListener : public EventListener
 {
 public:
-  PtrConn m_conn;
-  PtrClient m_parent;
-  TcpConnection::OnTcpConnected onTcpConnected;
-  TcpConnection::OnTcpDisconnected onTcpDisconnected;
-  TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
-
-public:
-  std::shared_ptr<TCPClient> shared_from_this()
+  void setTCPClient(PtrTCPClient tcpClient)
   {
-    return FDRef::downcasted_shared_from_this<TCPClient>();
+    m_tcpClient = tcpClient;
+  }
+  PtrTCPClient getTCPClient()
+  {
+    return m_tcpClient.lock();
   }
 
+  static PtrEvtListener create()
+  {
+    return std::make_shared<TCPClientEventListener>();
+  }
+
+protected:
+  WeakPtrTCPClient m_tcpClient;
+};
+
+typedef std::shared_ptr<TCPClientEventListener> PtrTcpClientEvtListener;
+
+class TCPClient : public Noncopyable, public std::enable_shared_from_this<TCPClient>
+{
+public:
   TCPClient(PtrClient client);
 
   ~TCPClient();
+
+  void init();
 
   void connect(const char *host, int port);
 
   EventLoop &getLoop();
 
 private:
-  void listenWritable(bool);
+  void asyncConnect(int sockfd);
 
-  void _onTcpConnected();
+  bool isAsyncConnecting();
+
+  void endAsyncConnect();
+
+  void _onTcpConnected(int sockfd);
 
   void _onTcpDisconnected();
 
-  static void OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
+  static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);
+
+public:
+  PtrConn m_conn;
+  PtrClient m_parent;
+  SockAddr m_sockAddr;
+  PtrTcpClientEvtListener m_evtListener;
+  TcpConnection::OnTcpConnected onTcpConnected;
+  TcpConnection::OnTcpDisconnected onTcpDisconnected;
+  TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
 
 private:
-  bool m_listenWritable;
+  bool m_asyncConnect;
+  SockFd m_asyncSockfd;
 };
 
 }; // namespace wynet

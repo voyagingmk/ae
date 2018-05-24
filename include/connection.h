@@ -7,6 +7,7 @@
 #include "sockbase.h"
 #include "sockbuffer.h"
 #include "noncopyable.h"
+#include "event_listener.h"
 
 namespace wynet
 {
@@ -15,13 +16,44 @@ class EventLoop;
 class TcpConnection;
 class TCPServer;
 class TCPClient;
+class TcpConnectionEventListener;
 
 typedef std::shared_ptr<TCPServer> PtrTCPServer;
 typedef std::shared_ptr<TCPClient> PtrTCPClient;
+typedef std::weak_ptr<TCPServer> WeakPtrTCPServer;
+typedef std::weak_ptr<TCPClient> WeakPtrTCPClient;
 typedef std::shared_ptr<TcpConnection> PtrConn;
 typedef std::weak_ptr<TcpConnection> PtrConnWeak;
+typedef std::shared_ptr<TcpConnectionEventListener> PtrConnEvtListener;
 
-class TcpConnection : public SocketBase
+class TcpConnectionEventListener : public EventListener
+{
+  public:
+    void setTcpConnection(PtrConn conn)
+    {
+        m_conn = conn;
+    }
+    PtrConn getTcpConnection()
+    {
+        PtrConn conn = m_conn.lock();
+        return conn;
+    }
+
+    static PtrConnEvtListener create()
+    {
+        return std::make_shared<TcpConnectionEventListener>();
+    }
+    /*
+    static PtrEvtListener create()
+    {
+        return std::static_pointer_cast<EventListener>(std::make_shared<TcpConnectionEventListener>());
+    }*/
+
+  protected:
+    PtrConnWeak m_conn;
+};
+
+class TcpConnection : public Noncopyable, public std::enable_shared_from_this<TcpConnection>
 {
     friend class TCPServer;
     friend class TCPClient;
@@ -41,26 +73,23 @@ class TcpConnection : public SocketBase
 
     typedef void (*OnTcpSendComplete)(PtrConn conn);
 
-    TcpConnection(int fd = 0) : SocketBase(fd),
-                                m_loop(nullptr),
-                                m_state(State::Connecting),
-                                m_key(0),
-                                m_kcpObj(nullptr),
-                                m_connectId(0),
-                                onTcpConnected(nullptr),
-                                onTcpDisconnected(nullptr),
-                                onTcpRecvMessage(nullptr),
-                                onTcpSendComplete(nullptr)
+    TcpConnection(SockFd sockfd = 0) : m_loop(nullptr),
+                                       m_sockFdCtrl(sockfd),
+                                       m_state(State::Connecting),
+                                       m_key(0),
+                                       m_kcpObj(nullptr),
+                                       m_connectId(0),
+                                       onTcpConnected(nullptr),
+                                       onTcpDisconnected(nullptr),
+                                       onTcpRecvMessage(nullptr),
+                                       onTcpSendComplete(nullptr)
     {
+        m_evtListener = TcpConnectionEventListener::create();
+        m_evtListener->setSockFd(m_sockFdCtrl.sockfd());
     }
 
     virtual ~TcpConnection()
     {
-    }
-
-    std::shared_ptr<TcpConnection> shared_from_this()
-    {
-        return FDRef::downcasted_shared_from_this<TcpConnection>();
     }
 
     TcpConnection &operator=(TcpConnection &&c)
@@ -76,23 +105,29 @@ class TcpConnection : public SocketBase
     inline void setEventLoop(EventLoop *l)
     {
         m_loop = l;
+        m_evtListener->setEventLoop(m_loop);
     }
 
-    void setCtrl(PtrCtrl ctrl)
+    void setCtrl(PtrTCPServer ctrl)
     {
-        m_ctrl = ctrl;
+        m_tcpServer = ctrl;
+    }
+
+    void setCtrl(PtrTCPClient ctrl)
+    {
+        m_tcpClient = ctrl;
     }
 
     // may not exist
-    PtrCtrl getCtrl()
+    PtrTCPServer getCtrlAsServer()
     {
-        PtrCtrl ctrl(m_ctrl.lock());
-        return ctrl;
+        return m_tcpServer.lock();
     }
 
-    PtrTCPServer getCtrlAsServer();
-
-    PtrTCPClient getCtrlAsClient();
+    PtrTCPClient getCtrlAsClient()
+    {
+        return m_tcpClient.lock();
+    }
 
     EventLoop *getLoop() const
     {
@@ -126,7 +161,7 @@ class TcpConnection : public SocketBase
 
     inline uint16_t connectFd()
     {
-        return fd();
+        return m_sockFdCtrl.sockfd();
     }
 
     inline SockBuffer &sockBuffer()
@@ -165,7 +200,7 @@ class TcpConnection : public SocketBase
     int getPendingSize();
 
   protected:
-    static void OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask);
+    static void OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 
     void onEstablished();
 
@@ -181,7 +216,10 @@ class TcpConnection : public SocketBase
 
   protected:
     EventLoop *m_loop;
-    PtrCtrlWeak m_ctrl;
+    SocketFdCtrl m_sockFdCtrl;
+    PtrConnEvtListener m_evtListener;
+    WeakPtrTCPServer m_tcpServer;
+    WeakPtrTCPClient m_tcpClient;
     State m_state;
     uint32_t m_key;
     KCPObject *m_kcpObj;
@@ -193,7 +231,7 @@ class TcpConnection : public SocketBase
     OnTcpDisconnected onTcpDisconnected;
     OnTcpRecvMessage onTcpRecvMessage;
     OnTcpSendComplete onTcpSendComplete;
-}; // namespace wynet
+};
 }; // namespace wynet
 
 #endif

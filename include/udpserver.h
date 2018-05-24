@@ -7,8 +7,10 @@
 namespace wynet
 {
 
-class UDPServer : public SocketBase
+class UDPServer
 {
+  SockAddr m_sockAddr;
+
 public:
   UDPServer(int port);
 
@@ -19,6 +21,6 @@ public:
 private:
   void init(int port);
 };
-};
+}; // namespace wynet
 
 #endif

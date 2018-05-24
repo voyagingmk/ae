@@ -14,6 +14,7 @@ UDPServer::UDPServer(int port)
 
 void UDPServer::init(int port)
 {
+    /*
     int n;
     const int on = 1;
     struct addrinfo hints, *res, *ressave;
@@ -37,26 +38,30 @@ void UDPServer::init(int port)
     {
         setSockfd(socket(res->ai_family, res->ai_socktype, res->ai_protocol));
         if (sockfd() < 0)
-            continue; /* error, try next one */
+            continue; 
 
-        Setsockopt(sockfd(), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-        if (bind(sockfd(), res->ai_addr, res->ai_addrlen) == 0)
-            break; /* success */
+    Setsockopt(sockfd(), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+    if (bind(sockfd(), res->ai_addr, res->ai_addrlen) == 0)
+        break; 
 
-        close(sockfd()); /* bind error, close and try next one */
-    } while ((res = res->ai_next) != NULL);
+        close(sockfd()); 
+    }
+    while ((res = res->ai_next) != NULL)
+        ;
 
-    if (res == NULL) /* errno from final socket() or bind() */
+    if (res == NULL) 
         err_sys("udp_server error for %s, %s", host, serv);
 
-    memcpy(&m_sockAddr, res->ai_addr, res->ai_addrlen);
-    m_socklen = res->ai_addrlen; /* return size of protocol address */
+    memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
+    m_sockAddr.m_socklen = res->ai_addrlen;
+
     freeaddrinfo(ressave);
-}
+    */
+} // namespace wynet
 
 UDPServer::~UDPServer()
 {
-    close(sockfd());
+    // close(sockfd());
 }
 
 void UDPServer::Recvfrom()

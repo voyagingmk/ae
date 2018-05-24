@@ -13,7 +13,7 @@ namespace wynet
 class WyNet;
 class EventLoop;
 
-class Server : public FDRef, public Noncopyable
+class Server : public Noncopyable, public std::enable_shared_from_this<Server>
 {
   WyNet *m_net;
   int m_udpPort;
@@ -28,11 +28,6 @@ public:
   std::shared_ptr<UDPServer> initUdpServer(int udpPort);
 
   ~Server();
-
-  std::shared_ptr<Server> shared_from_this()
-  {
-    return FDRef::downcasted_shared_from_this<Server>();
-  }
 
   WyNet *getNet() const
   {

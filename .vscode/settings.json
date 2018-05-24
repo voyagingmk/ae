@@ -65,7 +65,8 @@
         "cstring": "cpp",
         "random": "cpp",
         "stack": "cpp",
-        "slist": "cpp"
+        "slist": "cpp",
+        "fstream": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

@@ -1,6 +1,7 @@
 #ifndef WY_SOCKET_UTILS_H
 #define WY_SOCKET_UTILS_H
 
+#include "common.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -13,11 +14,18 @@ namespace wynet
 {
 namespace socketUtils
 {
-sockaddr_storage getSrcAddr(int sockfd);
 
-sockaddr_storage getDestAddr(int sockfd);
+bool valid(SockFd sockfd) { return sockfd > 0; }
 
-bool isSelfConnect(int sockfd);
+bool isIPv4(sockaddr_storage sockAddr) { return sockAddr.ss_family == PF_INET; }
+
+bool isIPv6(sockaddr_storage sockAddr) { return sockAddr.ss_family == PF_INET6; }
+
+sockaddr_storage getSrcAddr(SockFd sockfd);
+
+sockaddr_storage getDestAddr(SockFd sockfd);
+
+bool isSelfConnect(SockFd sockfd);
 
 void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, char *portBuf, size_t portBufSize);
 
@@ -25,17 +33,17 @@ void log_debug_addr(struct sockaddr *addr, const char *tag = "");
 
 void log_debug_addr(struct sockaddr_storage *addr, const char *tag = "");
 
-int setTcpNoDelay(int sockfd, bool enabled);
+int setTcpNoDelay(SockFd sockfd, bool enabled);
 
-int setTcpNonBlock(int sockfd);
+int setTcpNonBlock(SockFd sockfd);
 
-int SetSockSendBufSize(int sockfd, int newSndBuf, bool force = false);
+int SetSockSendBufSize(SockFd sockfd, int newSndBuf, bool force = false);
 
-int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force = false);
+int SetSockRecvBufSize(SockFd sockfd, int newRcvBuf, bool force = false);
 
 #ifdef DEBUG_MODE
 
-void LogSocketState(int fd);
+void LogSocketState(SockFd sockfd);
 
 #else
 

@@ -8,20 +8,16 @@ namespace wynet
 {
 
 // http://man7.org/linux/man-pages/man2/connect.2.html
-void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
+void TCPClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
-    log_debug("OnTcpWritable");
-    std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-    if (!sfdRef)
-    {
-        return;
-    }
-    std::shared_ptr<TCPClient> tcpClient = std::dynamic_pointer_cast<TCPClient>(sfdRef);
-    tcpClient->listenWritable(false);
+    PtrTcpClientEvtListener l = std::static_pointer_cast<TCPClientEventListener>(listener);
+    std::shared_ptr<TCPClient> tcpClient = l->getTCPClient();
+    SockFd asyncSockfd = tcpClient->m_asyncSockfd;
+    tcpClient->endAsyncConnect();
     int error;
     socklen_t len;
     len = sizeof(error);
-    if (getsockopt(tcpClient->sockfd(), SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+    if (getsockopt(asyncSockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
     {
         log_debug("OnTcpWritable getsockopt failed, errno = %d", strerror(errno));
         tcpClient->_onTcpDisconnected();
@@ -33,7 +29,7 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
         tcpClient->_onTcpDisconnected();
         return;
     }
-    if (socketUtils::isSelfConnect(tcpClient->sockfd()))
+    if (socketUtils::isSelfConnect(asyncSockfd))
     {
         log_warn("OnTcpWritable isSelfConnect = true");
         return;
@@ -41,13 +37,14 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, 
 
     log_debug("OnTcpWritable _onTcpConnected");
     // connect ok, remove event
-    tcpClient->_onTcpConnected();
+    tcpClient->_onTcpConnected(asyncSockfd);
 }
 
 TCPClient::TCPClient(PtrClient client) : onTcpConnected(nullptr),
                                          onTcpDisconnected(nullptr),
                                          onTcpRecvMessage(nullptr),
-                                         m_listenWritable(false)
+                                         m_asyncConnect(false),
+                                         m_asyncSockfd(0)
 {
 
     m_parent = client;
@@ -55,7 +52,12 @@ TCPClient::TCPClient(PtrClient client) : onTcpConnected(nullptr),
 
 TCPClient::~TCPClient()
 {
-    listenWritable(false);
+    endAsyncConnect();
+}
+
+void TCPClient::init()
+{
+    m_evtListener->setTCPClient(shared_from_this());
 }
 
 void TCPClient::connect(const char *host, int port)
@@ -76,40 +78,60 @@ void TCPClient::connect(const char *host, int port)
                   host, serv, gai_strerror(n));
     ressave = res;
     int ret;
+    int sockfd;
+    endAsyncConnect(); // previous connect
     do
     {
-        setSockfd(socket(res->ai_family, res->ai_socktype, res->ai_protocol));
-        if (sockfd() < 0)
-            continue; /* ignore this one */
+        sockfd = 0;
+        sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        if (sockfd < 0)
+            continue;
 
-        socketUtils::setTcpNonBlock(sockfd());
-
-        socketUtils::SetSockRecvBufSize(sockfd(), 32 * 1024);
-        socketUtils::SetSockSendBufSize(sockfd(), 32 * 1024);
-
-        ret = ::connect(sockfd(), res->ai_addr, res->ai_addrlen);
-        log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));
-        if ((ret == -1) && (errno == EINPROGRESS))
+        bool needContinue = true;
+        do
         {
-            listenWritable(true);
-            break;
-        }
-        if (ret == 0)
-            break; /* success */
+            socketUtils::setTcpNonBlock(sockfd);
+            socketUtils::SetSockRecvBufSize(sockfd, 32 * 1024);
+            socketUtils::SetSockSendBufSize(sockfd, 32 * 1024);
+            ret = ::connect(sockfd, res->ai_addr, res->ai_addrlen);
+            // log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));
+            if (ret == -1)
+            {
+                if (errno == EINPROGRESS)
+                {
+                    asyncConnect(sockfd);
+                    break;
+                }
+                else
+                {
+                    log_warn("tcpclient.connect, error for %s, %s, %d, %s", host || "", serv, ret, strerror(errno));
+                }
+            }
+            if (ret == 0)
+            {
+                needContinue = false;
+                break;
+            }
+        } while (0);
 
-        ::Close(sockfd()); /* ignore this one */
+        if (needContinue)
+        {
+            ::Close(sockfd);
+        }
     } while ((res = res->ai_next) != NULL);
 
-    if (res == NULL) /* errno set from final connect() */
-        err_sys("tcp_connect error for %s, %s", host, serv);
+    if (res == NULL)
+    {
+        log_error("tcp_connect error for %s, %s", host, serv);
+    }
 
-    memcpy(&m_sockAddr, res->ai_addr, res->ai_addrlen);
-    m_socklen = res->ai_addrlen; /* return size of protocol address */
+    memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
+    m_sockAddr.m_socklen = res->ai_addrlen;
 
     freeaddrinfo(ressave);
     if (ret == 0)
     {
-        _onTcpConnected();
+        _onTcpConnected(sockfd);
     }
 }
 
@@ -118,12 +140,12 @@ EventLoop &TCPClient::getLoop()
     return m_parent->getNet()->getLoop();
 }
 
-void TCPClient::_onTcpConnected()
+void TCPClient::_onTcpConnected(int sockfd)
 {
     m_conn = std::make_shared<TcpConnection>();
     m_conn->setEventLoop(&getLoop());
     m_conn->setCtrl(shared_from_this());
-    m_conn->setSockfd(sockfd());
+    m_conn->m_sockFdCtrl.setSockfd(sockfd);
     m_conn->setCallBack_Connected(onTcpConnected);
     m_conn->setCallBack_Disconnected(onTcpDisconnected);
     m_conn->setCallBack_Message(onTcpRecvMessage);
@@ -135,23 +157,29 @@ void TCPClient::_onTcpDisconnected()
     m_conn = nullptr;
 }
 
-void TCPClient::listenWritable(bool enabled)
+void TCPClient::asyncConnect(int sockfd)
 {
-    if (enabled == m_listenWritable)
+    if (isAsyncConnecting())
     {
-        log_debug("listenWritable repeated! %d", (int)enabled);
-        return;
+        endAsyncConnect();
     }
-    m_listenWritable = enabled;
-    if (m_listenWritable)
+    m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
+    m_asyncSockfd = sockfd;
+}
+
+bool TCPClient::isAsyncConnecting()
+{
+    return m_asyncConnect;
+}
+
+void TCPClient::endAsyncConnect()
+{
+    if (m_asyncConnect)
     {
-        getLoop().createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE,
-                                  TCPClient::OnTcpWritable);
+        m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
     }
-    else
-    {
-        getLoop().deleteFileEvent(fd(), LOOP_EVT_WRITABLE);
-    }
+    m_asyncConnect = false;
+    m_asyncSockfd = 0;
 }
 
 }; // namespace wynet

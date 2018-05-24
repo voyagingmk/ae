@@ -10,51 +10,37 @@
 namespace wynet
 {
 
-class FDRef : public inheritable_enable_shared_from_this<FDRef>
+// 为了自动close
+class SocketFdCtrl : public Noncopyable
 {
 public:
-  FDRef(int fd)
+  SocketFdCtrl(SockFd sockfd) : m_sockfd(sockfd)
   {
-    setfd(fd);
   }
-  virtual ~FDRef() {}
 
-  inline int fd() const { return m_fd; }
+  virtual ~SocketFdCtrl()
+  {
+    if (m_sockfd)
+    {
+      ::close(m_sockfd);
+    }
+    m_sockfd = 0;
+  }
 
-protected:
-  inline void setfd(int fd) { m_fd = fd; }
+  void setSockfd(SockFd sockfd) { m_sockfd = sockfd; }
 
-private:
-  int m_fd;
+  inline SockFd sockfd() const { return m_sockfd; }
+
+public:
+  SockFd m_sockfd;
 };
 
-class SocketBase : public FDRef
+class SockAddr
 {
-protected:
-  SocketBase(int fd = 0) : FDRef(fd),
-                           m_socklen(0)
-  {
-  }
-  virtual ~SocketBase()
-  {
-    ::close(sockfd());
-    setfd(0);
-  }
-
 public:
-  inline void setSockfd(int fd) { setfd(fd); }
-  inline int sockfd() const { return fd(); }
-  inline bool valid() const { return fd() > 0; }
-  inline bool isIPv4() const { return m_sockAddr.ss_family == PF_INET; }
-  inline bool isIPv6() const { return m_sockAddr.ss_family == PF_INET6; }
-
-public:
-  sockaddr_storage m_sockAddr;
+  sockaddr_storage m_addr;
   socklen_t m_socklen;
 };
-
-typedef std::shared_ptr<SocketBase> PtrCtrl;
-typedef std::weak_ptr<SocketBase> PtrCtrlWeak;
 
 }; // namespace wynet
 

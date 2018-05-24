@@ -7,21 +7,27 @@ namespace wynet
 __thread EventLoop *t_threadLoop = nullptr;
 std::atomic<WyTimerId> TimerRef::g_numCreated;
 
-int OnlyForWakeup(EventLoop *, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *data)
+int OnlyForWakeup(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
 {
     const int *ms = (const int *)(data);
     return *ms;
 }
 
-void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask)
+void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
     EventLoop *loop = (EventLoop *)(clientData);
-    EventLoop::FDData &p = loop->m_fdData[fd];
-    if (p.onFileEvent)
+    WeakPtrEvtListener wkListener = loop->m_fd2listener[sockfd];
+
+    PtrEvtListener listener = wkListener.lock();
+    if (!listener)
+    {
+        return;
+    }
+    if (listener->m_onFileEvent)
     {
         if ((mask & LOOP_EVT_READABLE) || (mask & LOOP_EVT_WRITABLE))
         {
-            p.onFileEvent(loop, p.fdRef, mask);
+            listener->m_onFileEvent(loop, listener, mask);
         }
     }
 }
@@ -46,7 +52,7 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *cli
             loop->m_timerData.erase(tr);
             break;
         }
-        int ret = td.onTimerEvent(loop, tr, td.fdRef, td.data);
+        int ret = td.onTimerEvent(loop, tr, td.m_listener.lock(), td.data);
         if (ret == AE_NOMORE)
         {
             break;
@@ -55,6 +61,54 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *cli
     } while (0);
     loop->m_aeTimerId2ref.erase(aeTimerId);
     return AE_NOMORE;
+}
+
+EventListener::~EventListener()
+{
+    if (m_loop && m_sockFd)
+    {
+        m_loop->deleteAllFileEvent(m_sockFd);
+    }
+    m_loop = nullptr;
+    m_sockFd = 0;
+}
+
+void EventListener::createFileEvent(int mask, OnFileEvent onFileEvent)
+{
+    if (m_loop && m_sockFd)
+    {
+        m_onFileEvent = onFileEvent;
+        m_loop->createFileEvent(shared_from_this(), mask);
+    }
+    else
+    {
+        log_error("EventListener::createFileEvent");
+    }
+}
+
+void EventListener::deleteFileEvent(int mask)
+{
+    if (m_loop && m_sockFd)
+    {
+        m_loop->deleteFileEvent(shared_from_this(), mask);
+    }
+    else
+    {
+        log_error("EventListener::deleteFileEvent");
+    }
+}
+
+TimerRef EventListener::createTimer(int ms, OnTimerEvent onTimerEvent, void *data)
+{
+    if (m_loop)
+    {
+        return m_loop->createTimer(shared_from_this(), ms, onTimerEvent, data);
+    }
+    else
+    {
+        log_error("EventListener::deleteFileEvent");
+        return TimerRef(0);
+    }
 }
 
 EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(CurrentThread::tid()),
@@ -82,7 +136,7 @@ void EventLoop::loop()
 {
     assertInLoopThread();
     m_aeloop->stop = 0;
-    AeTimerId aeTimerId = createTimerInLoop(m_wakeupInterval, OnlyForWakeup, std::weak_ptr<FDRef>(), (void *)&m_wakeupInterval);
+    AeTimerId aeTimerId = createTimerInLoop(nullptr, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
     while (!m_aeloop->stop)
     {
         if (m_aeloop->beforesleep != NULL)
@@ -102,46 +156,54 @@ void EventLoop::stop()
     }
 }
 
-void EventLoop::createFileEvent(std::shared_ptr<FDRef> fdRef, int mask, OnFileEvent onFileEvent)
+void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
 {
+    assertInLoopThread();
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
-
     int setsize = aeGetSetSize(m_aeloop);
-    int fd = fdRef->fd();
-    while (fd >= setsize)
+    SockFd sockfd = listener->getSockFd();
+    while (sockfd >= setsize)
     {
         assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize << 1));
     }
-    int ret = aeCreateFileEvent(m_aeloop, fd, mask, aeOnFileEvent, (void *)this);
+    int ret = aeCreateFileEvent(m_aeloop, sockfd, mask, aeOnFileEvent, (void *)this);
     assert(AE_ERR != ret);
-    m_fdData[fd] = FDData(onFileEvent, fdRef);
+    m_fd2listener[sockfd] = listener;
 }
 
-void EventLoop ::deleteFileEvent(std::shared_ptr<FDRef> fdRef, int mask)
+void EventLoop ::deleteFileEvent(PtrEvtListener listener, int mask)
 {
-    int fd = fdRef->fd();
-    deleteFileEvent(fd, mask);
+    SockFd sockfd = listener->getSockFd();
+    deleteFileEvent(sockfd, mask);
 }
 
-void EventLoop ::deleteFileEvent(int fd, int mask)
+void EventLoop ::deleteFileEvent(SockFd sockfd, int mask)
 {
+    assertInLoopThread();
+    assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
     int setsize = aeGetSetSize(m_aeloop);
-    if (fd >= setsize)
+    if (sockfd >= setsize)
     {
-        log_warn("deleteFileEvent fd >= setsize  %d %d\n", fd, setsize);
+        log_warn("deleteFileEvent sockfd >= setsize  %d %d\n", sockfd, setsize);
     }
-    aeDeleteFileEvent(m_aeloop, fd, mask);
-    if (!aeGetFileEvents(m_aeloop, fd) && m_fdData.find(fd) != m_fdData.end())
+    aeDeleteFileEvent(m_aeloop, sockfd, mask);
+    if (!aeGetFileEvents(m_aeloop, sockfd) && m_fd2listener.find(sockfd) != m_fd2listener.end())
     {
-        m_fdData.erase(fd);
+        m_fd2listener.erase(sockfd);
     }
 }
 
-TimerRef EventLoop ::createTimer(int ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data)
+void EventLoop ::deleteAllFileEvent(SockFd sockfd)
 {
+    deleteFileEvent(sockfd, AE_READABLE | AE_WRITABLE);
+}
+
+TimerRef EventLoop ::createTimer(PtrEvtListener listener, int ms, OnTimerEvent onTimerEvent, void *data)
+{
+    // 分配新的timer标识
     TimerRef tr = TimerRef::newTimerRef();
     runInLoop([&]() {
-        createTimerInLoop(tr, ms, onTimerEvent, fdRef, data);
+        createTimerInLoop(listener, tr, ms, onTimerEvent, data);
     });
     return tr;
 }
@@ -157,7 +219,8 @@ bool EventLoop ::deleteTimerInLoop(AeTimerId aeTimerId)
 {
     assertInLoopThread();
     auto it = m_aeTimerId2ref.find(aeTimerId);
-    if (it == m_aeTimerId2ref.end()) {
+    if (it == m_aeTimerId2ref.end())
+    {
         return false;
     }
     TimerRef tr = it->second;
@@ -177,19 +240,19 @@ bool EventLoop ::deleteTimerInLoop(TimerRef tr)
     return false;
 }
 
-AeTimerId EventLoop ::createTimerInLoop(int delay, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data)
+AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, int ms, OnTimerEvent onTimerEvent, void *data)
 {
     TimerRef tr = TimerRef::newTimerRef();
-    return createTimerInLoop(tr, delay, onTimerEvent, fdRef, data);
+    return createTimerInLoop(listener, tr, ms, onTimerEvent, data);
 }
 
-AeTimerId EventLoop ::createTimerInLoop(TimerRef tr, int ms, OnTimerEvent onTimerEvent, std::weak_ptr<FDRef> fdRef, void *data)
+AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, TimerRef tr, int ms, OnTimerEvent onTimerEvent, void *data)
 {
     assertInLoopThread();
     AeTimerId aeTimerId = aeCreateTimeEvent(m_aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
     assert(AE_ERR != aeTimerId);
     assert(m_timerData.find(tr) == m_timerData.end());
-    m_timerData[tr] = {onTimerEvent, fdRef, data, aeTimerId};
+    m_timerData[tr] = {onTimerEvent, listener, data, aeTimerId};
     m_aeTimerId2ref.insert({aeTimerId, tr});
     return aeTimerId;
 }

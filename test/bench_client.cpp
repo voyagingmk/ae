@@ -14,7 +14,7 @@ void Stop(int signo)
     g_net->stopLoop();
 }
 
-int OnHeartbeat(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *data)
+int OnHeartbeat(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
     std::shared_ptr<FDRef> sfdRef = fdRef.lock();
     if (!sfdRef)
@@ -51,14 +51,12 @@ void OnTcpConnected(PtrConn conn)
     conn->send((const uint8_t *)hello, sizeof(hello));
     // g_net->stopLoop();
     //client->getTcpClient();
-    //log_info("OnTcpConnected: %d", client->getTcpClient()->sockfd());
-    // conn->getLoop()->createTimer(1000, OnHeartbeat, conn, nullptr);
+    // conn->m_evtListener->createTimer(1000, OnHeartbeat);
 }
 
 void OnTcpDisconnected(PtrConn conn)
 {
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
-    //log_info("OnTcpDisconnected: %d", client->getTcpClient()->sockfd());
     g_net->stopLoop();
 }
 

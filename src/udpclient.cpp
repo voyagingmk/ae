@@ -35,22 +35,22 @@ UDPClient::UDPClient(const char *host, int port)
     if (res == NULL) /* errno set from final socket() */
         err_sys("udp_client error %d for %s, %s", errno, host, serv);
 
-    memcpy(&m_sockAddr, res->ai_addr, res->ai_addrlen);
-    m_socklen = res->ai_addrlen;
-    freeaddrinfo(ressave);
-    setSockfd(fd);
+    memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
+    m_sockAddr.m_socklen = res->ai_addrlen;
 
-    Connect(sockfd(), (struct sockaddr *)&m_sockAddr, m_socklen);
+    freeaddrinfo(ressave);
+    // setSockfd(fd);
+
+    // Connect(sockfd(), &m_sockAddr.m_addr, m_socklen);
 }
 
 UDPClient::~UDPClient()
 {
-    close(sockfd());
+    // close(sockfd());
 }
 
 void UDPClient::Send(const char *data, size_t len)
 {
-    ::Send(sockfd(), data, len, 0);
-    // Sendto(sockfd(), data, len, 0, (struct sockaddr *)&m_sockAddr, m_socklen);
+    //  ::Send(sockfd(), data, len, 0);
 }
 }; // namespace wynet

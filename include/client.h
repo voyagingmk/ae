@@ -17,7 +17,7 @@ class Test;
 class Client;
 typedef std::shared_ptr<Client> PtrClient;
 
-class Client : public FDRef
+class Client : public Noncopyable, public std::enable_shared_from_this<Client>
 {
     WyNet *m_net;
     std::shared_ptr<TCPClient> m_tcpClient;
@@ -25,10 +25,6 @@ class Client : public FDRef
 
   public:
     friend class TCPClient;
-    std::shared_ptr<Client> shared_from_this()
-    {
-        return FDRef::downcasted_shared_from_this<Client>();
-    }
 
     Client(WyNet *net);
 

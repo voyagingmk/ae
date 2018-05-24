@@ -7,8 +7,7 @@
 namespace wynet
 {
 
-Client::Client(WyNet *net) : FDRef(0),
-                             m_net(net)
+Client::Client(WyNet *net) : m_net(net)
 {
 }
 
@@ -19,6 +18,7 @@ Client::~Client()
 std::shared_ptr<TCPClient> Client::initTcpClient(const char *host, int tcpPort)
 {
     m_tcpClient = std::make_shared<TCPClient>(shared_from_this());
+    m_tcpClient->init();
     m_tcpClient->connect(host, tcpPort);
     return m_tcpClient;
 }

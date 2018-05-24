@@ -9,20 +9,21 @@
 
 using namespace wynet;
 
-int testOnTimerEvent(EventLoop *loop, TimerRef tr, std::weak_ptr<FDRef> fdRef, void *data)
+int testOnTimerEvent(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
     log_debug("[conn] testOnTimerEvent %lld", tr.Id());
     return LOOP_EVT_NOMORE;
 }
 
-void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
+void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
-    std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-    if (!sfdRef)
+    PtrConnEvtListener l = std::static_pointer_cast<TcpConnectionEventListener>(listener);
+    PtrConn conn = l->getTcpConnection();
+    if (!conn)
     {
         return;
     }
-    std::shared_ptr<TcpConnection> conn = std::dynamic_pointer_cast<TcpConnection>(sfdRef);
+
     if (mask & LOOP_EVT_READABLE)
     {
         log_debug("[conn] onReadable connfd=%d", conn->connectFd());
@@ -62,7 +63,7 @@ void TcpConnection ::closeInLoop(bool force)
     }
     log_debug("[conn] close in thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
-    getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    m_evtListener->deleteFileEvent(LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
     if (force)
     {
         struct linger l;
@@ -80,7 +81,8 @@ void TcpConnection::onEstablished()
     assert(m_state == State::Connecting);
     log_debug("[conn] establish in thread: %s", CurrentThread::name());
     m_state = State::Connected;
-    getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_READABLE, TcpConnection::OnConnectionEvent);
+    m_evtListener->setTcpConnection(shared_from_this());
+    m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpConnection::OnConnectionEvent);
     if (onTcpConnected)
         onTcpConnected(shared_from_this());
 }
@@ -140,7 +142,7 @@ void TcpConnection::onWritable()
     getLoop()->assertInLoopThread();
     int remain = m_pendingSendBuf.readableSize();
     log_debug("[conn] onWritable, remain:%d", remain);
-    int nwrote = ::send(fd(), m_pendingSendBuf.readBegin(), m_pendingSendBuf.readableSize(), 0);
+    int nwrote = ::send(connectFd(), m_pendingSendBuf.readBegin(), m_pendingSendBuf.readableSize(), 0);
     log_debug("[conn] onWritable, nwrote:%d", nwrote);
     if (nwrote > 0)
     {
@@ -148,7 +150,7 @@ void TcpConnection::onWritable()
         if (m_pendingSendBuf.readableSize() == 0)
         {
             log_debug("[conn] onWritable, no remain");
-            getLoop()->deleteFileEvent(shared_from_this(), LOOP_EVT_WRITABLE);
+            m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
             if (onTcpSendComplete)
             {
                 getLoop()->queueInLoop(std::bind(onTcpSendComplete, shared_from_this()));
@@ -212,7 +214,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
     else
     {
         // write directly
-        int nwrote = ::send(fd(), data, len, 0);
+        int nwrote = ::send(connectFd(), data, len, 0);
         if (nwrote > 0)
         {
             int remain = len - nwrote;
@@ -220,7 +222,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             if (remain > 0)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
-                getLoop()->createFileEvent(shared_from_this(), LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
+                m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
             {
@@ -252,16 +254,4 @@ int TcpConnection::getPendingSize()
 {
     int remain = m_pendingSendBuf.readableSize();
     return remain;
-}
-
-PtrTCPServer TcpConnection::getCtrlAsServer()
-{
-    PtrTCPServer tcpServer = std::dynamic_pointer_cast<TCPServer>(getCtrl());
-    return tcpServer;
-}
-
-PtrTCPClient TcpConnection::getCtrlAsClient()
-{
-    PtrTCPClient tcpClient = std::dynamic_pointer_cast<TCPClient>(getCtrl());
-    return tcpClient;
 }

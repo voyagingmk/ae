@@ -6,14 +6,7 @@
 namespace wynet
 {
 
-void OnUdpMessage(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
-{
-    // Server *server = (Server *)(clientData);
-    // server->m_udpServer.Recvfrom();
-}
-
-Server::Server(WyNet *net) : FDRef(0),
-                             m_net(net),
+Server::Server(WyNet *net) : m_net(net),
                              m_udpPort(0),
                              m_tcpServer(nullptr),
                              m_udpServer(nullptr)
@@ -33,8 +26,9 @@ std::shared_ptr<TCPServer> Server::initTcpServer(const char *host, int tcpPort)
     if (!m_tcpServer)
     {
         m_tcpServer = std::make_shared<TCPServer>(shared_from_this());
+        m_tcpServer->init();
         m_tcpServer->startListen(host, tcpPort);
-        log_info("[Server] TCPServer created, tcp sockfd: %d", m_tcpServer->sockfd());
+        log_info("[Server] TCPServer created, tcp sockfd: %d", m_tcpServer->m_sockFdCtrl.sockfd());
     }
     return m_tcpServer;
 }
@@ -43,10 +37,6 @@ std::shared_ptr<UDPServer> Server::initUdpServer(int udpPort)
 {
     m_udpPort = udpPort;
     m_udpServer = std::make_shared<UDPServer>(m_udpPort);
-    log_info("[Server] UDPServer created, udp sockfd: %d", m_udpServer->sockfd());
-
-    m_net->getLoop().createFileEvent(m_udpServer, LOOP_EVT_READABLE,
-                                     OnUdpMessage);
     return m_udpServer;
 }
 }; // namespace wynet

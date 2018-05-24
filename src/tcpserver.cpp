@@ -14,25 +14,22 @@ namespace wynet
 
 const size_t LISTENQUEUEMAX = 128;
 
-void TCPServer::OnNewTcpConnection(EventLoop *eventLoop, std::weak_ptr<FDRef> fdRef, int mask)
+void TCPServer::OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
-	std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-	if (!sfdRef)
-	{
-		return;
-	}
-	std::shared_ptr<TCPServer> tcpServer = std::dynamic_pointer_cast<TCPServer>(sfdRef);
-
+	PtrTcpServerEvtListener l = std::static_pointer_cast<TCPServerEventListener>(listener);
+	PtrTCPServer tcpServer = l->getTCPServer();
 	tcpServer->acceptConnection();
 }
 
 TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
 										 m_tcpPort(0),
 										 m_connMgr(nullptr),
+										 m_sockFdCtrl(0),
 										 onTcpConnected(nullptr),
 										 onTcpDisconnected(nullptr),
 										 onTcpRecvMessage(nullptr)
 {
+	m_evtListener = TCPServerEventListener::create();
 	// optional
 	initConnMgr();
 }
@@ -54,6 +51,11 @@ bool TCPServer::addConnection(PtrConn conn)
 bool TCPServer::removeConnection(PtrConn conn)
 {
 	return getConnMgr()->removeConnection(conn);
+}
+
+void TCPServer::init()
+{
+	m_evtListener->setTCPServer(shared_from_this());
 }
 
 void TCPServer::startListen(const char *host, int port)
@@ -108,18 +110,18 @@ void TCPServer::startListen(const char *host, int port)
 
 	Listen(listenfd, LISTENQUEUEMAX);
 
-	setSockfd(listenfd);
-	memcpy(&m_sockAddr, res->ai_addr, res->ai_addrlen);
-	m_socklen = res->ai_addrlen; /* return size of protocol address */
+	m_sockFdCtrl.setSockfd(listenfd);
+
+	memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
+	m_sockAddr.m_socklen = res->ai_addrlen;
+
 	freeaddrinfo(ressave);
-	socketUtils::log_debug_addr(&m_sockAddr, "<TcpServer.startListen>");
-	getLoop().createFileEvent(shared_from_this(), LOOP_EVT_READABLE,
-							  TCPServer::OnNewTcpConnection);
+	socketUtils::log_debug_addr(&m_sockAddr.m_addr, "<TcpServer.startListen>");
+	m_evtListener->createFileEvent(LOOP_EVT_READABLE, TCPServer::OnNewTcpConnection);
 }
 
 TCPServer::~TCPServer()
 {
-	getLoop().deleteFileEvent(sockfd(), LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
 }
 
 WyNet *TCPServer::getNet() const
@@ -134,7 +136,7 @@ EventLoop &TCPServer::getLoop()
 
 void TCPServer::acceptConnection()
 {
-	int listenfd = sockfd();
+	int listenfd = m_sockFdCtrl.sockfd();
 	struct sockaddr_storage cliAddr;
 	socklen_t len = sizeof(cliAddr);
 	int connfdTcp = accept(listenfd, (SA *)&cliAddr, &len);
@@ -162,7 +164,7 @@ void TCPServer::acceptConnection()
 	conn = std::make_shared<TcpConnection>();
 	conn->setEventLoop(ioLoop);
 	conn->setCtrl(shared_from_this());
-	conn->setSockfd(connfdTcp);
+	conn->m_sockFdCtrl.setSockfd(connfdTcp);
 	conn->setCallBack_Connected(onTcpConnected);
 	conn->setCallBack_Disconnected(onTcpDisconnected);
 	conn->setCallBack_Message(onTcpRecvMessage);
