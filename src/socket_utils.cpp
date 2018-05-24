@@ -104,7 +104,8 @@ void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, c
     {
         flag |= NI_NUMERICSERV;
     }
-    int ret = getnameinfo((struct sockaddr *)addr, addr->ss_len,
+    socklen_t addrlen = sizeof(sockaddr_storage);
+    int ret = getnameinfo((struct sockaddr *)addr, addrlen,
                           ipBuf, ipBufSize,
                           portBuf, portBufSize,
                           NI_NUMERICHOST);
