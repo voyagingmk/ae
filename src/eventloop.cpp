@@ -34,9 +34,13 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, 
 int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
-    TimerRef tr = loop->m_aeTimerId2ref[aeTimerId];
     do
     {
+        if (loop->m_aeTimerId2ref.find(aeTimerId) == loop->m_aeTimerId2ref.end())
+        {
+            break;
+        }
+        TimerRef tr = loop->m_aeTimerId2ref[aeTimerId];
         if (!tr.validate())
         {
             break;
@@ -48,17 +52,21 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *cli
         EventLoop::TimerData &td = loop->m_timerData[tr];
         if (!td.m_onTimerEvent)
         {
-            loop->m_timerData.erase(tr);
             break;
         }
-        int ret = td.m_onTimerEvent(loop, tr, td.m_listener.lock(), td.m_data);
-        if (ret == AE_NOMORE)
+        PtrEvtListener listener = td.m_listener.lock();
+        if (!listener)
         {
             break;
         }
-        return ret;
+        int milliseconds = td.m_onTimerEvent(loop, tr, listener, td.m_data);
+        if (milliseconds == AE_NOMORE)
+        {
+            break;
+        }
+        return milliseconds;
     } while (0);
-    loop->m_aeTimerId2ref.erase(aeTimerId);
+    loop->deleteTimerInLoop(aeTimerId);
     return AE_NOMORE;
 }
 
