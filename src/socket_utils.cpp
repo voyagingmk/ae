@@ -6,6 +6,25 @@ namespace wynet
 namespace socketUtils
 {
 
+void checkReturnValue(int ret)
+{
+    if (ret == 0)
+    {
+        return;
+    }
+    if (ret == -1)
+    {
+        log_error("getsockopt error %d %s", errno, strerror(errno));
+    }
+}
+
+void sock_getsockopt(int sockfd, int level, int option_name,
+                     void *option_value, socklen_t *option_len)
+{
+    int ret = getsockopt(sockfd, level, option_name, option_value, option_len);
+    checkReturnValue(ret);
+}
+
 int sock_fcntl(int sockfd, int cmd, int arg)
 {
     int n;
@@ -23,10 +42,7 @@ sockaddr_storage getSrcAddr(int sockfd)
     {
         log_fatal("socket_utils.getSrcAddr");
     }
-    if (addrlen < static_cast<socklen_t>(sizeof(addr)))
-    {
-        log_warn("socket_utils.getSrcAddr truncated, %zu -> %zu", sizeof(addr), static_cast<size_t>(addrlen));
-    }
+    assert(addrlen <= static_cast<socklen_t>(sizeof(addr)));
     return addr;
 }
 
@@ -38,10 +54,7 @@ sockaddr_storage getDestAddr(int sockfd)
     {
         log_fatal("socket_utils.getDestAddr");
     }
-    if (addrlen < static_cast<socklen_t>(sizeof(addr)))
-    {
-        log_warn("socket_utils.getDestAddr truncated, %zu -> %zu", sizeof(addr), static_cast<size_t>(addrlen));
-    }
+    assert(addrlen <= static_cast<socklen_t>(sizeof(addr)));
     return addr;
 }
 
@@ -140,7 +153,7 @@ int SetSockSendBufSize(int sockfd, int newSndBuf, bool force)
     {
         int sndbuf = 0;
         socklen_t len = sizeof(sndbuf);
-        Getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
+        sock_getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
         if (sndbuf >= newSndBuf)
         {
             return -1;
@@ -156,7 +169,7 @@ int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force)
     {
         int rcvbuf = 0;
         socklen_t len = sizeof(rcvbuf);
-        Getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
+        sock_getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
         if (rcvbuf >= newRcvBuf)
         {
             return -1;
@@ -164,6 +177,55 @@ int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force)
     }
     return setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (void *)&newRcvBuf, sizeof(int));
     log_debug("socket_utils.SetSockRecvBufSize %d, %d", sockfd, newRcvBuf);
+}
+
+void LogSocketState(int sockfd)
+{
+    log_debug("---- LogSocketState %d ----", sockfd);
+    socklen_t len = 0;
+    int sndbuf = 0;
+    int rcvbuf = 0;
+    int mss = 0;
+    int isKeepAlive = 0;
+    int isReuseAddr = 0;
+    len = sizeof(rcvbuf);
+    sock_getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
+    log_debug("SO_RCVBUF = %d", rcvbuf);
+    len = sizeof(sndbuf);
+    sock_getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
+    log_debug("SO_SNDBUF = %d", sndbuf);
+    len = sizeof(mss);
+    sock_getsockopt(sockfd, IPPROTO_TCP, TCP_MAXSEG, &mss, &len);
+    log_debug("TCP_MAXSEG = %d", mss);
+    len = sizeof(isKeepAlive);
+    sock_getsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &isKeepAlive, &len);
+    log_debug("SO_KEEPALIVE = %d", isKeepAlive);
+    len = sizeof(isReuseAddr);
+    sock_getsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &isReuseAddr, &len);
+    log_debug("SO_REUSEADDR = %d", isReuseAddr);
+
+    int keepInterval = 0;
+    int keepCount = 0;
+#ifdef TCP_KEEPALIVE
+    int keepAlive = 0;
+    len = sizeof(keepAlive);
+    sock_getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPALIVE, &keepAlive, &len);
+    log_debug("TCP_KEEPALIVE = %d", keepAlive);
+#endif
+#ifdef TCP_KEEPIDLE
+    int keepIdle = 0;
+    len = sizeof(keepIdle);
+    sock_getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, &len); // tcp_keepalive_time
+    log_debug("TCP_KEEPIDLE = %d", keepIdle);
+#endif
+    len = sizeof(keepInterval);
+    sock_getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, &len); // tcp_keepalive_intvl
+    log_debug("TCP_KEEPINTVL = %d", keepInterval);
+    len = sizeof(keepCount);
+    sock_getsockopt(sockfd, IPPROTO_TCP, TCP_KEEPCNT, &keepCount, &len); // tcp_keepalive_probes
+    log_debug("TCP_KEEPCNT = %d", keepCount);
+
+    log_debug("---- LogSocketState End %d ----", sockfd);
 }
 
 }; // namespace socketUtils

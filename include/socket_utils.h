@@ -33,6 +33,16 @@ int SetSockSendBufSize(int sockfd, int newSndBuf, bool force = false);
 
 int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force = false);
 
+#ifdef DEBUG_MODE
+
+void LogSocketState(int fd);
+
+#else
+
+#define LogSocketState(fd)
+
+#endif
+
 }; // namespace socketUtils
 }; // namespace wynet
 
