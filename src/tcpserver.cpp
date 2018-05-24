@@ -104,7 +104,7 @@ void TCPServer::startListen(const char *host, int port)
 	} while ((res = res->ai_next) != NULL);
 
 	if (res == NULL) /* errno from final socket() or bind() */
-		err_sys("tcp_listen error for %s, %s", host, serv);
+		log_error("tcp_listen error for %s, %s", host, serv);
 
 	socketUtils::SetSockRecvBufSize(listenfd, 32 * 1024);
 	socketUtils::SetSockSendBufSize(listenfd, 32 * 1024);

@@ -50,7 +50,7 @@ void UDPServer::init(int port)
         ;
 
     if (res == NULL) 
-        err_sys("udp_server error for %s, %s", host, serv);
+        log_error("udp_server error for %s, %s", host, serv);
 
     memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
     m_sockAddr.m_socklen = res->ai_addrlen;
@@ -76,7 +76,7 @@ void UDPServer::Recvfrom()
         return;
     if (ret < 0)
     {
-        err_msg("Recvfrom %d", errno);
+        log_error("Recvfrom %d", errno);
         return;
     }
 */

@@ -114,7 +114,7 @@ size_t SockBuffer::readIn(int sockfd)
                 }
                 else
                 {
-                    err_msg("[SockBuffer] sockfd %d readIn err: %d %s",
+                    log_error("[SockBuffer] sockfd %d readIn err: %d %s",
                             sockfd, errno, strerror(errno));
                     return -1;
                 }

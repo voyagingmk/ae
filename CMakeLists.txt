@@ -69,12 +69,8 @@ FILE(GLOB MY_SOURCERS
     src/logger/log_file.cpp
     src/logger/log.cpp
     external/ae.c
-    external/wrapsock.c
     external/zmalloc.c
-    external/sock_ntop.c
-    external/writen.c
-    external/ikcp.c
-    external/error.c)
+    external/ikcp.c)
 
 FILE(GLOB MY_HEADERS
     include/protocol_define.h
@@ -110,11 +106,9 @@ FILE(GLOB MY_HEADERS
     include/logger/append_file.h
     include/logger/log_file.h
     include/logger/log.h
-    external/error.h
     external/ikcp.h
     external/ae.h
     external/zmalloc.h
-    external/unp.h
   )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)

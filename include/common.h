@@ -93,7 +93,6 @@
 
 extern "C"
 {
-#include "error.h"
 #include "ae.h"
 #include "ikcp.h"
 }

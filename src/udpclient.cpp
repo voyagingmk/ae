@@ -34,7 +34,7 @@ UDPClient::UDPClient(const char *host, int port)
     } while ((res = res->ai_next) != NULL);
 
     if (res == NULL) /* errno set from final socket() */
-        err_sys("udp_client error %d for %s, %s", errno, host, serv);
+        log_error("udp_client error %d for %s, %s", errno, host, serv);
 
     memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
     m_sockAddr.m_socklen = res->ai_addrlen;
