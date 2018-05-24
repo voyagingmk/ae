@@ -30,6 +30,7 @@ TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
 										 onTcpRecvMessage(nullptr)
 {
 	m_evtListener = TCPServerEventListener::create();
+	m_evtListener->setEventLoop(&getLoop());
 	// optional
 	initConnMgr();
 }
@@ -111,6 +112,7 @@ void TCPServer::startListen(const char *host, int port)
 	Listen(listenfd, LISTENQUEUEMAX);
 
 	m_sockFdCtrl.setSockfd(listenfd);
+	m_evtListener->setSockfd(listenfd);
 
 	memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
 	m_sockAddr.m_socklen = res->ai_addrlen;

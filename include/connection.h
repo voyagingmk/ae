@@ -85,7 +85,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
                                        onTcpSendComplete(nullptr)
     {
         m_evtListener = TcpConnectionEventListener::create();
-        m_evtListener->setSockFd(m_sockFdCtrl.sockfd());
+        m_evtListener->setSockfd(m_sockFdCtrl.sockfd());
     }
 
     virtual ~TcpConnection()

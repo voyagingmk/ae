@@ -39,7 +39,7 @@ class EventListener : public std::enable_shared_from_this<EventListener>
         return std::make_shared<EventListener>();
     }
 
-    void setSockFd(SockFd sockFd)
+    void setSockfd(SockFd sockFd)
     {
         m_sockFd = sockFd;
     }

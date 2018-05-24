@@ -176,7 +176,7 @@ void TCPClient::asyncConnect(int sockfd)
     m_evtListener = TCPClientEventListener::create();
     m_evtListener->setEventLoop(&getLoop());
     m_evtListener->setTCPClient(shared_from_this());
-    m_evtListener->setSockFd(sockfd);
+    m_evtListener->setSockfd(sockfd);
     m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
     m_asyncSockfd = sockfd;
 }
