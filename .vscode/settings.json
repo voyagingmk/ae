@@ -64,7 +64,8 @@
         "un.h": "c",
         "cstring": "cpp",
         "random": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "slist": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

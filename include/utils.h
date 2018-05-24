@@ -14,10 +14,6 @@ void LogSocketState(int fd);
 
 #endif
 
-int SetSockSendBufSize(int fd, int newSndbuf, bool force = false);
-
-int SetSockRecvBufSize(int fd, int newRcvbuf, bool force = false);
-
 std::string hostname();
 
 #endif

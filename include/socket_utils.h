@@ -27,6 +27,12 @@ void log_debug_addr(struct sockaddr_storage *addr, const char *tag = "");
 
 int setTcpNoDelay(int sockfd, bool enabled);
 
+int setTcpNonBlock(int sockfd);
+
+int SetSockSendBufSize(int sockfd, int newSndBuf, bool force = false);
+
+int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force = false);
+
 }; // namespace socketUtils
 }; // namespace wynet
 

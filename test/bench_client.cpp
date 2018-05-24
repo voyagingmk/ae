@@ -44,7 +44,7 @@ void OnTcpSendComplete(PtrConn conn)
 void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected]");
-    // SetSockSendBufSize(conn->fd(), 3, true);
+    // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
     conn->setCallBack_SendComplete(OnTcpSendComplete);
     // int ret_in = read(input_fd, &buffer, BUF_SIZE);
     const char *hello = "hello";

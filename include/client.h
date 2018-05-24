@@ -20,7 +20,6 @@ typedef std::shared_ptr<Client> PtrClient;
 class Client : public FDRef
 {
     WyNet *m_net;
-    PtrConn m_conn;
     std::shared_ptr<TCPClient> m_tcpClient;
     std::shared_ptr<UDPClient> m_udpClient;
 
@@ -52,6 +51,6 @@ class Client : public FDRef
         return m_net;
     }
 };
-};
+}; // namespace wynet
 
 #endif

@@ -6,6 +6,15 @@ namespace wynet
 namespace socketUtils
 {
 
+int sock_fcntl(int sockfd, int cmd, int arg)
+{
+    int n;
+
+    if ((n = fcntl(sockfd, cmd, arg)) == -1)
+        log_fatal("fcntl error");
+    return n;
+}
+
 sockaddr_storage getSrcAddr(int sockfd)
 {
     struct sockaddr_storage addr = {0};
@@ -116,6 +125,45 @@ int setTcpNoDelay(int sockfd, bool enabled)
 {
     int val = enabled ? 1 : 0;
     return ::setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &val, static_cast<socklen_t>(sizeof val));
+}
+
+int setTcpNonBlock(int sockfd)
+{
+
+    int flags = sock_fcntl(sockfd, F_GETFL, 0);
+    return sock_fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+}
+
+int SetSockSendBufSize(int sockfd, int newSndBuf, bool force)
+{
+    if (!force)
+    {
+        int sndbuf = 0;
+        socklen_t len = sizeof(sndbuf);
+        Getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
+        if (sndbuf >= newSndBuf)
+        {
+            return -1;
+        }
+    }
+    return setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (void *)&newSndBuf, sizeof(int));
+    log_debug("socket_utils.SetSockSendBufSize %d, %d", sockfd, newSndBuf);
+}
+
+int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force)
+{
+    if (!force)
+    {
+        int rcvbuf = 0;
+        socklen_t len = sizeof(rcvbuf);
+        Getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
+        if (rcvbuf >= newRcvBuf)
+        {
+            return -1;
+        }
+    }
+    return setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (void *)&newRcvBuf, sizeof(int));
+    log_debug("socket_utils.SetSockRecvBufSize %d, %d", sockfd, newRcvBuf);
 }
 
 }; // namespace socketUtils

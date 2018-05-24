@@ -82,11 +82,10 @@ void TCPClient::connect(const char *host, int port)
         if (sockfd() < 0)
             continue; /* ignore this one */
 
-        int flags = Fcntl(sockfd(), F_GETFL, 0);
-        Fcntl(sockfd(), F_SETFL, flags | O_NONBLOCK);
+        socketUtils::setTcpNonBlock(sockfd());
 
-        SetSockRecvBufSize(sockfd(), 32 * 1024);
-        SetSockSendBufSize(sockfd(), 32 * 1024);
+        socketUtils::SetSockRecvBufSize(sockfd(), 32 * 1024);
+        socketUtils::SetSockSendBufSize(sockfd(), 32 * 1024);
 
         ret = ::connect(sockfd(), res->ai_addr, res->ai_addrlen);
         log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));

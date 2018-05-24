@@ -44,7 +44,7 @@ void OnTcpSendComplete(PtrConn conn)
 void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected]");
-    // SetSockSendBufSize(conn->fd(), 3, true);
+    // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
     conn->setCallBack_SendComplete(OnTcpSendComplete);
 
     input_fd = open("testdata", O_RDONLY);
