@@ -35,7 +35,7 @@ void EventListener::deleteFileEvent(int mask)
     }
     else
     {
-        log_error("EventListener::deleteFileEvent");
+        log_error("EventListener::deleteFileEvent no m_loop or m_sockFd");
     }
 }
 
@@ -47,7 +47,7 @@ TimerRef EventListener::createTimer(int ms, OnTimerEvent onTimerEvent, void *dat
     }
     else
     {
-        log_error("EventListener::deleteFileEvent");
+        log_error("EventListener::createTimer no m_loop");
         return TimerRef(0);
     }
 }

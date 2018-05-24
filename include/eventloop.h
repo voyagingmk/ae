@@ -63,24 +63,24 @@ class EventLoop : Noncopyable
 
     struct TimerData
     {
-        TimerData() : onTimerEvent(nullptr),
-                      data(nullptr),
-                      timerId(0)
+        TimerData() : m_onTimerEvent(nullptr),
+                      m_data(nullptr),
+                      m_aeTimerId(0)
         {
         }
         TimerData(OnTimerEvent _evt,
                   PtrEvtListener listener,
                   void *_data,
-                  WyTimerId _timerid) : onTimerEvent(_evt),
-                                        m_listener(listener),
-                                        data(_data),
-                                        timerId(_timerid)
+                  AeTimerId _aeTimerId) : m_onTimerEvent(_evt),
+                                          m_listener(listener),
+                                          m_data(_data),
+                                          m_aeTimerId(_aeTimerId)
         {
         }
-        OnTimerEvent onTimerEvent;
+        OnTimerEvent m_onTimerEvent;
         WeakPtrEvtListener m_listener;
-        void *data;
-        WyTimerId timerId;
+        void *m_data;
+        AeTimerId m_aeTimerId;
     };
 
   private:
@@ -104,7 +104,7 @@ class EventLoop : Noncopyable
 
     friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
 
-    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, WyTimerId timerId, void *clientData);
+    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
 
     friend class EventListener;
 

@@ -52,6 +52,7 @@ FILE(GLOB MY_SOURCERS
     src/buffer.cpp
     src/sockbuffer.cpp
     src/socket_utils.cpp
+    src/timer_ref.cpp
     src/event_listener.cpp
     src/eventloop.cpp
     src/eventloop_thread.cpp

@@ -27,13 +27,16 @@ class TimerRef
         return *this;
     }
 
-    TimerRef(TimerRef &&tr) : m_id(tr.m_id)
+    TimerRef(TimerRef &&tr)
     {
+        m_id = tr.m_id;
+        tr.m_id = 0;
     }
 
     TimerRef &operator=(TimerRef &&tr)
     {
         m_id = tr.m_id;
+        tr.m_id = 0;
         return *this;
     }
 

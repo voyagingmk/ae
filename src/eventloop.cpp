@@ -5,7 +5,6 @@ namespace wynet
 
 // thread local
 __thread EventLoop *t_threadLoop = nullptr;
-std::atomic<WyTimerId> TimerRef::g_numCreated;
 
 int OnlyForWakeup(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
 {
@@ -47,12 +46,12 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *cli
             break;
         }
         EventLoop::TimerData &td = loop->m_timerData[tr];
-        if (!td.onTimerEvent)
+        if (!td.m_onTimerEvent)
         {
             loop->m_timerData.erase(tr);
             break;
         }
-        int ret = td.onTimerEvent(loop, tr, td.m_listener.lock(), td.data);
+        int ret = td.m_onTimerEvent(loop, tr, td.m_listener.lock(), td.m_data);
         if (ret == AE_NOMORE)
         {
             break;
@@ -184,9 +183,11 @@ bool EventLoop ::deleteTimerInLoop(TimerRef tr)
     assertInLoopThread();
     if (m_timerData.find(tr) != m_timerData.end())
     {
-        WyTimerId timerId = m_timerData[tr].timerId;
+        TimerData &data = m_timerData[tr];
+        WyTimerId aeTimerId = data.m_aeTimerId;
         m_timerData.erase(tr);
-        int ret = aeDeleteTimeEvent(m_aeloop, timerId);
+        m_aeTimerId2ref.erase(aeTimerId);
+        int ret = aeDeleteTimeEvent(m_aeloop, aeTimerId);
         return AE_ERR != ret;
     }
     return false;
