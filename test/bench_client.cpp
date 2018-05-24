@@ -16,13 +16,6 @@ void Stop(int signo)
 
 int OnHeartbeat(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
-    std::shared_ptr<FDRef> sfdRef = fdRef.lock();
-    if (!sfdRef)
-    {
-        return 0;
-    }
-    PtrConn conn = std::dynamic_pointer_cast<TcpConnection>(sfdRef);
-    // conn->send((const uint8_t *)"hello", 5);
     return 1000;
 }
 

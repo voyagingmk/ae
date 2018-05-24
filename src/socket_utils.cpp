@@ -6,6 +6,12 @@ namespace wynet
 namespace socketUtils
 {
 
+bool valid(SockFd sockfd) { return sockfd > 0; }
+
+bool isIPv4(sockaddr_storage sockAddr) { return sockAddr.ss_family == PF_INET; }
+
+bool isIPv6(sockaddr_storage sockAddr) { return sockAddr.ss_family == PF_INET6; }
+
 void checkReturnValue(int ret)
 {
     if (ret == 0)

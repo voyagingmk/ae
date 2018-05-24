@@ -8,35 +8,35 @@ namespace wynet
 namespace socketUtils
 {
 
-static bool valid(SockFd sockfd) { return sockfd > 0; }
+extern bool valid(SockFd sockfd);
 
-static bool isIPv4(sockaddr_storage sockAddr) { return sockAddr.ss_family == PF_INET; }
+extern bool isIPv4(sockaddr_storage sockAddr);
 
-static bool isIPv6(sockaddr_storage sockAddr) { return sockAddr.ss_family == PF_INET6; }
+extern bool isIPv6(sockaddr_storage sockAddr);
 
-static sockaddr_storage getSrcAddr(SockFd sockfd);
+extern sockaddr_storage getSrcAddr(SockFd sockfd);
 
-static sockaddr_storage getDestAddr(SockFd sockfd);
+extern sockaddr_storage getDestAddr(SockFd sockfd);
 
-static bool isSelfConnect(SockFd sockfd);
+extern bool isSelfConnect(SockFd sockfd);
 
-static void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, char *portBuf, size_t portBufSize);
+extern void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, char *portBuf, size_t portBufSize);
 
-static void log_debug_addr(struct sockaddr *addr, const char *tag = "");
+extern void log_debug_addr(struct sockaddr *addr, const char *tag = "");
 
-static void log_debug_addr(struct sockaddr_storage *addr, const char *tag = "");
+extern void log_debug_addr(struct sockaddr_storage *addr, const char *tag = "");
 
-static int setTcpNoDelay(SockFd sockfd, bool enabled);
+extern int setTcpNoDelay(SockFd sockfd, bool enabled);
 
-static int setTcpNonBlock(SockFd sockfd);
+extern int setTcpNonBlock(SockFd sockfd);
 
-static int SetSockSendBufSize(SockFd sockfd, int newSndBuf, bool force = false);
+extern int SetSockSendBufSize(SockFd sockfd, int newSndBuf, bool force = false);
 
-static int SetSockRecvBufSize(SockFd sockfd, int newRcvBuf, bool force = false);
+extern int SetSockRecvBufSize(SockFd sockfd, int newRcvBuf, bool force = false);
 
 #ifdef DEBUG_MODE
 
-static void LogSocketState(SockFd sockfd);
+extern void LogSocketState(SockFd sockfd);
 
 #else
 
