@@ -34,7 +34,7 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener liste
         log_debug("[conn] onWritable connfd=%d", conn->connectFd());
         conn->onWritable();
     }
-    // eventLoop->createTimerInLoop(1000, testOnTimerEvent, std::weak_ptr<FDRef>(), nullptr);
+    // m_evtListener->createTimer(1000, testOnTimerEvent, nullptr);
 }
 
 void TcpConnection ::close(bool force)
