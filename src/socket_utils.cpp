@@ -134,13 +134,13 @@ void log_debug_addr(struct sockaddr_storage *addr, const char *tag)
     log_debug_addr((struct sockaddr *)(addr), tag);
 }
 
-int setTcpNoDelay(int sockfd, bool enabled)
+int setTcpNoDelay(SockFd sockfd, bool enabled)
 {
     int val = enabled ? 1 : 0;
     return ::setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &val, static_cast<socklen_t>(sizeof val));
 }
 
-int setTcpNonBlock(int sockfd)
+int setTcpNonBlock(SockFd sockfd)
 {
 
     int flags = sock_fcntl(sockfd, F_GETFL, 0);

@@ -159,7 +159,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         return m_connectId;
     }
 
-    inline uint16_t connectFd()
+    inline SockFd connectFd()
     {
         return m_sockFdCtrl.sockfd();
     }
