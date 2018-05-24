@@ -10,6 +10,7 @@ namespace wynet
 // http://man7.org/linux/man-pages/man2/connect.2.html
 void TCPClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
+    log_debug("TCPClient::OnTcpWritable");
     PtrTcpClientEvtListener l = std::static_pointer_cast<TCPClientEventListener>(listener);
     std::shared_ptr<TCPClient> tcpClient = l->getTCPClient();
     SockFd asyncSockfd = tcpClient->m_asyncSockfd;
@@ -57,7 +58,6 @@ TCPClient::~TCPClient()
 
 void TCPClient::init()
 {
-    m_evtListener->setTCPClient(shared_from_this());
 }
 
 void TCPClient::connect(const char *host, int port)
@@ -74,7 +74,7 @@ void TCPClient::connect(const char *host, int port)
     const char *serv = (char *)&buf;
 
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-        log_fatal("tcp_connect error for %s, %s: %s",
+        log_fatal("TCPClient.getaddrinfo error: %s, %s: %s",
                   host, serv, gai_strerror(n));
     ressave = res;
     int ret;
@@ -94,12 +94,13 @@ void TCPClient::connect(const char *host, int port)
             socketUtils::SetSockRecvBufSize(sockfd, 32 * 1024);
             socketUtils::SetSockSendBufSize(sockfd, 32 * 1024);
             ret = ::connect(sockfd, res->ai_addr, res->ai_addrlen);
-            // log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));
+            log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));
             if (ret == -1)
             {
                 if (errno == EINPROGRESS)
                 {
                     asyncConnect(sockfd);
+                    needContinue = false;
                     break;
                 }
                 else
@@ -118,20 +119,28 @@ void TCPClient::connect(const char *host, int port)
         {
             ::Close(sockfd);
         }
+        else
+        {
+            break;
+        }
     } while ((res = res->ai_next) != NULL);
 
     if (res == NULL)
     {
-        log_error("tcp_connect error for %s, %s", host, serv);
+        log_error("TCPClient.connect failed. %s, %s", host, serv);
     }
-
-    memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
-    m_sockAddr.m_socklen = res->ai_addrlen;
-
-    freeaddrinfo(ressave);
-    if (ret == 0)
+    else
     {
-        _onTcpConnected(sockfd);
+        memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
+        m_sockAddr.m_socklen = res->ai_addrlen;
+        if (ret == 0)
+        {
+            _onTcpConnected(sockfd);
+        }
+    }
+    if (ressave)
+    {
+        freeaddrinfo(ressave);
     }
 }
 
@@ -163,6 +172,11 @@ void TCPClient::asyncConnect(int sockfd)
     {
         endAsyncConnect();
     }
+    log_debug("asyncConnect %d", sockfd);
+    m_evtListener = TCPClientEventListener::create();
+    m_evtListener->setEventLoop(&getLoop());
+    m_evtListener->setTCPClient(shared_from_this());
+    m_evtListener->setSockFd(sockfd);
     m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
     m_asyncSockfd = sockfd;
 }
@@ -174,10 +188,8 @@ bool TCPClient::isAsyncConnecting()
 
 void TCPClient::endAsyncConnect()
 {
-    if (m_asyncConnect)
-    {
-        m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
-    }
+    log_debug("endAsyncConnect %d", m_asyncSockfd);
+    m_evtListener = nullptr;
     m_asyncConnect = false;
     m_asyncSockfd = 0;
 }
