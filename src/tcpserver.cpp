@@ -14,14 +14,14 @@ namespace wynet
 
 const size_t LISTENQUEUEMAX = 128;
 
-void TCPServer::OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener listener, int mask)
+void TcpServer::OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
-	PtrTcpServerEvtListener l = std::static_pointer_cast<TCPServerEventListener>(listener);
-	PtrTCPServer tcpServer = l->getTCPServer();
+	PtrTcpServerEvtListener l = std::static_pointer_cast<TcpServerEventListener>(listener);
+	PtrTcpServer tcpServer = l->getTcpServer();
 	tcpServer->acceptConnection();
 }
 
-TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
+TcpServer::TcpServer(PtrServer parent) : m_parent(parent),
 										 m_tcpPort(0),
 										 m_connMgr(nullptr),
 										 m_sockFdCtrl(0),
@@ -29,13 +29,13 @@ TCPServer::TCPServer(PtrServer parent) : m_parent(parent),
 										 onTcpDisconnected(nullptr),
 										 onTcpRecvMessage(nullptr)
 {
-	m_evtListener = TCPServerEventListener::create();
+	m_evtListener = TcpServerEventListener::create();
 	m_evtListener->setEventLoop(&getLoop());
 	// optional
 	initConnMgr();
 }
 
-PtrConnMgr TCPServer::initConnMgr()
+PtrConnMgr TcpServer::initConnMgr()
 {
 	if (!m_connMgr)
 	{
@@ -44,22 +44,22 @@ PtrConnMgr TCPServer::initConnMgr()
 	return m_connMgr;
 }
 
-bool TCPServer::addConnection(PtrConn conn)
+bool TcpServer::addConnection(PtrConn conn)
 {
 	return getConnMgr()->addConnection(conn);
 }
 
-bool TCPServer::removeConnection(PtrConn conn)
+bool TcpServer::removeConnection(PtrConn conn)
 {
 	return getConnMgr()->removeConnection(conn);
 }
 
-void TCPServer::init()
+void TcpServer::init()
 {
-	m_evtListener->setTCPServer(shared_from_this());
+	m_evtListener->setTcpServer(shared_from_this());
 }
 
-void TCPServer::startListen(const char *host, int port)
+void TcpServer::startListen(const char *host, int port)
 {
 	m_tcpPort = port;
 	int listenfd, n;
@@ -75,7 +75,7 @@ void TCPServer::startListen(const char *host, int port)
 	sprintf(buf, "%d", m_tcpPort);
 	const char *serv = (char *)&buf;
 	if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-		log_fatal("<TCPServer.startListen> getaddrinfo error for %s, %s: %s",
+		log_fatal("<TcpServer.startListen> getaddrinfo error for %s, %s: %s",
 				  host, serv, gai_strerror(n));
 	ressave = res;
 
@@ -91,7 +91,7 @@ void TCPServer::startListen(const char *host, int port)
 		int ret = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 		if (ret < 0)
 		{
-			log_error("[TCPServer][tcp] setsockopt SO_REUSEADDR err %d", errno);
+			log_error("[TcpServer][tcp] setsockopt SO_REUSEADDR err %d", errno);
 			socketUtils ::sock_close(listenfd);
 			continue;
 		}
@@ -119,24 +119,24 @@ void TCPServer::startListen(const char *host, int port)
 
 	freeaddrinfo(ressave);
 	socketUtils::log_debug_addr(&m_sockAddr.m_addr, "<TcpServer.startListen>");
-	m_evtListener->createFileEvent(LOOP_EVT_READABLE, TCPServer::OnNewTcpConnection);
+	m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpServer::OnNewTcpConnection);
 }
 
-TCPServer::~TCPServer()
+TcpServer::~TcpServer()
 {
 }
 
-WyNet *TCPServer::getNet() const
+WyNet *TcpServer::getNet() const
 {
 	return m_parent->getNet();
 }
 
-EventLoop &TCPServer::getLoop()
+EventLoop &TcpServer::getLoop()
 {
 	return m_parent->getNet()->getLoop();
 }
 
-void TCPServer::acceptConnection()
+void TcpServer::acceptConnection()
 {
 	int listenfd = m_sockFdCtrl.sockfd();
 	struct sockaddr_storage cliAddr;
@@ -156,7 +156,7 @@ void TCPServer::acceptConnection()
 			// already closed
 			return;
 		}
-		log_error("[TCPServer] Accept err: %d %s", errno, strerror(errno));
+		log_error("[TcpServer] Accept err: %d %s", errno, strerror(errno));
 		return;
 	}
 

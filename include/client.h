@@ -20,24 +20,24 @@ typedef std::shared_ptr<Client> PtrClient;
 class Client : public Noncopyable, public std::enable_shared_from_this<Client>
 {
     WyNet *m_net;
-    std::shared_ptr<TCPClient> m_tcpClient;
-    std::shared_ptr<UDPClient> m_udpClient;
+    std::shared_ptr<TcpClient> m_tcpClient;
+    std::shared_ptr<UdpClient> m_udpClient;
 
   public:
-    friend class TCPClient;
+    friend class TcpClient;
 
     Client(WyNet *net);
 
     ~Client();
 
-    std::shared_ptr<TCPClient> initTcpClient(const char *host, int tcpPort);
+    std::shared_ptr<TcpClient> initTcpClient(const char *host, int tcpPort);
 
-    const std::shared_ptr<TCPClient> getTcpClient() const
+    const std::shared_ptr<TcpClient> getTcpClient() const
     {
         return m_tcpClient;
     }
 
-    const std::shared_ptr<UDPClient> getUdpClient() const
+    const std::shared_ptr<UdpClient> getUdpClient() const
     {
         return m_udpClient;
     }

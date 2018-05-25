@@ -4,7 +4,7 @@
 namespace wynet
 {
 
-UDPServer::UDPServer(int port)
+UdpServer::UdpServer(int port)
 {
     if (port > 0)
     {
@@ -12,7 +12,7 @@ UDPServer::UDPServer(int port)
     }
 }
 
-void UDPServer::init(int port)
+void UdpServer::init(int port)
 {
     /*
     int n;
@@ -59,12 +59,12 @@ void UDPServer::init(int port)
     */
 } // namespace wynet
 
-UDPServer::~UDPServer()
+UdpServer::~UdpServer()
 {
     // close(sockfd());
 }
 
-void UDPServer::Recvfrom()
+void UdpServer::Recvfrom()
 {
     /*
     memset(msg, 0x0, MAX_MSG);

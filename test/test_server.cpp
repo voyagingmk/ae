@@ -43,11 +43,11 @@ int main(int argc, char **argv)
     WyNet net;
     g_net = &net;
 
-    //  UDPServer server(9999);
+    //  UdpServer server(9999);
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s", aeGetApiName());
     std::shared_ptr<Server> server = std::make_shared<Server>(&net);
-    PtrTCPServer tcpServer = server->initTcpServer(NULL, 9998);
+    PtrTcpServer tcpServer = server->initTcpServer(NULL, 9998);
     server->initUdpServer(9999);
     tcpServer->onTcpConnected = &OnTcpConnected;
     tcpServer->onTcpDisconnected = &OnTcpDisconnected;

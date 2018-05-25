@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
     log_info("aeGetApiName: %s", aeGetApiName());
     std::shared_ptr<Client> client = std::make_shared<Client>(&net);
-    std::shared_ptr<TCPClient> tcpClient = client->initTcpClient("127.0.0.1", 9998);
+    std::shared_ptr<TcpClient> tcpClient = client->initTcpClient("127.0.0.1", 9998);
     tcpClient->onTcpConnected = &OnTcpConnected;
     tcpClient->onTcpDisconnected = &OnTcpDisconnected;
     tcpClient->onTcpRecvMessage = &OnTcpRecvMessage;

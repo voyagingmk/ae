@@ -6,13 +6,13 @@
 
 namespace wynet
 {
-class UDPClient
+class UdpClient
 {
   SockAddr m_sockAddr;
 
 public:
-  UDPClient(const char *host, int port);
-  ~UDPClient();
+  UdpClient(const char *host, int port);
+  ~UdpClient();
   void Send(const char *data, size_t len);
 };
 }; // namespace wynet

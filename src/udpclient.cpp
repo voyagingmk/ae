@@ -5,7 +5,7 @@
 namespace wynet
 {
 
-UDPClient::UDPClient(const char *host, int port)
+UdpClient::UdpClient(const char *host, int port)
 {
     char buf[5];
     sprintf(buf, "%d", port);
@@ -45,12 +45,12 @@ UDPClient::UDPClient(const char *host, int port)
     // Connect(sockfd(), &m_sockAddr.m_addr, m_socklen);
 }
 
-UDPClient::~UDPClient()
+UdpClient::~UdpClient()
 {
     // close(sockfd());
 }
 
-void UDPClient::Send(const char *data, size_t len)
+void UdpClient::Send(const char *data, size_t len)
 {
     //  ::Send(sockfd(), data, len, 0);
 }

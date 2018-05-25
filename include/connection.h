@@ -14,14 +14,14 @@ namespace wynet
 class EventLoop;
 
 class TcpConnection;
-class TCPServer;
-class TCPClient;
+class TcpServer;
+class TcpClient;
 class TcpConnectionEventListener;
 
-typedef std::shared_ptr<TCPServer> PtrTCPServer;
-typedef std::shared_ptr<TCPClient> PtrTCPClient;
-typedef std::weak_ptr<TCPServer> WeakPtrTCPServer;
-typedef std::weak_ptr<TCPClient> WeakPtrTCPClient;
+typedef std::shared_ptr<TcpServer> PtrTcpServer;
+typedef std::shared_ptr<TcpClient> PtrTcpClient;
+typedef std::weak_ptr<TcpServer> WeakPtrTcpServer;
+typedef std::weak_ptr<TcpClient> WeakPtrTcpClient;
 typedef std::shared_ptr<TcpConnection> PtrConn;
 typedef std::weak_ptr<TcpConnection> PtrConnWeak;
 typedef std::shared_ptr<TcpConnectionEventListener> PtrConnEvtListener;
@@ -55,8 +55,8 @@ class TcpConnectionEventListener : public EventListener
 
 class TcpConnection : public Noncopyable, public std::enable_shared_from_this<TcpConnection>
 {
-    friend class TCPServer;
-    friend class TCPClient;
+    friend class TcpServer;
+    friend class TcpClient;
 
   public:
     enum class State
@@ -108,23 +108,23 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         m_evtListener->setEventLoop(m_loop);
     }
 
-    void setCtrl(PtrTCPServer ctrl)
+    void setCtrl(PtrTcpServer ctrl)
     {
         m_tcpServer = ctrl;
     }
 
-    void setCtrl(PtrTCPClient ctrl)
+    void setCtrl(PtrTcpClient ctrl)
     {
         m_tcpClient = ctrl;
     }
 
     // may not exist
-    PtrTCPServer getCtrlAsServer()
+    PtrTcpServer getCtrlAsServer()
     {
         return m_tcpServer.lock();
     }
 
-    PtrTCPClient getCtrlAsClient()
+    PtrTcpClient getCtrlAsClient()
     {
         return m_tcpClient.lock();
     }
@@ -218,8 +218,8 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     EventLoop *m_loop;
     SocketFdCtrl m_sockFdCtrl;
     PtrConnEvtListener m_evtListener;
-    WeakPtrTCPServer m_tcpServer;
-    WeakPtrTCPClient m_tcpClient;
+    WeakPtrTcpServer m_tcpServer;
+    WeakPtrTcpClient m_tcpClient;
     State m_state;
     uint32_t m_key;
     KCPObject *m_kcpObj;

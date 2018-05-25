@@ -21,22 +21,22 @@ Server::~Server()
     log_info("[Server] destoryed.");
 }
 
-std::shared_ptr<TCPServer> Server::initTcpServer(const char *host, int tcpPort)
+std::shared_ptr<TcpServer> Server::initTcpServer(const char *host, int tcpPort)
 {
     if (!m_tcpServer)
     {
-        m_tcpServer = std::make_shared<TCPServer>(shared_from_this());
+        m_tcpServer = std::make_shared<TcpServer>(shared_from_this());
         m_tcpServer->init();
         m_tcpServer->startListen(host, tcpPort);
-        log_info("[Server] TCPServer created, tcp sockfd: %d", m_tcpServer->m_sockFdCtrl.sockfd());
+        log_info("[Server] TcpServer created, tcp sockfd: %d", m_tcpServer->m_sockFdCtrl.sockfd());
     }
     return m_tcpServer;
 }
 
-std::shared_ptr<UDPServer> Server::initUdpServer(int udpPort)
+std::shared_ptr<UdpServer> Server::initUdpServer(int udpPort)
 {
     m_udpPort = udpPort;
-    m_udpServer = std::make_shared<UDPServer>(m_udpPort);
+    m_udpServer = std::make_shared<UdpServer>(m_udpPort);
     return m_udpServer;
 }
 }; // namespace wynet

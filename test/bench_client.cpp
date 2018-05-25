@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
     log_info("aeGetApiName: %s", aeGetApiName());
     PtrClient client = std::make_shared<Client>(&net);
-    PtrTCPClient tcpClient = client->initTcpClient(ip, port);
+    PtrTcpClient tcpClient = client->initTcpClient(ip, port);
     tcpClient->onTcpConnected = &OnTcpConnected;
     tcpClient->onTcpDisconnected = &OnTcpDisconnected;
     tcpClient->onTcpRecvMessage = &OnTcpRecvMessage;

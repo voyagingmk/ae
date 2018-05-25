@@ -7,14 +7,14 @@
 namespace wynet
 {
 
-class UDPServer
+class UdpServer
 {
   SockAddr m_sockAddr;
 
 public:
-  UDPServer(int port);
+  UdpServer(int port);
 
-  ~UDPServer();
+  ~UdpServer();
 
   void Recvfrom();
 

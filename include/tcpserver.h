@@ -12,36 +12,36 @@ namespace wynet
 class WyNet;
 class Server;
 typedef std::shared_ptr<Server> PtrServer;
-class TCPServer;
-typedef std::shared_ptr<TCPServer> PtrTCPServer;
-typedef std::weak_ptr<TCPServer> WeakPtrTCPServer;
+class TcpServer;
+typedef std::shared_ptr<TcpServer> PtrTcpServer;
+typedef std::weak_ptr<TcpServer> WeakPtrTcpServer;
 class ConnectionManager;
 typedef std::shared_ptr<ConnectionManager> PtrConnMgr;
-class TCPServerEventListener;
-typedef std::shared_ptr<TCPServerEventListener> PtrTcpServerEvtListener;
+class TcpServerEventListener;
+typedef std::shared_ptr<TcpServerEventListener> PtrTcpServerEvtListener;
 
-class TCPServerEventListener : public EventListener
+class TcpServerEventListener : public EventListener
 {
 public:
-  void setTCPServer(PtrTCPServer tcpServer)
+  void setTcpServer(PtrTcpServer tcpServer)
   {
     m_tcpServer = tcpServer;
   }
-  PtrTCPServer getTCPServer()
+  PtrTcpServer getTcpServer()
   {
     return m_tcpServer.lock();
   }
 
   static PtrTcpServerEvtListener create()
   {
-    return std::make_shared<TCPServerEventListener>();
+    return std::make_shared<TcpServerEventListener>();
   }
 
 protected:
-  WeakPtrTCPServer m_tcpServer;
+  WeakPtrTcpServer m_tcpServer;
 };
 
-class TCPServer : public Noncopyable, public std::enable_shared_from_this<TCPServer>
+class TcpServer : public Noncopyable, public std::enable_shared_from_this<TcpServer>
 {
   PtrServer m_parent;
   int m_tcpPort;
@@ -57,9 +57,9 @@ public:
   TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
 
 public:
-  TCPServer(PtrServer parent);
+  TcpServer(PtrServer parent);
 
-  ~TCPServer();
+  ~TcpServer();
 
   void init();
 

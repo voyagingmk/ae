@@ -8,11 +8,11 @@ namespace wynet
 {
 
 // http://man7.org/linux/man-pages/man2/connect.2.html
-void TCPClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask)
+void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
-    log_debug("TCPClient::OnTcpWritable");
-    PtrTcpClientEvtListener l = std::static_pointer_cast<TCPClientEventListener>(listener);
-    std::shared_ptr<TCPClient> tcpClient = l->getTCPClient();
+    log_debug("TcpClient::OnTcpWritable");
+    PtrTcpClientEvtListener l = std::static_pointer_cast<TcpClientEventListener>(listener);
+    std::shared_ptr<TcpClient> tcpClient = l->getTcpClient();
     SockFd asyncSockfd = tcpClient->m_asyncSockfd;
     tcpClient->endAsyncConnect();
     int error;
@@ -41,7 +41,7 @@ void TCPClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int
     tcpClient->_onTcpConnected(asyncSockfd);
 }
 
-TCPClient::TCPClient(PtrClient client) : onTcpConnected(nullptr),
+TcpClient::TcpClient(PtrClient client) : onTcpConnected(nullptr),
                                          onTcpDisconnected(nullptr),
                                          onTcpRecvMessage(nullptr),
                                          m_asyncConnect(false),
@@ -51,16 +51,16 @@ TCPClient::TCPClient(PtrClient client) : onTcpConnected(nullptr),
     m_parent = client;
 }
 
-TCPClient::~TCPClient()
+TcpClient::~TcpClient()
 {
     endAsyncConnect();
 }
 
-void TCPClient::init()
+void TcpClient::init()
 {
 }
 
-void TCPClient::connect(const char *host, int port)
+void TcpClient::connect(const char *host, int port)
 {
     int n;
     struct addrinfo hints, *res, *ressave;
@@ -74,7 +74,7 @@ void TCPClient::connect(const char *host, int port)
     const char *serv = (char *)&buf;
 
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-        log_fatal("TCPClient.getaddrinfo error: %s, %s: %s",
+        log_fatal("TcpClient.getaddrinfo error: %s, %s: %s",
                   host, serv, gai_strerror(n));
     ressave = res;
     int ret;
@@ -127,7 +127,7 @@ void TCPClient::connect(const char *host, int port)
 
     if (res == NULL)
     {
-        log_error("TCPClient.connect failed. %s, %s", host, serv);
+        log_error("TcpClient.connect failed. %s, %s", host, serv);
     }
     else
     {
@@ -144,12 +144,12 @@ void TCPClient::connect(const char *host, int port)
     }
 }
 
-EventLoop &TCPClient::getLoop()
+EventLoop &TcpClient::getLoop()
 {
     return m_parent->getNet()->getLoop();
 }
 
-void TCPClient::_onTcpConnected(int sockfd)
+void TcpClient::_onTcpConnected(int sockfd)
 {
     m_conn = std::make_shared<TcpConnection>();
     m_conn->setEventLoop(&getLoop());
@@ -161,32 +161,32 @@ void TCPClient::_onTcpConnected(int sockfd)
     getLoop().runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
 }
 
-void TCPClient::_onTcpDisconnected()
+void TcpClient::_onTcpDisconnected()
 {
     m_conn = nullptr;
 }
 
-void TCPClient::asyncConnect(int sockfd)
+void TcpClient::asyncConnect(int sockfd)
 {
     if (isAsyncConnecting())
     {
         endAsyncConnect();
     }
     log_debug("asyncConnect %d", sockfd);
-    m_evtListener = TCPClientEventListener::create();
+    m_evtListener = TcpClientEventListener::create();
     m_evtListener->setEventLoop(&getLoop());
-    m_evtListener->setTCPClient(shared_from_this());
+    m_evtListener->setTcpClient(shared_from_this());
     m_evtListener->setSockfd(sockfd);
     m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
     m_asyncSockfd = sockfd;
 }
 
-bool TCPClient::isAsyncConnecting()
+bool TcpClient::isAsyncConnecting()
 {
     return m_asyncConnect;
 }
 
-void TCPClient::endAsyncConnect()
+void TcpClient::endAsyncConnect()
 {
     log_debug("endAsyncConnect %d", m_asyncSockfd);
     m_evtListener = nullptr;
