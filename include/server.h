@@ -19,9 +19,8 @@ typedef std::weak_ptr<Server> WeakPtrServer;
 class Server : public Noncopyable, public std::enable_shared_from_this<Server>
 {
   WyNet *m_net;
-  int m_udpPort;
-  PtrTcpServer m_tcpServer;
-  PtrUdpServer m_udpServer;
+  WeakPtrTcpServer m_tcpServer;
+  WeakPtrUdpServer m_udpServer;
 
 protected:
   Server(WyNet *net);
@@ -43,9 +42,14 @@ public:
     return m_net;
   }
 
-  std::shared_ptr<TcpServer> &getTcpServer()
+  PtrTcpServer getTcpServer()
   {
-    return m_tcpServer;
+    return m_tcpServer.lock();
+  }
+
+  PtrUdpServer getUdpServer()
+  {
+    return m_udpServer.lock();
   }
 };
 }; // namespace wynet

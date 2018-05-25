@@ -6,37 +6,29 @@
 namespace wynet
 {
 
-Server::Server(WyNet *net) : m_net(net),
-                             m_udpPort(0),
-                             m_tcpServer(nullptr),
-                             m_udpServer(nullptr)
+Server::Server(WyNet *net) : m_net(net)
 {
 }
 
 Server::~Server()
 {
-    m_tcpServer = nullptr;
-    m_udpServer = nullptr;
-    m_net = nullptr;
-    log_info("[Server] destoryed.");
+    log_debug("[Server] destoryed.");
 }
 
 PtrTcpServer Server::initTcpServer(const char *host, int tcpPort)
 {
-    if (!m_tcpServer)
-    {
-        m_tcpServer = PtrTcpServer(new TcpServer(shared_from_this()));
-        m_tcpServer->init();
-        m_tcpServer->startListen(host, tcpPort);
-        log_info("[Server] TcpServer created, tcp sockfd: %d", m_tcpServer->m_sockFdCtrl.sockfd());
-    }
-    return m_tcpServer;
+    PtrTcpServer server = PtrTcpServer(new TcpServer(shared_from_this()));
+    server->init();
+    server->startListen(host, tcpPort);
+    log_info("[Server] TcpServer created, tcp sockfd: %d", server->m_sockFdCtrl.sockfd());
+    m_tcpServer = server;
+    return server;
 }
 
-std::shared_ptr<UdpServer> Server::initUdpServer(int udpPort)
+PtrUdpServer Server::initUdpServer(int udpPort)
 {
-    m_udpPort = udpPort;
-    m_udpServer = std::make_shared<UdpServer>(m_udpPort);
-    return m_udpServer;
+    PtrUdpServer server = std::make_shared<UdpServer>(udpPort);
+    m_udpServer = server;
+    return server;
 }
 }; // namespace wynet
