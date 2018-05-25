@@ -15,37 +15,35 @@ namespace wynet
 class WyNet;
 class Test;
 class Client;
+
 typedef std::shared_ptr<Client> PtrClient;
 
 class Client : public Noncopyable, public std::enable_shared_from_this<Client>
 {
     WyNet *m_net;
-    std::shared_ptr<TcpClient> m_tcpClient;
-    std::shared_ptr<UdpClient> m_udpClient;
+    WeakPtrTcpClient m_tcpClient;
+
+  protected:
+    Client(WyNet *net);
 
   public:
-    friend class TcpClient;
-
-    Client(WyNet *net);
+    static PtrClient create(WyNet *net);
 
     ~Client();
 
-    std::shared_ptr<TcpClient> initTcpClient(const char *host, int tcpPort);
+    PtrTcpClient initTcpClient(const char *host, int tcpPort);
 
-    const std::shared_ptr<TcpClient> getTcpClient() const
+    PtrTcpClient getTcpClient() const
     {
-        return m_tcpClient;
-    }
-
-    const std::shared_ptr<UdpClient> getUdpClient() const
-    {
-        return m_udpClient;
+        return m_tcpClient.lock();
     }
 
     WyNet *getNet() const
     {
         return m_net;
     }
+
+    friend class TcpClient;
 };
 }; // namespace wynet
 

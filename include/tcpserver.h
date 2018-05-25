@@ -51,13 +51,12 @@ class TcpServer : public Noncopyable, public std::enable_shared_from_this<TcpSer
 
 public:
   SocketFdCtrl m_sockFdCtrl;
-
   TcpConnection::OnTcpConnected onTcpConnected;
   TcpConnection::OnTcpDisconnected onTcpDisconnected;
   TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
 
 public:
-  TcpServer(PtrServer parent);
+  friend class Server;
 
   ~TcpServer();
 
@@ -74,6 +73,8 @@ public:
   bool removeConnection(PtrConn conn);
 
 protected:
+  TcpServer(PtrServer parent);
+
   WyNet *getNet() const;
 
   EventLoop &getLoop();

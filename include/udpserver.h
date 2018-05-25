@@ -7,6 +7,10 @@
 namespace wynet
 {
 
+class UdpServer;
+
+typedef std::shared_ptr<UdpServer> PtrUdpServer;
+
 class UdpServer
 {
   SockAddr m_sockAddr;

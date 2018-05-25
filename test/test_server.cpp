@@ -46,13 +46,13 @@ int main(int argc, char **argv)
     //  UdpServer server(9999);
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
     log_info("aeGetApiName: %s", aeGetApiName());
-    std::shared_ptr<Server> server = std::make_shared<Server>(&net);
+    PtrServer server = Server::create(&net);
     PtrTcpServer tcpServer = server->initTcpServer(NULL, 9998);
     server->initUdpServer(9999);
     tcpServer->onTcpConnected = &OnTcpConnected;
     tcpServer->onTcpDisconnected = &OnTcpDisconnected;
     tcpServer->onTcpRecvMessage = &OnTcpRecvMessage;
-    net.addServer(server);
+    net.getPeerManager().addServer(server);
     net.startLoop();
     return 0;
 }

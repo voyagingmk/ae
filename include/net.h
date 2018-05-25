@@ -15,16 +15,36 @@
 
 namespace wynet
 {
+
+// strong ref
+class PeerManager
+{
+  typedef std::map<UniqID, PtrServer> Servers;
+  typedef std::map<UniqID, PtrClient> Clients;
+
+public:
+  ~PeerManager();
+
+  UniqID addServer(PtrServer);
+
+  bool removeServer(UniqID serverId);
+
+  UniqID addClient(PtrClient);
+
+  bool removeClient(UniqID serverId);
+
+private:
+  Servers m_servers;
+  Clients m_clients;
+  UniqIDGenerator m_serverIdGen;
+  UniqIDGenerator m_clientIdGen;
+};
+
 class WyNet
 {
-public:
-  typedef std::map<UniqID, std::shared_ptr<Server>> Servers;
-  typedef std::map<UniqID, std::shared_ptr<Client>> Clients;
 
 public:
   WyNet(int threadNum = 4);
-
-  ~WyNet();
 
   void startLoop();
 
@@ -35,25 +55,19 @@ public:
     return m_loop;
   }
 
-  UniqID addServer(std::shared_ptr<Server> s);
-  bool destroyServer(UniqID serverId);
-
-  UniqID addClient(std::shared_ptr<Client> c);
-  bool destroyClient(UniqID serverId);
-
   PtrThreadPool getThreadPool()
   {
     return m_threadPool;
   }
+  PeerManager &getPeerManager()
+  {
+    return m_peerMgr;
+  }
 
 private:
   EventLoop m_loop;
-  Servers m_servers;
-  Clients m_clients;
-  UniqIDGenerator m_serverIdGen;
-  UniqIDGenerator m_clientIdGen;
-  MutexLock m_mutexLock;
   PtrThreadPool m_threadPool;
+  PeerManager m_peerMgr;
 };
 }; // namespace wynet
 

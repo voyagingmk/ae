@@ -10,6 +10,7 @@ namespace wynet
 
 class Client;
 typedef std::shared_ptr<Client> PtrClient;
+typedef std::weak_ptr<Client> WeakPtrClient;
 
 class TcpClientEventListener;
 typedef std::shared_ptr<TcpClientEventListener> PtrTcpClientEvtListener;
@@ -35,14 +36,15 @@ protected:
   WeakPtrTcpClient m_tcpClient;
 };
 
+typedef std::shared_ptr<TcpClient> PtrTcpClient;
+typedef std::weak_ptr<TcpClient> WeakPtrTcpClient;
+
 class TcpClient : public Noncopyable, public std::enable_shared_from_this<TcpClient>
 {
 public:
   TcpClient(PtrClient client);
 
   ~TcpClient();
-
-  void init();
 
   void connect(const char *host, int port);
 

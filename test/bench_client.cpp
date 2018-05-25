@@ -84,12 +84,12 @@ int main(int argc, char **argv)
     g_net = &net;
 
     log_info("aeGetApiName: %s", aeGetApiName());
-    PtrClient client = std::make_shared<Client>(&net);
+    PtrClient client = Client::create(&net);
     PtrTcpClient tcpClient = client->initTcpClient(ip, port);
     tcpClient->onTcpConnected = &OnTcpConnected;
     tcpClient->onTcpDisconnected = &OnTcpDisconnected;
     tcpClient->onTcpRecvMessage = &OnTcpRecvMessage;
-    net.addClient(client);
+    net.getPeerManager().addClient(client);
     net.startLoop();
     ::close(input_fd);
     log_info("exit");

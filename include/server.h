@@ -12,20 +12,29 @@ namespace wynet
 
 class WyNet;
 class EventLoop;
+class Server;
+typedef std::shared_ptr<Server> PtrServer;
+typedef std::weak_ptr<Server> WeakPtrServer;
 
 class Server : public Noncopyable, public std::enable_shared_from_this<Server>
 {
   WyNet *m_net;
   int m_udpPort;
-  std::shared_ptr<TcpServer> m_tcpServer;
-  std::shared_ptr<UdpServer> m_udpServer;
+  PtrTcpServer m_tcpServer;
+  PtrUdpServer m_udpServer;
 
-public:
+protected:
   Server(WyNet *net);
 
-  std::shared_ptr<TcpServer> initTcpServer(const char *host, int tcpPort);
+public:
+  static PtrServer create(WyNet *net)
+  {
+    return PtrServer(new Server(net));
+  }
 
-  std::shared_ptr<UdpServer> initUdpServer(int udpPort);
+  PtrTcpServer initTcpServer(const char *host, int tcpPort);
+
+  PtrUdpServer initUdpServer(int udpPort);
 
   ~Server();
 

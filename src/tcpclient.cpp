@@ -56,10 +56,6 @@ TcpClient::~TcpClient()
     endAsyncConnect();
 }
 
-void TcpClient::init()
-{
-}
-
 void TcpClient::connect(const char *host, int port)
 {
     int n;
