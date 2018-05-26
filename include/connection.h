@@ -110,23 +110,25 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
 
     void setCtrl(PtrTcpServer ctrl)
     {
-        m_tcpServer = ctrl;
+        m_ctrl = ctrl;
     }
 
     void setCtrl(PtrTcpClient ctrl)
     {
-        m_tcpClient = ctrl;
+        m_ctrl = ctrl;
     }
 
     // may not exist
     PtrTcpServer getCtrlAsServer()
     {
-        return m_tcpServer.lock();
+        std::shared_ptr<void> p = m_ctrl.lock();
+        return std::static_pointer_cast<TcpServer>(p);
     }
 
     PtrTcpClient getCtrlAsClient()
     {
-        return m_tcpClient.lock();
+        std::shared_ptr<void> p = m_ctrl.lock();
+        return std::static_pointer_cast<TcpClient>(p);
     }
 
     EventLoop *getLoop() const
@@ -218,8 +220,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     EventLoop *m_loop;
     SocketFdCtrl m_sockFdCtrl;
     PtrConnEvtListener m_evtListener;
-    WeakPtrTcpServer m_tcpServer;
-    WeakPtrTcpClient m_tcpClient;
+    std::weak_ptr<void> m_ctrl; // PtrTcpServer / PtrTcpClient
     State m_state;
     uint32_t m_key;
     KCPObject *m_kcpObj;
