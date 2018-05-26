@@ -40,6 +40,8 @@ Condition 3: head free space < x (difference)
 
 
 */
+
+// not thread safe
 class SockBuffer : public Noncopyable
 {
   public:
@@ -48,8 +50,9 @@ class SockBuffer : public Noncopyable
     size_t m_pos2;
 
   public:
-    SockBuffer() : m_pos1(0),
-                   m_pos2(0)
+    SockBuffer(const char *reason) : m_bufRef(reason),
+                                     m_pos1(0),
+                                     m_pos2(0)
     {
     }
     SockBuffer &operator=(SockBuffer &&s)
@@ -62,9 +65,9 @@ class SockBuffer : public Noncopyable
         return *this;
     }
 
-    SockBuffer(SockBuffer &&s)
+    SockBuffer(SockBuffer &&s) : m_bufRef(std::move(s.m_bufRef))
     {
-        m_bufRef = std::move(s.m_bufRef);
+
         m_pos1 = s.m_pos1;
         m_pos2 = s.m_pos2;
         s.m_pos1 = 0;

@@ -59,10 +59,10 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
     return m_buffers[idx];
 }
 
-BufferRef::BufferRef()
+BufferRef::BufferRef(const char *reason)
 {
     m_uniqID = BufferSet::getSingleton()->newBuffer();
-    log_debug("BufferRef created %d", m_uniqID);
+    log_debug("BufferRef created %d, reason: %s", m_uniqID, reason);
 }
 
 BufferRef::~BufferRef()

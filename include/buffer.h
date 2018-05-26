@@ -136,13 +136,14 @@ class BufferSet : public Singleton<BufferSet>
     std::shared_ptr<DynamicBuffer> getBufferByIdx(int32_t idx);
 };
 
+// not thread safe
 class BufferRef : public Noncopyable
 {
     UniqID m_uniqID;
     std::shared_ptr<DynamicBuffer> m_cachedPtr; // lock only once
 
   public:
-    BufferRef();
+    BufferRef(const char *reason);
 
     ~BufferRef();
 
@@ -160,6 +161,6 @@ class BufferRef : public Noncopyable
 
     void recycleBuffer();
 };
-};
+}; // namespace wynet
 
 #endif

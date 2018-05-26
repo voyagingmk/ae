@@ -79,6 +79,8 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
                                        m_key(0),
                                        m_kcpObj(nullptr),
                                        m_connectId(0),
+                                       m_pendingRecvBuf("pendingRecvBuf"),
+                                       m_pendingSendBuf("pendingSendBuf"),
                                        onTcpConnected(nullptr),
                                        onTcpDisconnected(nullptr),
                                        onTcpRecvMessage(nullptr),
