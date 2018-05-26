@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <chrono>
 
 #if TIME_WITH_SYS_TIME
 #include <sys/time.h> /* timeval{} for select() */

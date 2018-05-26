@@ -54,6 +54,7 @@ TcpClient::TcpClient(PtrClient client) : onTcpConnected(nullptr),
 TcpClient::~TcpClient()
 {
     log_debug("~TcpClient()");
+    m_conn->close(true);
     endAsyncConnect();
 }
 

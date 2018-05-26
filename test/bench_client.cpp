@@ -17,7 +17,7 @@ class TestClient
         m_tcpClient = tcpClient;
     }
 
-    static void OnTcpSendComplete(PtrConn conn)
+    void OnTcpSendComplete(PtrConn conn)
     {
         log_debug("[test.OnTcpSendComplete]");
         //      std::string msg(buffer, ret_in);
@@ -29,9 +29,10 @@ class TestClient
 
     void OnTcpConnected(PtrConn conn)
     {
+        m_timeStart = std::chrono::system_clock::now();
         log_debug("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
-        conn->setCallBack_SendComplete(OnTcpSendComplete);
+        conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
         const char *hello = "hello";
         conn->send((const uint8_t *)hello, sizeof(hello));
         // m_net->stopLoop();
@@ -40,24 +41,31 @@ class TestClient
 
     void OnTcpDisconnected(PtrConn conn)
     {
+        m_timeEnd = std::chrono::system_clock::now();
         log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
+        size_t us = std::chrono::duration_cast<std::chrono::microseconds>(m_timeEnd - m_timeStart).count();
+        log_debug("took %d us", us);
         m_net->stopLoop();
     }
 
     void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
     {
-        /*
-        int readOutSize = write(output_fd,
-                                sockBuf.readBegin(),
-                                sockBuf.readableSize());
-        log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", sockBuf.readableSize(), readOutSize);
-        sockBuf.readOut(sockBuf.readableSize());*/
+        size_t bytes = sockBuf.readableSize();
+        log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", bytes);
+        conn->send(sockBuf.readBegin(), bytes);
+        m_bytesRead += bytes;
+        m_bytesWritten += bytes;
+        sockBuf.readOut(bytes);
     }
 
   private:
     WyNet *m_net;
     PtrClient m_client;
     PtrTcpClient m_tcpClient;
+    size_t m_bytesRead;
+    size_t m_bytesWritten;
+    std::chrono::system_clock::time_point m_timeStart;
+    std::chrono::system_clock::time_point m_timeEnd;
 };
 
 WyNet *g_net;

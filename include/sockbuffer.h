@@ -80,17 +80,17 @@ class SockBuffer : public Noncopyable
         return m_bufRef;
     }
 
-    inline int headFreeSize()
+    inline size_t headFreeSize()
     {
         return m_pos1;
     }
 
-    inline int tailFreeSize()
+    inline size_t tailFreeSize()
     {
         return m_bufRef->length() - m_pos2;
     }
 
-    inline int readableSize()
+    inline size_t readableSize()
     {
         return m_pos2 - m_pos1;
     }
@@ -106,9 +106,9 @@ class SockBuffer : public Noncopyable
     // return value = readv/read
     size_t readIn(int sockfd);
 
-    int readOut(int expected)
+    int readOut(size_t expected)
     {
-        expected = std::min(std::max(expected, 0), readableSize());
+        expected = std::min(std::max(expected, static_cast<size_t>(0)), readableSize());
         m_pos1 += expected;
         return expected;
     }

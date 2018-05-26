@@ -91,10 +91,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         m_evtListener->setSockfd(m_sockFdCtrl.sockfd());
     }
 
-    virtual ~TcpConnection()
-    {
-        log_debug("~TcpConnection() %d", m_sockFdCtrl.sockfd());
-    }
+    virtual ~TcpConnection();
 
     TcpConnection &operator=(TcpConnection &&c)
     {

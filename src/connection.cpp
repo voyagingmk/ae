@@ -16,6 +16,11 @@ int testOnTimerEvent(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void
     return LOOP_EVT_NOMORE;
 }
 
+TcpConnection::~TcpConnection()
+{
+    log_debug("~TcpConnection() %d", m_sockFdCtrl.sockfd());
+}
+
 void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
     PtrConnEvtListener l = std::static_pointer_cast<TcpConnectionEventListener>(listener);
