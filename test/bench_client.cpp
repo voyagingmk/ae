@@ -6,8 +6,9 @@ using namespace std::placeholders;
 class TestClient
 {
   public:
-    TestClient(WyNet *net, const char *ip, int port) : m_net(net),
-                                                       m_client(Client::create(net))
+    TestClient(WyNet *net, const char *ip, int port, int timeout) : m_net(net),
+                                                                    m_client(Client::create(net)),
+                                                                    m_timeout(timeout)
     {
         PtrTcpClient tcpClient = m_client->initTcpClient(ip, port);
         tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
@@ -15,6 +16,13 @@ class TestClient
         tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);
         m_net->getPeerManager().addClient(m_client);
         m_tcpClient = tcpClient;
+    }
+
+    int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
+    {
+        log_debug("[test.onTimeout]");
+        m_tcpClient->getConn()->close(true);
+        return -1;
     }
 
     void OnTcpSendComplete(PtrConn conn)
@@ -29,12 +37,16 @@ class TestClient
 
     void OnTcpConnected(PtrConn conn)
     {
-        m_timeStart = std::chrono::system_clock::now();
         log_debug("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
         conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
+
+        m_timeStart = std::chrono::system_clock::now();
         const char *hello = "hello";
         conn->send((const uint8_t *)hello, sizeof(hello));
+        log_debug("m_timeout %d", this->m_timeout);
+        m_tcpClient->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
+
         // m_net->stopLoop();
         //client->getTcpClient();
     }
@@ -43,8 +55,8 @@ class TestClient
     {
         m_timeEnd = std::chrono::system_clock::now();
         log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
-        size_t us = std::chrono::duration_cast<std::chrono::microseconds>(m_timeEnd - m_timeStart).count();
-        log_debug("took %d us", us);
+        size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count();
+        log_debug("took %d ms", ms);
         m_net->stopLoop();
     }
 
@@ -64,6 +76,7 @@ class TestClient
     PtrTcpClient m_tcpClient;
     size_t m_bytesRead;
     size_t m_bytesWritten;
+    int m_timeout;
     std::chrono::system_clock::time_point m_timeStart;
     std::chrono::system_clock::time_point m_timeEnd;
 };
@@ -95,7 +108,7 @@ int main(int argc, char **argv)
     const int threadsNum = 1;
     WyNet net(threadsNum);
     g_net = &net;
-    TestClient testClient(&net, ip, port);
+    TestClient testClient(&net, ip, port, 2000);
     net.startLoop();
     log_info("exit");
     return 0;

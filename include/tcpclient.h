@@ -48,7 +48,14 @@ public:
 
   void connect(const char *host, int port);
 
+  PtrConn getConn()
+  {
+    return m_conn;
+  }
+
   EventLoop &getLoop();
+
+  PtrTcpClientEvtListener getListener();
 
 private:
   void asyncConnect(int sockfd);
@@ -64,15 +71,15 @@ private:
   static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 
 public:
-  PtrConn m_conn;
-  PtrClient m_parent;
-  SockAddr m_sockAddr;
-  PtrTcpClientEvtListener m_evtListener;
   TcpConnection::OnTcpConnected onTcpConnected;
   TcpConnection::OnTcpDisconnected onTcpDisconnected;
   TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
 
 private:
+  PtrConn m_conn;
+  PtrClient m_parent;
+  SockAddr m_sockAddr;
+  PtrTcpClientEvtListener m_evtListener;
   bool m_asyncConnect;
   SockFd m_asyncSockfd;
 };
