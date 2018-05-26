@@ -24,9 +24,9 @@ void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int
         tcpClient->_onTcpDisconnected();
         return;
     }
-    log_debug("OnTcpWritable getsockopt SO_ERROR = %d", error);
     if (error != 0)
     {
+        log_debug("OnTcpWritable getsockopt SO_ERROR = %d", error);
         tcpClient->_onTcpDisconnected();
         return;
     }
@@ -53,6 +53,7 @@ TcpClient::TcpClient(PtrClient client) : onTcpConnected(nullptr),
 
 TcpClient::~TcpClient()
 {
+    log_debug("~TcpClient()");
     endAsyncConnect();
 }
 
@@ -183,7 +184,10 @@ bool TcpClient::isAsyncConnecting()
 
 void TcpClient::endAsyncConnect()
 {
-    log_debug("endAsyncConnect %d", m_asyncSockfd);
+    if (m_evtListener)
+    {
+        log_debug("endAsyncConnect %d", m_asyncSockfd);
+    }
     m_evtListener = nullptr;
     m_asyncConnect = false;
     m_asyncSockfd = 0;

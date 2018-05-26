@@ -65,13 +65,13 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         Connecting,
         Connected,
     };
-    typedef void (*OnTcpConnected)(PtrConn conn);
+    typedef std::function<void(PtrConn)> OnTcpConnected;
 
-    typedef void (*OnTcpDisconnected)(PtrConn conn);
+    typedef std::function<void(PtrConn)> OnTcpDisconnected;
 
-    typedef void (*OnTcpRecvMessage)(PtrConn conn, SockBuffer &sockBuf);
+    typedef std::function<void(PtrConn)> OnTcpSendComplete;
 
-    typedef void (*OnTcpSendComplete)(PtrConn conn);
+    typedef std::function<void(PtrConn, SockBuffer &)> OnTcpRecvMessage;
 
     TcpConnection(SockFd sockfd = 0) : m_loop(nullptr),
                                        m_sockFdCtrl(sockfd),
