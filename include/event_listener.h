@@ -26,7 +26,7 @@ class EventListener : public std::enable_shared_from_this<EventListener>
 
   public:
     EventListener() : m_loop(nullptr),
-                      m_sockFd(0)
+                      m_sockfd(0)
     {
     }
 
@@ -39,9 +39,9 @@ class EventListener : public std::enable_shared_from_this<EventListener>
         return std::make_shared<EventListener>();
     }
 
-    void setSockfd(SockFd sockFd)
+    void setSockfd(SockFd sockfd)
     {
-        m_sockFd = sockFd;
+        m_sockfd = sockfd;
     }
 
     void setEventLoop(EventLoop *loop)
@@ -51,7 +51,7 @@ class EventListener : public std::enable_shared_from_this<EventListener>
 
     SockFd getSockFd()
     {
-        return m_sockFd;
+        return m_sockfd;
     }
 
     EventLoop *getEventLoop()
@@ -67,7 +67,7 @@ class EventListener : public std::enable_shared_from_this<EventListener>
 
   public:
     EventLoop *m_loop;
-    SockFd m_sockFd;
+    SockFd m_sockfd;
     OnFileEvent m_onFileEvent;
 };
 }; // namespace wynet

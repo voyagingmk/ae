@@ -9,6 +9,7 @@ __thread EventLoop *t_threadLoop = nullptr;
 int OnlyForWakeup(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
 {
     const int *ms = (const int *)(data);
+    // log_debug("OnlyForWakeup %d", *ms);
     return *ms;
 }
 
@@ -34,43 +35,52 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, 
 int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
+    int err = 0;
     do
     {
         if (loop->m_aeTimerId2ref.find(aeTimerId) == loop->m_aeTimerId2ref.end())
         {
+            err = 1;
             break;
         }
         TimerRef tr = loop->m_aeTimerId2ref[aeTimerId];
         if (!tr.validate())
         {
+            err = 2;
             break;
         }
         if (loop->m_timerData.find(tr) == loop->m_timerData.end())
         {
+            err = 3;
             break;
         }
         EventLoop::TimerData &td = loop->m_timerData[tr];
         if (!td.m_onTimerEvent)
         {
+            err = 4;
             break;
         }
         PtrEvtListener listener = td.m_listener.lock();
         if (!listener)
         {
+            err = 5;
             break;
         }
         int milliseconds = td.m_onTimerEvent(loop, tr, listener, td.m_data);
         if (milliseconds == AE_NOMORE)
         {
+            err = 6;
             break;
         }
         return milliseconds;
     } while (0);
+    // log_debug("aeOnTimerEvent err %d", err);
     loop->deleteTimerInLoop(aeTimerId);
     return AE_NOMORE;
 }
 
 EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(CurrentThread::tid()),
+                                                               m_ownEvtListener(new EventListener()),
                                                                m_wakeupInterval(wakeupInterval),
                                                                m_doingTask(false)
 {
@@ -95,12 +105,13 @@ void EventLoop::loop()
 {
     assertInLoopThread();
     m_aeloop->stop = 0;
-    AeTimerId aeTimerId = createTimerInLoop(nullptr, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
+    AeTimerId aeTimerId = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
     while (!m_aeloop->stop)
     {
         if (m_aeloop->beforesleep != NULL)
             m_aeloop->beforesleep(m_aeloop);
         aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
+        // log_debug("processTaskQueue");
         processTaskQueue();
     }
     deleteTimerInLoop(aeTimerId);
@@ -210,6 +221,7 @@ AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, int ms, OnTimer
 AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, TimerRef tr, int ms, OnTimerEvent onTimerEvent, void *data)
 {
     assertInLoopThread();
+    // log_debug("createTimerInLoop ms %d", ms);
     AeTimerId aeTimerId = aeCreateTimeEvent(m_aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
     assert(AE_ERR != aeTimerId);
     assert(m_timerData.find(tr) == m_timerData.end());

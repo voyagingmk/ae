@@ -27,12 +27,12 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener liste
 
     if (mask & LOOP_EVT_READABLE)
     {
-        log_debug("[conn] onReadable connfd=%d", conn->connectFd());
+        log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
         conn->onReadable();
     }
     if (mask & LOOP_EVT_WRITABLE)
     {
-        log_debug("[conn] onWritable connfd=%d", conn->connectFd());
+        log_debug("[conn] onWritable sockfd=%d", conn->sockfd());
         conn->onWritable();
     }
     // m_evtListener->createTimer(1000, testOnTimerEvent, nullptr);
@@ -70,7 +70,7 @@ void TcpConnection ::closeInLoop(bool force)
         struct linger l;
         l.l_onoff = 1; /* cause RST to be sent on close() */
         l.l_linger = 0;
-        socketUtils ::sock_setsockopt(connectFd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+        socketUtils ::sock_setsockopt(sockfd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
     }
     if (onTcpDisconnected)
         onTcpDisconnected(shared_from_this());
@@ -92,8 +92,8 @@ void TcpConnection::onReadable()
 {
     getLoop()->assertInLoopThread();
     SockBuffer &sockBuf = sockBuffer();
-    int ret = sockBuf.readIn(connectFd());
-    log_debug("[conn] onReadable, readIn connectFd %d ret %d", connectFd(), ret);
+    int ret = sockBuf.readIn(sockfd());
+    log_debug("[conn] onReadable, readIn sockfd %d ret %d", sockfd(), ret);
     if (ret <= 0)
     {
         if (ret < 0)
@@ -143,7 +143,7 @@ void TcpConnection::onWritable()
     getLoop()->assertInLoopThread();
     int remain = m_pendingSendBuf.readableSize();
     log_debug("[conn] onWritable, remain:%d", remain);
-    int nwrote = ::send(connectFd(), m_pendingSendBuf.readBegin(), m_pendingSendBuf.readableSize(), 0);
+    int nwrote = ::send(sockfd(), m_pendingSendBuf.readBegin(), m_pendingSendBuf.readableSize(), 0);
     log_debug("[conn] onWritable, nwrote:%d", nwrote);
     if (nwrote > 0)
     {
@@ -215,7 +215,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
     else
     {
         // write directly
-        int nwrote = ::send(connectFd(), data, len, 0);
+        int nwrote = ::send(sockfd(), data, len, 0);
         if (nwrote > 0)
         {
             int remain = len - nwrote;

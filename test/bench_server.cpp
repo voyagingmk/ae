@@ -13,9 +13,10 @@ void Stop(int signo)
 
 void OnTcpConnected(PtrConn conn)
 {
-    log_debug("[test.OnTcpConnected] %d", conn->connectId());
+    log_debug("[test.OnTcpConnected] sockfd %d", conn->sockfd());
     conn->getCtrlAsServer()->addConnection(conn);
-    socketUtils::setTcpNoDelay(conn->connectFd(), true);
+    log_debug("addConnection, connectId %d", conn->connectId());
+    socketUtils::setTcpNoDelay(conn->sockfd(), true);
 }
 
 void OnTcpDisconnected(PtrConn conn)

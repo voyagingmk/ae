@@ -141,9 +141,9 @@ void TcpServer::acceptConnection()
 	int listenfd = m_sockFdCtrl.sockfd();
 	struct sockaddr_storage cliAddr;
 	socklen_t len = sizeof(cliAddr);
-	int connfdTcp = accept(listenfd, (struct sockaddr *)&cliAddr, &len);
-	log_debug("acceptConnection fd:%d", connfdTcp);
-	if (connfdTcp < 0)
+	SockFd sockfd = accept(listenfd, (struct sockaddr *)&cliAddr, &len);
+	log_debug("acceptConnection sockfd:%d", sockfd);
+	if (sockfd < 0)
 	{
 		if ((errno == EAGAIN) ||
 			(errno == EWOULDBLOCK) ||
@@ -163,15 +163,14 @@ void TcpServer::acceptConnection()
 	getLoop().assertInLoopThread();
 	EventLoop *ioLoop = getNet()->getThreadPool()->getNextLoop();
 	PtrConn conn;
-	conn = std::make_shared<TcpConnection>();
+	conn = std::make_shared<TcpConnection>(sockfd);
 	conn->setEventLoop(ioLoop);
 	conn->setCtrl(shared_from_this());
-	conn->m_sockFdCtrl.setSockfd(connfdTcp);
 	conn->setCallBack_Connected(onTcpConnected);
 	conn->setCallBack_Disconnected(onTcpDisconnected);
 	conn->setCallBack_Message(onTcpRecvMessage);
-
 	ioLoop->runInLoop(std::bind(&TcpConnection::onEstablished, conn));
+	log_debug("acceptConnection end fd:%d", sockfd);
 }
 
 }; // namespace wynet

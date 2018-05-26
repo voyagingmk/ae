@@ -84,12 +84,14 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
                                        onTcpRecvMessage(nullptr),
                                        onTcpSendComplete(nullptr)
     {
+        log_debug("TcpConnection() %d", sockfd);
         m_evtListener = TcpConnectionEventListener::create();
         m_evtListener->setSockfd(m_sockFdCtrl.sockfd());
     }
 
     virtual ~TcpConnection()
     {
+        log_debug("~TcpConnection() %d", m_sockFdCtrl.sockfd());
     }
 
     TcpConnection &operator=(TcpConnection &&c)
@@ -161,7 +163,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         return m_connectId;
     }
 
-    inline SockFd connectFd()
+    inline SockFd sockfd()
     {
         return m_sockFdCtrl.sockfd();
     }

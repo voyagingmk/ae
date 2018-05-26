@@ -6,36 +6,36 @@ namespace wynet
 
 EventListener::~EventListener()
 {
-    if (m_loop && m_sockFd)
+    if (m_loop && m_sockfd)
     {
-        m_loop->deleteAllFileEvent(m_sockFd);
+        m_loop->deleteAllFileEvent(m_sockfd);
     }
     m_loop = nullptr;
-    m_sockFd = 0;
+    m_sockfd = 0;
 }
 
 void EventListener::createFileEvent(int mask, OnFileEvent onFileEvent)
 {
-    if (m_loop && m_sockFd)
+    if (m_loop && m_sockfd)
     {
         m_onFileEvent = onFileEvent;
         m_loop->createFileEvent(shared_from_this(), mask);
     }
     else
     {
-        log_error("EventListener::createFileEvent no m_loop or m_sockFd");
+        log_error("EventListener::createFileEvent no m_loop or no m_sockfd");
     }
 }
 
 void EventListener::deleteFileEvent(int mask)
 {
-    if (m_loop && m_sockFd)
+    if (m_loop && m_sockfd)
     {
         m_loop->deleteFileEvent(shared_from_this(), mask);
     }
     else
     {
-        log_error("EventListener::deleteFileEvent no m_loop or m_sockFd");
+        log_error("EventListener::deleteFileEvent no m_loop or no m_sockfd");
     }
 }
 
