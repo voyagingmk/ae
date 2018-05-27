@@ -61,6 +61,8 @@ class EventListener : public std::enable_shared_from_this<EventListener>
         return m_loop;
     }
 
+    void deleteAllFileEvent();
+
     void createFileEvent(int mask, OnFileEvent onFileEvent);
 
     void deleteFileEvent(int mask);

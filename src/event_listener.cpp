@@ -12,12 +12,21 @@ EventListener::EventListener() : m_loop(nullptr),
 
 EventListener::~EventListener()
 {
+
+    m_loop = nullptr;
+    m_sockfd = 0;
+}
+
+void EventListener::deleteAllFileEvent()
+{
     if (m_loop && m_sockfd)
     {
         m_loop->deleteAllFileEvent(m_sockfd);
     }
-    m_loop = nullptr;
-    m_sockfd = 0;
+    else
+    {
+        log_error("EventListener::deleteAllFileEvent no m_loop or no m_sockfd");
+    }
 }
 
 void EventListener::createFileEvent(int mask, OnFileEvent onFileEvent)
