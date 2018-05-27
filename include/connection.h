@@ -39,9 +39,11 @@ class TcpConnectionEventListener : public EventListener
         return conn;
     }
 
-    static PtrConnEvtListener create()
+    static PtrConnEvtListener create(SockFd sockfd)
     {
-        return std::make_shared<TcpConnectionEventListener>();
+        PtrConnEvtListener l = std::make_shared<TcpConnectionEventListener>();
+        l->setSockfd(sockfd);
+        return l;
     }
     /*
     static PtrEvtListener create()
@@ -87,8 +89,8 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
                                        onTcpSendComplete(nullptr)
     {
         log_debug("TcpConnection() %d", sockfd);
-        m_evtListener = TcpConnectionEventListener::create();
-        m_evtListener->setSockfd(m_sockFdCtrl.sockfd());
+        m_evtListener = TcpConnectionEventListener::create(sockfd);
+        m_evtListener->setName(std::string("TcpConnectionEventListener"));
     }
 
     virtual ~TcpConnection();
@@ -107,6 +109,11 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     {
         m_loop = l;
         m_evtListener->setEventLoop(m_loop);
+    }
+
+    PtrConnEvtListener getListener()
+    {
+        return m_evtListener;
     }
 
     void setCtrl(PtrTcpServer ctrl)

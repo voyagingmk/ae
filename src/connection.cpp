@@ -226,7 +226,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
         if (nwrote > 0)
         {
             int remain = len - nwrote;
-            log_debug("[conn] send, len:%d, nwrote:%d, remain:%d", len, nwrote, remain);
+            log_debug("[conn] send sockfd %d, len:%d, nwrote:%d, remain:%d", sockfd(), len, nwrote, remain);
             if (remain > 0)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);

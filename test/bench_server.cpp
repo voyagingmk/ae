@@ -11,9 +11,20 @@ void Stop(int signo)
     g_net->stopLoop();
 }
 
+void OnTcpSendComplete(PtrConn conn)
+{
+    log_debug("[test.OnTcpSendComplete]");
+    //      std::string msg(buffer, ret_in);
+    //      conn->send(msg);
+
+    //      m_net->stopLoop();
+    //
+}
+
 void OnTcpConnected(PtrConn conn)
 {
     log_debug("[test.OnTcpConnected] sockfd %d", conn->sockfd());
+    conn->setCallBack_SendComplete(&OnTcpSendComplete);
     conn->getCtrlAsServer()->addConnection(conn);
     log_debug("addConnection, connectId %d", conn->connectId());
     socketUtils::setTcpNoDelay(conn->sockfd(), true);

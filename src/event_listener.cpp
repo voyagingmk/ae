@@ -4,6 +4,12 @@
 namespace wynet
 {
 
+EventListener::EventListener() : m_loop(nullptr),
+                                 m_sockfd(0)
+{
+    log_debug("EventListener() sockfd %d", m_sockfd);
+}
+
 EventListener::~EventListener()
 {
     if (m_loop && m_sockfd)
@@ -31,7 +37,7 @@ void EventListener::deleteFileEvent(int mask)
 {
     if (m_loop && m_sockfd)
     {
-        m_loop->deleteFileEvent(shared_from_this(), mask);
+        m_loop->deleteFileEvent(getSockFd(), mask);
     }
     else
     {
@@ -51,4 +57,4 @@ TimerRef EventListener::createTimer(int ms, OnTimerEvent onTimerEvent, void *dat
         return TimerRef(0);
     }
 }
-};
+}; // namespace wynet

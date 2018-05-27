@@ -55,8 +55,6 @@ public:
 
   EventLoop &getLoop();
 
-  PtrTcpClientEvtListener getListener();
-
 private:
   void asyncConnect(int sockfd);
 

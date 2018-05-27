@@ -81,7 +81,6 @@ void TcpClient::connect(const char *host, int port)
     ressave = res;
     int ret;
     int sockfd;
-    endAsyncConnect(); // previous connect
     do
     {
         sockfd = 0;
@@ -153,7 +152,6 @@ EventLoop &TcpClient::getLoop()
 
 void TcpClient::_onTcpConnected(int sockfd)
 {
-    getListener()->setSockfd(sockfd);
     m_conn = std::make_shared<TcpConnection>(sockfd);
     m_conn->setEventLoop(&getLoop());
     m_conn->setCtrl(shared_from_this());
@@ -175,8 +173,12 @@ void TcpClient::asyncConnect(int sockfd)
         endAsyncConnect();
     }
     log_debug("asyncConnect %d", sockfd);
-    getListener()->setSockfd(sockfd);
-    getListener()->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
+    m_evtListener = TcpClientEventListener::create();
+    m_evtListener->setName(std::string("asyncConnect"));
+    m_evtListener->setEventLoop(&getLoop());
+    m_evtListener->setTcpClient(shared_from_this());
+    m_evtListener->setSockfd(sockfd);
+    m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
     m_asyncSockfd = sockfd;
 }
 
@@ -189,22 +191,12 @@ void TcpClient::endAsyncConnect()
 {
     if (m_evtListener)
     {
-        log_debug("endAsyncConnect %d", m_asyncSockfd);
+        log_debug("endAsyncConnect %d use_count %d", m_asyncSockfd, m_evtListener.use_count());
     }
     m_evtListener = nullptr;
+    log_debug("m_evtListener = nullptr");
     m_asyncConnect = false;
     m_asyncSockfd = 0;
-}
-
-PtrTcpClientEvtListener TcpClient::getListener()
-{
-    if (!m_evtListener)
-    {
-        m_evtListener = TcpClientEventListener::create();
-        m_evtListener->setEventLoop(&getLoop());
-        m_evtListener->setTcpClient(shared_from_this());
-    }
-    return m_evtListener;
 }
 
 }; // namespace wynet

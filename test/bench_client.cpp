@@ -49,7 +49,7 @@ class TestClient
         const char *hello = "hello";
         conn->send((const uint8_t *)hello, sizeof(hello));
         log_debug("m_timeout %d", this->m_timeout);
-        m_tcpClient->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
+        conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
 
         // m_net->stopLoop();
         //client->getTcpClient();
