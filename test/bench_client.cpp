@@ -6,12 +6,12 @@ using namespace std::placeholders;
 class TestClient
 {
   public:
-    TestClient(WyNet *net, const char *ip, int port, int timeout) : m_net(net),
-                                                                    m_client(Client::create(net)),
-                                                                    m_messagesRead(0),
-                                                                    m_bytesRead(0),
-                                                                    m_bytesWritten(0),
-                                                                    m_timeout(timeout)
+    TestClient(WyNet *net, const char *ip, int port, int blockSize, int timeout) : m_net(net),
+                                                                                   m_client(Client::create(net)),
+                                                                                   m_messagesRead(0),
+                                                                                   m_bytesRead(0),
+                                                                                   m_bytesWritten(0),
+                                                                                   m_timeout(timeout)
     {
         PtrTcpClient tcpClient = m_client->newTcpClient();
         tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
@@ -20,6 +20,11 @@ class TestClient
         tcpClient->connect(ip, port);
         m_net->getPeerManager().addClient(m_client);
         m_tcpClient = tcpClient;
+
+        for (int i = 0; i < blockSize; ++i)
+        {
+            m_message.push_back(static_cast<char>(i % 128));
+        }
     }
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
@@ -46,8 +51,7 @@ class TestClient
         conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
 
         m_timeStart = std::chrono::system_clock::now();
-        const char *hello = "hello";
-        conn->send((const uint8_t *)hello, sizeof(hello));
+        conn->send(m_message);
         log_debug("m_timeout %d", this->m_timeout);
         conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
 
@@ -64,7 +68,7 @@ class TestClient
         log_info("total bytes read: %d", m_bytesRead);
         log_info("total messages read: %d", m_messagesRead);
         log_info("average message size: %d", static_cast<int>(static_cast<double>(m_bytesRead) / static_cast<double>(m_messagesRead)));
-        log_info("%f MiB/s throughput", static_cast<double>(m_bytesRead) / (m_timeout * 1024 * 1024));
+        log_info("%f MiB/s throughput", static_cast<double>(m_bytesRead) / (m_timeout * 1024 * 1024 / 1000));
         m_net->stopLoop();
     }
 
@@ -87,6 +91,7 @@ class TestClient
     size_t m_bytesRead;
     size_t m_bytesWritten;
     int m_timeout;
+    std::string m_message;
     std::chrono::system_clock::time_point m_timeStart;
     std::chrono::system_clock::time_point m_timeEnd;
 };
@@ -100,9 +105,9 @@ void Stop(int signo)
 
 int main(int argc, char **argv)
 {
-    if (argc < 3)
+    if (argc < 4)
     {
-        fprintf(stderr, "cmd args: <address> <port>\n");
+        fprintf(stderr, "cmd args: <address> <port> <blockSize>\n");
         return -1;
     }
     signal(SIGPIPE, SIG_IGN);
@@ -115,10 +120,11 @@ int main(int argc, char **argv)
 
     const char *ip = argv[1];
     int port = static_cast<int>(atoi(argv[2]));
+    int blocksize = static_cast<int>(atoi(argv[3]));
     const int threadsNum = 1;
     WyNet net(threadsNum);
     g_net = &net;
-    TestClient testClient(&net, ip, port, 2000);
+    TestClient testClient(&net, ip, port, blocksize, 2000);
     net.startLoop();
     log_info("exit");
     return 0;
