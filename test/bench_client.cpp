@@ -126,6 +126,7 @@ int main(int argc, char **argv)
     const int threadsNum = 1;
     WyNet net(threadsNum);
     g_net = &net;
+    log_info("testClient");
     TestClient testClient(&net, ip, port, blocksize, seconds * 1000);
     net.startLoop();
     log_info("exit");

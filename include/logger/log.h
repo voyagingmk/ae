@@ -1,7 +1,7 @@
 #ifndef WY_LOG_H
 #define WY_LOG_H
 
-#include <memory>
+#include "common.h"
 
 namespace wynet
 {
@@ -16,8 +16,13 @@ enum class LOG_LEVEL
     LOG_FATAL
 };
 
+#ifdef DEBUG_MODE
 #define log_trace(...) log_log(wynet::LOG_LEVEL::LOG_TRACE, __FILE__, __LINE__, __VA_ARGS__)
 #define log_debug(...) log_log(wynet::LOG_LEVEL::LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#else
+#define log_trace(...)
+#define log_debug(...)
+#endif
 #define log_info(...) log_log(wynet::LOG_LEVEL::LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define log_warn(...) log_log(wynet::LOG_LEVEL::LOG_WARN, __FILE__, __LINE__, __VA_ARGS__)
 #define log_error(...) log_log(wynet::LOG_LEVEL::LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)

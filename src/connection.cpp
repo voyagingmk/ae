@@ -260,6 +260,5 @@ bool TcpConnection::isPending()
 
 int TcpConnection::getPendingSize()
 {
-    int remain = m_pendingSendBuf.readableSize();
-    return remain;
+    return m_pendingSendBuf.readableSize();
 }

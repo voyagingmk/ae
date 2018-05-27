@@ -217,6 +217,8 @@ int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force)
     log_debug("socket_utils.SetSockRecvBufSize %d, %d", sockfd, newRcvBuf);
 }
 
+#ifdef DEBUG_MODE
+
 void LogSocketState(int sockfd)
 {
     log_debug("---- LogSocketState %d ----", sockfd);
@@ -265,6 +267,8 @@ void LogSocketState(int sockfd)
 
     log_debug("---- LogSocketState End %d ----", sockfd);
 }
+
+#endif
 
 }; // namespace socketUtils
 }; // namespace wynet
