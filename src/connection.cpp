@@ -149,8 +149,9 @@ void TcpConnection::onWritable()
 {
     getLoop()->assertInLoopThread();
     int remain = m_pendingSendBuf.readableSize();
+    assert(remain > 0);
     log_debug("[conn] onWritable, remain:%d", remain);
-    int nwrote = ::send(sockfd(), m_pendingSendBuf.readBegin(), m_pendingSendBuf.readableSize(), 0);
+    int nwrote = ::send(sockfd(), m_pendingSendBuf.readBegin(), remain, 0);
     log_debug("[conn] onWritable, nwrote:%d", nwrote);
     if (nwrote > 0)
     {
