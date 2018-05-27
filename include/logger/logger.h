@@ -20,7 +20,7 @@ public:
 
   ~Logger();
 
-  void append(const char *logline, int len);
+  void append(const char *logline, size_t len);
 
   void start();
 
@@ -48,5 +48,5 @@ private:
   BufferPtrVector m_fulledBuffers;
   BufferPtrVector m_freeBuffers;
 };
-}
+} // namespace wynet
 #endif

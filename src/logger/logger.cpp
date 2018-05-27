@@ -33,7 +33,7 @@ Logger::~Logger()
     }
 }
 
-void Logger::append(const char *logline, int len)
+void Logger::append(const char *logline, size_t len)
 {
     if (!m_running)
     {
@@ -134,4 +134,4 @@ void Logger::threadEntry()
         output.flush();
     }
 }
-};
+}; // namespace wynet
