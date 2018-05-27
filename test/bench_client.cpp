@@ -75,6 +75,7 @@ class TestClient
         conn->send(sockBuf.readBegin(), bytes);
         m_bytesRead += bytes;
         m_bytesWritten += bytes;
+        ++m_messagesRead;
         sockBuf.readOut(bytes);
     }
 
