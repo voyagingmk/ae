@@ -31,7 +31,7 @@ class Client : public Noncopyable, public std::enable_shared_from_this<Client>
 
     ~Client();
 
-    PtrTcpClient initTcpClient(const char *host, int tcpPort);
+    PtrTcpClient newTcpClient();
 
     PtrTcpClient getTcpClient() const
     {

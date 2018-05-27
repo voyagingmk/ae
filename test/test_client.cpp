@@ -99,10 +99,11 @@ int main(int argc, char **argv)
 
     log_info("aeGetApiName: %s", aeGetApiName());
     PtrClient client = Client::create(&net);
-    PtrTcpClient tcpClient = client->initTcpClient("127.0.0.1", 9998);
+    PtrTcpClient tcpClient = client->newTcpClient();
     tcpClient->onTcpConnected = &OnTcpConnected;
     tcpClient->onTcpDisconnected = &OnTcpDisconnected;
     tcpClient->onTcpRecvMessage = &OnTcpRecvMessage;
+    tcpClient->connect("127.0.0.1", 9998);
     net.getPeerManager().addClient(client);
     net.startLoop();
     ::close(input_fd);

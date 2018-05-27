@@ -8,15 +8,16 @@ class TestClient
   public:
     TestClient(WyNet *net, const char *ip, int port, int timeout) : m_net(net),
                                                                     m_client(Client::create(net)),
+                                                                    m_messagesRead(0),
                                                                     m_bytesRead(0),
                                                                     m_bytesWritten(0),
-                                                                    m_messagesRead(0),
                                                                     m_timeout(timeout)
     {
-        PtrTcpClient tcpClient = m_client->initTcpClient(ip, port);
+        PtrTcpClient tcpClient = m_client->newTcpClient();
         tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
         tcpClient->onTcpDisconnected = std::bind(&TestClient::OnTcpDisconnected, this, _1);
         tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);
+        tcpClient->connect(ip, port);
         m_net->getPeerManager().addClient(m_client);
         m_tcpClient = tcpClient;
     }

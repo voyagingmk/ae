@@ -19,10 +19,9 @@ Client::~Client()
 {
 }
 
-PtrTcpClient Client::initTcpClient(const char *host, int tcpPort)
+PtrTcpClient Client::newTcpClient()
 {
     PtrTcpClient tcpClient = std::make_shared<TcpClient>(shared_from_this());
-    tcpClient->connect(host, tcpPort);
     m_tcpClient = tcpClient;
     return tcpClient;
 }
