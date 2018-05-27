@@ -8,6 +8,9 @@ class TestClient
   public:
     TestClient(WyNet *net, const char *ip, int port, int timeout) : m_net(net),
                                                                     m_client(Client::create(net)),
+                                                                    m_bytesRead(0),
+                                                                    m_bytesWritten(0),
+                                                                    m_messagesRead(0),
                                                                     m_timeout(timeout)
     {
         PtrTcpClient tcpClient = m_client->initTcpClient(ip, port);
@@ -56,7 +59,11 @@ class TestClient
         m_timeEnd = std::chrono::system_clock::now();
         log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
         size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count();
-        log_debug("took %d ms", ms);
+        log_info("took %d ms", ms);
+        log_info("total bytes read: %d", m_bytesRead);
+        log_info("total messages read: %d", m_messagesRead);
+        log_info("average message size: %d", static_cast<int>(static_cast<double>(m_bytesRead) / static_cast<double>(m_messagesRead)));
+        log_info("%f MiB/s throughput", static_cast<double>(m_bytesRead) / (m_timeout * 1024 * 1024));
         m_net->stopLoop();
     }
 
@@ -74,6 +81,7 @@ class TestClient
     WyNet *m_net;
     PtrClient m_client;
     PtrTcpClient m_tcpClient;
+    size_t m_messagesRead;
     size_t m_bytesRead;
     size_t m_bytesWritten;
     int m_timeout;

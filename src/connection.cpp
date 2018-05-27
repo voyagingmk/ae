@@ -23,10 +23,12 @@ TcpConnection::~TcpConnection()
 
 void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
+    log_debug("[conn] OnConnectionEvent");
     PtrConnEvtListener l = std::static_pointer_cast<TcpConnectionEventListener>(listener);
     PtrConn conn = l->getTcpConnection();
     if (!conn)
     {
+        log_debug("[conn] no conn");
         return;
     }
 

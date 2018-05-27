@@ -13,6 +13,11 @@ void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int
     log_debug("TcpClient::OnTcpWritable");
     PtrTcpClientEvtListener l = std::static_pointer_cast<TcpClientEventListener>(listener);
     std::shared_ptr<TcpClient> tcpClient = l->getTcpClient();
+    if (!tcpClient)
+    {
+        log_debug("OnTcpWritable no tcpClient");
+        return;
+    }
     SockFd asyncSockfd = tcpClient->m_asyncSockfd;
     tcpClient->endAsyncConnect();
     int error;
