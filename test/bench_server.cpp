@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     signal(SIGINT, Stop);
 
     // log_file("bench_server");
-    log_level(LOG_LEVEL::LOG_DEBUG);
+    log_level(LOG_LEVEL::LOG_INFO);
     log_lineinfo(false);
     // log_file_start();
 

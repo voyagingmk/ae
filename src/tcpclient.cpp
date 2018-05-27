@@ -191,9 +191,8 @@ void TcpClient::endAsyncConnect()
 {
     if (m_evtListener)
     {
-        log_debug("endAsyncConnect %d use_count %d", m_asyncSockfd, m_evtListener.use_count());
+        m_evtListener->deleteAllFileEvent();
     }
-    m_evtListener->deleteAllFileEvent();
     m_evtListener = nullptr;
     log_debug("m_evtListener = nullptr");
     m_asyncConnect = false;

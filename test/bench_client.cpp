@@ -65,10 +65,11 @@ class TestClient
         log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
         size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count();
         log_info("took %d ms", ms);
-        log_info("total bytes read: %d", m_bytesRead);
-        log_info("total messages read: %d", m_messagesRead);
-        log_info("average message size: %d", static_cast<int>(static_cast<double>(m_bytesRead) / static_cast<double>(m_messagesRead)));
-        log_info("%f MiB/s throughput", static_cast<double>(m_bytesRead) / (m_timeout * 1024 * 1024 / 1000));
+        log_info("total bytes read: %lld", m_bytesRead);
+        log_info("total messages read: %lld", m_messagesRead);
+        log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(m_bytesRead) / static_cast<double>(m_messagesRead)));
+        log_info("%f MiB/s throughput",
+                 static_cast<double>(m_bytesRead) / static_cast<int64_t>((m_timeout * 1024 * 1024 / 1000)));
         m_net->stopLoop();
     }
 
@@ -87,9 +88,9 @@ class TestClient
     WyNet *m_net;
     PtrClient m_client;
     PtrTcpClient m_tcpClient;
-    size_t m_messagesRead;
-    size_t m_bytesRead;
-    size_t m_bytesWritten;
+    int64_t m_messagesRead;
+    int64_t m_bytesRead;
+    int64_t m_bytesWritten;
     int m_timeout;
     std::string m_message;
     std::chrono::system_clock::time_point m_timeStart;
@@ -105,26 +106,27 @@ void Stop(int signo)
 
 int main(int argc, char **argv)
 {
-    if (argc < 4)
+    if (argc < 5)
     {
-        fprintf(stderr, "cmd args: <address> <port> <blockSize>\n");
+        fprintf(stderr, "cmd args: <address> <port> <blockSize> <time>\n");
         return -1;
     }
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
 
     // log_file("bench_client");
-    log_level(LOG_LEVEL::LOG_DEBUG);
+    log_level(LOG_LEVEL::LOG_INFO);
     log_lineinfo(false);
     // log_file_start();
 
     const char *ip = argv[1];
-    int port = static_cast<int>(atoi(argv[2]));
-    int blocksize = static_cast<int>(atoi(argv[3]));
+    int port = atoi(argv[2]);
+    int blocksize = atoi(argv[3]);
+    int seconds = atoi(argv[4]);
     const int threadsNum = 1;
     WyNet net(threadsNum);
     g_net = &net;
-    TestClient testClient(&net, ip, port, blocksize, 2000);
+    TestClient testClient(&net, ip, port, blocksize, seconds * 1000);
     net.startLoop();
     log_info("exit");
     return 0;
