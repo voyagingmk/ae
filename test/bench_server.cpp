@@ -74,9 +74,10 @@ int main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
 
-    // log_file("bench_server");
+    //  log_file("bench_server");
     log_level(LOG_LEVEL::LOG_DEBUG);
     log_lineinfo(false);
+    // log_console(false);
     // log_file_start();
 
     const char *ip = argv[1];

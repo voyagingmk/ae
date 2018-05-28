@@ -114,10 +114,11 @@ int main(int argc, char **argv)
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, Stop);
 
-    // log_file("bench_client");
+    //  log_file("bench_client");
     log_level(LOG_LEVEL::LOG_DEBUG);
     log_lineinfo(false);
-    // log_file_start();
+    //  log_console(false);
+    //  log_file_start();
 
     const char *ip = argv[1];
     int port = atoi(argv[2]);

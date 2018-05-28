@@ -34,7 +34,7 @@ class Condition : Noncopyable
         ClockTime nowtime(ClockTime::getNowTime());
         ClockTime duration(seconds);
         nowtime += duration;
-        return ETIMEDOUT == pthread_cond_timedwait(&m_cond, m_mutex.getRawPointer(), &nowtime.ts);
+        return ETIMEDOUT == pthread_cond_timedwait(&m_cond, m_mutex.getRawPointer(), &nowtime.getTimespec());
     }
 
     void notify()
@@ -51,6 +51,6 @@ class Condition : Noncopyable
     MutexLock &m_mutex;
     pthread_cond_t m_cond;
 };
-}
+} // namespace wynet
 
 #endif
