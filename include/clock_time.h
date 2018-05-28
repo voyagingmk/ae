@@ -8,10 +8,16 @@
 namespace wynet
 {
 
-class ClockTimeC
+class ClockTime
 {
   public:
-    ClockTimeC(double duration)
+    ClockTime()
+    {
+        m_ts.tv_nsec = 0;
+        m_ts.tv_sec = 0;
+    }
+
+    ClockTime(double duration)
     {
         long seconds = static_cast<long>(duration);
         double fraction = duration - seconds;
@@ -20,23 +26,28 @@ class ClockTimeC
         m_ts.tv_sec = seconds;
     }
 
-    ClockTimeC()
+    ClockTime(const ClockTime &t)
     {
-        m_ts.tv_nsec = 0;
-        m_ts.tv_sec = 0;
+        m_ts.tv_nsec = t.m_ts.tv_nsec;
+        m_ts.tv_sec = t.m_ts.tv_sec;
     }
 
-    ClockTimeC(struct timespec _ts)
+    ClockTime(const timespec &_ts)
     {
         m_ts = _ts;
     }
 
-    ClockTimeC &operator+=(ClockTimeC &ct)
+    ClockTime &operator+=(const ClockTime &ct)
     {
         int64_t nanoseconds = m_ts.tv_nsec + ct.m_ts.tv_nsec;
         m_ts.tv_nsec = nanoseconds % kNanoSecondsPerSecond;
         m_ts.tv_sec = m_ts.tv_sec + ct.m_ts.tv_sec + (nanoseconds / kNanoSecondsPerSecond);
         return *this;
+    }
+
+    bool operator==(const ClockTime &ct)
+    {
+        return m_ts.tv_sec == ct.m_ts.tv_sec && m_ts.tv_nsec == ct.m_ts.tv_nsec;
     }
 
     void debugFormat(char *buf, int bufLength)
@@ -47,6 +58,22 @@ class ClockTimeC
     timespec &getTimespec()
     {
         return m_ts;
+    }
+
+    static std::chrono::nanoseconds toChrono(ClockTime &ct)
+    {
+        std::chrono::nanoseconds s = std::chrono::seconds(ct.m_ts.tv_sec) + std::chrono::nanoseconds(ct.m_ts.tv_nsec);
+        return s;
+    }
+
+    template <typename Duration>
+    static ClockTime fromChrono(const Duration &d)
+    {
+        timespec ts;
+        std::chrono::seconds sec = std::chrono::duration_cast<std::chrono::seconds>(d);
+        ts.tv_sec = sec.count();
+        ts.tv_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(d - sec).count();
+        return ClockTime(ts);
     }
 
     static timespec getNowTime()
@@ -62,8 +89,6 @@ class ClockTimeC
   private:
     static const int64_t kNanoSecondsPerSecond = 1000 * 1000 * 1000;
 };
-
-typedef ClockTimeC ClockTime;
 
 }; // namespace wynet
 
