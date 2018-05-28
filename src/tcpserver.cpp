@@ -29,6 +29,7 @@ TcpServer::TcpServer(PtrServer parent) : m_parent(parent),
 										 onTcpDisconnected(nullptr),
 										 onTcpRecvMessage(nullptr)
 {
+	log_trace("TcpServer()");
 	m_evtListener = TcpServerEventListener::create();
 	m_evtListener->setEventLoop(&getLoop());
 	// optional
@@ -124,6 +125,7 @@ void TcpServer::startListen(const char *host, int port)
 
 TcpServer::~TcpServer()
 {
+	log_trace("~TcpServer()");
 }
 
 WyNet *TcpServer::getNet() const

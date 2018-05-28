@@ -194,7 +194,6 @@ void TcpClient::endAsyncConnect()
         m_evtListener->deleteAllFileEvent();
     }
     m_evtListener = nullptr;
-    log_debug("m_evtListener = nullptr");
     m_asyncConnect = false;
     m_asyncSockfd = 0;
 }

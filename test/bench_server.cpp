@@ -1,46 +1,67 @@
 #include "net.h"
 #include "logger/logger.h"
 using namespace wynet;
+using namespace std::placeholders;
+
+class TestServer
+{
+
+  public:
+    TestServer(WyNet *net, const char *ip, int port) : m_net(net)
+    {
+        PtrServer server = Server::create(net);
+        m_server = server;
+        PtrTcpServer tcpServer = server->initTcpServer(strcmp(ip, "") == 0 ? NULL : ip, port);
+        tcpServer->onTcpConnected = std::bind(&TestServer::OnTcpConnected, this, _1);
+        tcpServer->onTcpDisconnected = std::bind(&TestServer::OnTcpDisconnected, this, _1);
+        tcpServer->onTcpRecvMessage = std::bind(&TestServer::OnTcpRecvMessage, this, _1, _2);
+        m_tcpServer = tcpServer;
+        net->getPeerManager().addServer(server);
+    }
+
+    void OnTcpConnected(PtrConn conn)
+    {
+        log_debug("[test.OnTcpConnected] sockfd %d", conn->sockfd());
+        conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
+        conn->getCtrlAsServer()->addConnection(conn);
+        log_debug("addConnection, connectId %d", conn->connectId());
+        socketUtils::setTcpNoDelay(conn->sockfd(), true);
+    }
+
+    void OnTcpDisconnected(PtrConn conn)
+    {
+        log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
+        conn->getCtrlAsServer()->removeConnection(conn);
+    }
+
+    void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
+    {
+        log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
+        conn->send(sockBuf.readBegin(), sockBuf.readableSize());
+        sockBuf.readOut(sockBuf.readableSize());
+    }
+
+    void OnTcpSendComplete(PtrConn conn)
+    {
+        log_debug("[test.OnTcpSendComplete]");
+        //      std::string msg(buffer, ret_in);
+        //      conn->send(msg);
+
+        //      m_net->stopLoop();
+        //
+    }
+
+  private:
+    WyNet *m_net;
+    PtrServer m_server;
+    PtrTcpServer m_tcpServer;
+};
 
 WyNet *g_net;
-char lineBuffer[1024];
-PtrConn g_conn;
 
 void Stop(int signo)
 {
     g_net->stopLoop();
-}
-
-void OnTcpSendComplete(PtrConn conn)
-{
-    log_debug("[test.OnTcpSendComplete]");
-    //      std::string msg(buffer, ret_in);
-    //      conn->send(msg);
-
-    //      m_net->stopLoop();
-    //
-}
-
-void OnTcpConnected(PtrConn conn)
-{
-    log_debug("[test.OnTcpConnected] sockfd %d", conn->sockfd());
-    conn->setCallBack_SendComplete(&OnTcpSendComplete);
-    conn->getCtrlAsServer()->addConnection(conn);
-    log_debug("addConnection, connectId %d", conn->connectId());
-    socketUtils::setTcpNoDelay(conn->sockfd(), true);
-}
-
-void OnTcpDisconnected(PtrConn conn)
-{
-    log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
-    conn->getCtrlAsServer()->removeConnection(conn);
-}
-
-void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
-{
-    log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
-    conn->send(sockBuf.readBegin(), sockBuf.readableSize());
-    sockBuf.readOut(sockBuf.readableSize());
 }
 
 int main(int argc, char **argv)
@@ -54,7 +75,7 @@ int main(int argc, char **argv)
     signal(SIGINT, Stop);
 
     // log_file("bench_server");
-    log_level(LOG_LEVEL::LOG_INFO);
+    log_level(LOG_LEVEL::LOG_DEBUG);
     log_lineinfo(false);
     // log_file_start();
 
@@ -66,13 +87,8 @@ int main(int argc, char **argv)
         threadsNum = 1;
     }
     WyNet net(threadsNum);
+    TestServer server(&net, ip, port);
     g_net = &net;
-    PtrServer server = Server::create(&net);
-    PtrTcpServer tcpServer = server->initTcpServer(strcmp(ip, "") == 0 ? NULL : ip, port);
-    tcpServer->onTcpConnected = &OnTcpConnected;
-    tcpServer->onTcpDisconnected = &OnTcpDisconnected;
-    tcpServer->onTcpRecvMessage = &OnTcpRecvMessage;
-    net.getPeerManager().addServer(server);
     net.startLoop();
     return 0;
 }
