@@ -31,7 +31,11 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener liste
         log_debug("[conn] no conn");
         return;
     }
-
+    if (conn->getState() == TcpConnection::State::Disconnected)
+    {
+        log_debug("[conn] OnConnectionEvent after Disconnected");
+        return;
+    }
     if (mask & LOOP_EVT_READABLE)
     {
         log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
@@ -149,7 +153,10 @@ void TcpConnection::onWritable()
 {
     getLoop()->assertInLoopThread();
     int remain = m_pendingSendBuf.readableSize();
-    assert(remain > 0);
+    if (remain <= 0)
+    {
+        log_warn("TcpConnection::onWritable remain <= 0");
+    }
     log_debug("[conn] onWritable, remain:%d", remain);
     int nwrote = ::send(sockfd(), m_pendingSendBuf.readBegin(), remain, 0);
     log_debug("[conn] onWritable, nwrote:%d", nwrote);

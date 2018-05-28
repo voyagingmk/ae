@@ -66,7 +66,8 @@
         "random": "cpp",
         "stack": "cpp",
         "slist": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "ae_select.c": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

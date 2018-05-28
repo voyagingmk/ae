@@ -209,6 +209,11 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
 
     int getPendingSize();
 
+    State getState()
+    {
+        return m_state;
+    }
+
   protected:
     static void OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 
