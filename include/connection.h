@@ -199,7 +199,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         onTcpSendComplete = cb;
     }
 
-    void close(bool force);
+    void close(bool force = false);
 
     void send(const uint8_t *data, const size_t len);
 

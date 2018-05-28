@@ -20,16 +20,21 @@ public:
 
   virtual ~SocketFdCtrl()
   {
-    if (m_sockfd)
-    {
-      ::close(m_sockfd);
-    }
+    close();
     m_sockfd = 0;
   }
 
   void setSockfd(SockFd sockfd) { m_sockfd = sockfd; }
 
   inline SockFd sockfd() const { return m_sockfd; }
+
+  void close()
+  {
+    if (m_sockfd)
+    {
+      ::close(m_sockfd);
+    }
+  }
 
 public:
   SockFd m_sockfd;

@@ -1,24 +1,27 @@
 #include "net.h"
 #include "logger/logger.h"
 #include "utils.h"
+
 using namespace wynet;
 using namespace std::placeholders;
+
 class TestClient
 {
   public:
     TestClient(WyNet *net, const char *ip, int port, int blockSize, int timeout) : m_net(net),
-                                                                                   m_client(Client::create(net)),
+                                                                                   m_clientId(0),
                                                                                    m_messagesRead(0),
                                                                                    m_bytesRead(0),
                                                                                    m_bytesWritten(0),
                                                                                    m_timeout(timeout)
     {
-        PtrTcpClient tcpClient = m_client->newTcpClient();
+        PtrClient client = Client::create(net);
+        PtrTcpClient tcpClient = client->newTcpClient();
         tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
         tcpClient->onTcpDisconnected = std::bind(&TestClient::OnTcpDisconnected, this, _1);
         tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);
         tcpClient->connect(ip, port);
-        m_net->getPeerManager().addClient(m_client);
+        m_clientId = m_net->getPeerManager().addClient(client);
         m_tcpClient = tcpClient;
 
         for (int i = 0; i < blockSize; ++i)
@@ -27,10 +30,18 @@ class TestClient
         }
     }
 
+    ~TestClient()
+    {
+        if (m_clientId)
+        {
+            m_net->getPeerManager().removeClient(m_clientId);
+        }
+    }
+
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
         log_debug("[test.onTimeout]");
-        m_tcpClient->getConn()->close(true);
+        m_tcpClient->getConn()->close(false);
         return -1;
     }
 
@@ -54,7 +65,6 @@ class TestClient
         conn->send(m_message);
         log_debug("m_timeout %d", this->m_timeout);
         conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
-
         // m_net->stopLoop();
         //client->getTcpClient();
     }
@@ -86,7 +96,7 @@ class TestClient
 
   private:
     WyNet *m_net;
-    PtrClient m_client;
+    UniqID m_clientId;
     PtrTcpClient m_tcpClient;
     int64_t m_messagesRead;
     int64_t m_bytesRead;

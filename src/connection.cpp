@@ -18,6 +18,11 @@ int testOnTimerEvent(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void
 
 TcpConnection::~TcpConnection()
 {
+    if (m_evtListener)
+    {
+        m_evtListener->deleteAllFileEvent();
+    }
+    m_evtListener = nullptr;
     log_debug("~TcpConnection() %d", m_sockFdCtrl.sockfd());
 }
 
@@ -75,9 +80,11 @@ void TcpConnection ::closeInLoop(bool force)
     }
     log_debug("[conn] close in thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
-    m_evtListener->deleteFileEvent(LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+    m_sockFdCtrl.close();
+    m_evtListener->deleteAllFileEvent();
     if (force)
     {
+        log_warn("TcpConnection ::closeInLoop force");
         struct linger l;
         l.l_onoff = 1; /* cause RST to be sent on close() */
         l.l_linger = 0;
@@ -116,7 +123,7 @@ void TcpConnection::onReadable()
             log_error("[conn] readIn error: %d", errno);
         }
         // has unknown error or has closed
-        closeInLoop(false);
+        closeInLoop(true);
         return;
     }
     onTcpRecvMessage(shared_from_this(), sockBuf);
@@ -181,7 +188,7 @@ void TcpConnection::onWritable()
         }
         log_error("[conn] onWritable send error: %d", errno);
         // has unknown error or has closed
-        closeInLoop(false);
+        closeInLoop(true);
     }
 }
 
@@ -256,7 +263,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             }
             log_error("[conn] sendInLoop send error: %d", errno);
             // has unknown error or has closed
-            closeInLoop(false);
+            closeInLoop(true);
         }
     }
 }
