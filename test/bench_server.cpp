@@ -88,6 +88,7 @@ int main(int argc, char **argv)
     }
     WyNet net(threadsNum);
     TestServer server(&net, ip, port);
+    log_info("TestServer start listen %s %d", ip, port);
     g_net = &net;
     net.startLoop();
     return 0;

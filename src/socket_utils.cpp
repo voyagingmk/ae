@@ -28,7 +28,7 @@ void sock_listen(int fd, int backlog)
         backlog = atoi(ptr);
 
     if (listen(fd, backlog) < 0)
-        log_fatal("listen error");
+        log_fatal("listen error %d, %s", errno, strerror(errno));
 }
 
 void sock_setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
