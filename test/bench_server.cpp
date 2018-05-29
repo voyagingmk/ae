@@ -29,7 +29,7 @@ class TestServer
 
     void OnTcpDisconnected(PtrConn conn)
     {
-        log_info("[test.OnTcpDisconnected] %d", conn->connectId());
+        log_info("[test.OnTcpDisconnected] sockfd %d", conn->sockfd());
         conn->getCtrlAsServer()->removeConnection(conn);
     }
 
