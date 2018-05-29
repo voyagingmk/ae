@@ -15,7 +15,7 @@ PeerManager::~PeerManager()
         UniqID clientId = m_clients.begin()->first;
         removeClient(clientId);
     }
-    log_info("PeerManager destroyed.");
+    log_debug("PeerManager destroyed.");
 }
 
 UniqID PeerManager::addServer(PtrServer server)

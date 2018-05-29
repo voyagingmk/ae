@@ -49,7 +49,7 @@ class TestClient
 
     void OnTcpSendComplete(PtrConn conn)
     {
-        log_debug("[test.OnTcpSendComplete]");
+        log_info("[test.OnTcpSendComplete]");
         //      std::string msg(buffer, ret_in);
         //      conn->send(msg);
 
@@ -61,7 +61,7 @@ class TestClient
     {
         log_info("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
-        conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
+        // conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
 
         m_timeStart = std::chrono::system_clock::now();
         conn->send(m_message);

@@ -20,7 +20,7 @@ PtrTcpServer Server::initTcpServer(const char *host, int tcpPort)
     PtrTcpServer server = PtrTcpServer(new TcpServer(shared_from_this()));
     server->init();
     server->startListen(host, tcpPort);
-    log_info("[Server] TcpServer created, tcp sockfd: %d", server->m_sockFdCtrl.sockfd());
+    log_debug("[Server] TcpServer created, tcp sockfd: %d", server->m_sockFdCtrl.sockfd());
     m_tcpServer = server;
     return server;
 }

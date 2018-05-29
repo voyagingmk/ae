@@ -32,7 +32,7 @@ public:
   {
     if (m_sockfd)
     {
-      log_info("close %d", m_sockfd);
+      log_debug("close %d", m_sockfd);
       ::close(m_sockfd);
     }
   }

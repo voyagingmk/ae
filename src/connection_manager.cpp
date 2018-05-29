@@ -45,7 +45,7 @@ UniqID ConnectionManager::refConnection(PtrConn conn)
     conn->setConnectId(connectId);
     uint16_t password = random();
     conn->setKey((password << 16) | convId);
-    log_info("<connMgr> ref %d", connectId);
+    log_debug("<connMgr> ref %d", connectId);
     return connectId;
 }
 
@@ -62,7 +62,7 @@ bool ConnectionManager::unrefConnection(UniqID connectId)
     {
         return false;
     }
-    log_info("<connMgr> unref %d", connectId);
+    log_debug("<connMgr> unref %d", connectId);
     m_connDict.erase(connectId);
     return true;
 }

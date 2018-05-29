@@ -21,16 +21,15 @@ class TestServer
 
     void OnTcpConnected(PtrConn conn)
     {
-        log_debug("[test.OnTcpConnected] sockfd %d", conn->sockfd());
-        conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
+        log_info("[test.OnTcpConnected] sockfd %d", conn->sockfd());
+        // conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
         conn->getCtrlAsServer()->addConnection(conn);
-        log_debug("addConnection, connectId %d", conn->connectId());
         //  socketUtils::setTcpNoDelay(conn->sockfd(), true);
     }
 
     void OnTcpDisconnected(PtrConn conn)
     {
-        log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
+        log_info("[test.OnTcpDisconnected] %d", conn->connectId());
         conn->getCtrlAsServer()->removeConnection(conn);
     }
 
@@ -43,7 +42,7 @@ class TestServer
 
     void OnTcpSendComplete(PtrConn conn)
     {
-        log_debug("[test.OnTcpSendComplete]");
+        log_info("[test.OnTcpSendComplete]");
         //      std::string msg(buffer, ret_in);
         //      conn->send(msg);
 

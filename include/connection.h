@@ -199,7 +199,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         onTcpSendComplete = cb;
     }
 
-    void shutdown();
+    void shutdown(int flag = SHUT_WR);
 
     void close(bool force = false);
 
@@ -231,7 +231,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
 
     void closeInLoop(bool force);
 
-    void shutdownInLoop();
+    void shutdownInLoop(int flag);
 
   protected:
     EventLoop *m_loop;

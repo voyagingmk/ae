@@ -122,7 +122,7 @@ void EventLoop::stop()
     if (!m_aeloop->stop)
     {
         aeStop(m_aeloop);
-        log_info("EventLoop stop");
+        log_debug("EventLoop stop");
     }
 }
 

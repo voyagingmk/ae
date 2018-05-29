@@ -66,7 +66,7 @@ void TcpConnection ::close(bool force)
     }
 }
 
-void TcpConnection ::shutdown()
+void TcpConnection ::shutdown(int flag)
 {
     if (getLoop()->isInLoopThread())
     {
@@ -74,27 +74,27 @@ void TcpConnection ::shutdown()
     }
     else
     {
-        getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
+        getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this(), flag));
     }
 }
 
-void TcpConnection ::shutdownInLoop()
+void TcpConnection ::shutdownInLoop(int flag)
 {
-    log_info("[conn] shutdownInLoop");
+    log_debug("[conn] shutdownInLoop");
     getLoop()->assertInLoopThread();
-    if (::shutdown(sockfd(), SHUT_WR) < 0)
+    if (::shutdown(sockfd(), flag) < 0)
     {
-        log_error("shutdown SHUT_WR failed");
+        log_error("shutdown %d failed", flag);
     }
 }
 
 void TcpConnection ::closeInLoop(bool force)
 {
-    log_info("[conn] closeInLoop");
+    log_debug("[conn] closeInLoop");
     getLoop()->assertInLoopThread();
     if (m_state == State::Disconnected)
     {
-        log_info("[conn] closeInLoop Disconnected");
+        log_warn("[conn] closeInLoop Disconnected");
         return;
     }
     log_debug("[conn] close in thread: %s", CurrentThread::name());
@@ -103,7 +103,7 @@ void TcpConnection ::closeInLoop(bool force)
     {
         m_sockFdCtrl.close();
         m_evtListener->deleteAllFileEvent();
-        log_warn("TcpConnection ::closeInLoop force");
+        log_debug("[conn] closeInLoop force");
         struct linger l;
         l.l_onoff = 1; /* cause RST to be sent on close() */
         l.l_linger = 0;
@@ -111,7 +111,8 @@ void TcpConnection ::closeInLoop(bool force)
     }
     else
     {
-        shutdown();
+        log_debug("[conn] closeInLoop shutdown SHUT_WR");
+        shutdown(SHUT_WR);
         m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
     }
     if (onTcpDisconnected)
@@ -139,7 +140,7 @@ void TcpConnection::onReadable()
     }
     SockBuffer &sockBuf = sockBuffer();
     int ret = sockBuf.readIn(sockfd());
-    log_info("[conn] onReadable, readIn sockfd %d ret %d", sockfd(), ret);
+    log_debug("[conn] onReadable, readIn sockfd %d ret %d", sockfd(), ret);
     if (ret <= 0)
     {
         if (ret < 0)
@@ -154,13 +155,6 @@ void TcpConnection::onReadable()
         closeInLoop(false);
         return;
     }
-    /*
-    ret = sockBuf.readIn(sockfd());
-    log_info("[conn] onReadable, second readIn sockfd %d ret %d", sockfd(), ret);
-    if (ret < 0)
-    {
-        log_error("[conn] second readIn error: %d %s", errno, strerror(errno));
-    }*/
     onTcpRecvMessage(shared_from_this(), sockBuf);
     /*
         BufferRef &bufRef = sockBuf.getBufRef();
@@ -203,9 +197,8 @@ void TcpConnection::onWritable()
     {
         log_warn("TcpConnection::onWritable remain <= 0");
     }
-    log_debug("[conn] onWritable, remain:%d", remain);
     int nwrote = ::write(sockfd(), m_pendingSendBuf.readBegin(), remain);
-    log_info("[conn] onWritable, nwrote:%d", nwrote);
+    log_debug("[conn] onWritable, remain:%d, nwrote:%d", remain, nwrote);
     if (nwrote > 0)
     {
         m_pendingSendBuf.readOut(nwrote);
@@ -277,15 +270,15 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
     {
         // write directly
         int nwrote = ::send(sockfd(), data, len, 0);
-        log_info("[conn] sendInLoop send nwrote: %d", nwrote);
+        log_debug("[conn] sendInLoop send nwrote: %d", nwrote);
         if (nwrote > 0)
         {
             int remain = len - nwrote;
-            log_info("[conn] sendInLoop sockfd %d, len:%d, nwrote:%d, remain:%d", sockfd(), len, nwrote, remain);
+            log_debug("[conn] sendInLoop sockfd %d, len:%d, nwrote:%d, remain:%d", sockfd(), len, nwrote, remain);
             if (remain > 0)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
-                log_info("[conn] remain > 0 sockfd %d", sockfd());
+                log_debug("[conn] remain > 0 sockfd %d", sockfd());
                 m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
