@@ -24,7 +24,7 @@ class TestServer
         log_info("[test.OnTcpConnected] sockfd %d", conn->sockfd());
         // conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
         conn->getCtrlAsServer()->addConnection(conn);
-        //  socketUtils::setTcpNoDelay(conn->sockfd(), true);
+        socketUtils::setTcpNoDelay(conn->sockfd(), true);
     }
 
     void OnTcpDisconnected(PtrConn conn)

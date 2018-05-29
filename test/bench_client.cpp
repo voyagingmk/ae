@@ -65,7 +65,7 @@ class TestClient
 
         m_timeStart = std::chrono::system_clock::now();
         conn->send(m_message);
-        //  socketUtils::setTcpNoDelay(conn->sockfd(), true);
+        socketUtils::setTcpNoDelay(conn->sockfd(), true);
         log_info("m_timeout %d", this->m_timeout);
         conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
         // m_net->stopLoop();
