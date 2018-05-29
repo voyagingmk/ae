@@ -18,6 +18,8 @@ class ConnectionManager : public std::enable_shared_from_this<ConnectionManager>
 public:
   ConnectionManager();
 
+  ~ConnectionManager();
+
   bool addConnection(PtrConn conn);
 
   bool removeConnection(PtrConn conn);

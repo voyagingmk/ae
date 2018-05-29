@@ -31,8 +31,6 @@ class Client : public Noncopyable, public std::enable_shared_from_this<Client>
 
     ~Client();
 
-    PtrTcpClient newTcpClient();
-
     PtrTcpClient getTcpClient() const
     {
         return m_tcpClient.lock();
@@ -42,8 +40,6 @@ class Client : public Noncopyable, public std::enable_shared_from_this<Client>
     {
         return m_net;
     }
-
-    friend class TcpClient;
 };
 }; // namespace wynet
 

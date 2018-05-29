@@ -5,23 +5,27 @@
 
 using namespace wynet;
 
-EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string &name)
+EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string &name, int threadNum)
     : m_baseLoop(baseLoop),
       m_name(name),
       m_started(false),
-      m_numThreads(0),
+      m_numThreads(threadNum),
       m_next(0)
 {
+    if (LOG_CTOR_DTOR)
+        log_info("EventLoopThreadPool()");
 }
 
 EventLoopThreadPool::~EventLoopThreadPool()
 {
+    if (LOG_CTOR_DTOR)
+        log_info("~EventLoopThreadPool()");
 }
 
-void EventLoopThreadPool::setThreadNum(int n)
+void EventLoopThreadPool::setThreadNum(int threadNum)
 {
     assert(!m_started);
-    m_numThreads = n;
+    m_numThreads = threadNum;
 }
 
 void EventLoopThreadPool::start(const ThreadInitCallback &cb)

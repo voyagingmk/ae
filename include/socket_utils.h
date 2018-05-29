@@ -16,6 +16,8 @@ extern void sock_listen(int fd, int backlog);
 
 extern void sock_setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen);
 
+extern void sock_linger(SockFd sockfd);
+
 extern bool valid(SockFd sockfd);
 
 extern bool isIPv4(sockaddr_storage sockAddr);

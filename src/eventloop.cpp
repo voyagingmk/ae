@@ -84,6 +84,8 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
                                                                m_wakeupInterval(wakeupInterval),
                                                                m_doingTask(false)
 {
+    if (LOG_CTOR_DTOR)
+        log_info("EventLoop()");
     if (t_threadLoop)
     {
         log_fatal("Create 2 EventLoop For 1 thread?");
@@ -97,6 +99,8 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
 
 EventLoop::~EventLoop()
 {
+    if (LOG_CTOR_DTOR)
+        log_info("~EventLoop()");
     aeDeleteEventLoop(m_aeloop);
     t_threadLoop = nullptr;
 }
@@ -124,6 +128,15 @@ void EventLoop::stop()
         aeStop(m_aeloop);
         log_debug("EventLoop stop");
     }
+}
+
+bool EventLoop::hasFileEvent(PtrEvtListener listener, int mask)
+{
+    assertInLoopThread();
+    assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
+    SockFd sockfd = listener->getSockFd();
+    int oldMask = aeGetFileEvents(m_aeloop, sockfd);
+    return (oldMask & mask);
 }
 
 void EventLoop::createFileEvent(PtrEvtListener listener, int mask)

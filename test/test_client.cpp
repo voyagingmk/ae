@@ -99,12 +99,12 @@ int main(int argc, char **argv)
 
     log_info("aeGetApiName: %s", aeGetApiName());
     PtrClient client = Client::create(&net);
-    PtrTcpClient tcpClient = client->newTcpClient();
+    EventLoop *loop = net.getThreadPool().getNextLoop();
+    PtrTcpClient tcpClient = std::make_shared<TcpClient>(loop);
     tcpClient->onTcpConnected = &OnTcpConnected;
     tcpClient->onTcpDisconnected = &OnTcpDisconnected;
     tcpClient->onTcpRecvMessage = &OnTcpRecvMessage;
     tcpClient->connect("127.0.0.1", 9998);
-    net.getPeerManager().addClient(client);
     net.startLoop();
     ::close(input_fd);
     log_info("exit");

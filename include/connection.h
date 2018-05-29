@@ -29,6 +29,18 @@ typedef std::shared_ptr<TcpConnectionEventListener> PtrConnEvtListener;
 class TcpConnectionEventListener : public EventListener
 {
   public:
+    TcpConnectionEventListener()
+    {
+        if (LOG_CTOR_DTOR)
+            log_info("TcpConnectionEventListener()");
+    }
+
+    ~TcpConnectionEventListener()
+    {
+        if (LOG_CTOR_DTOR)
+            log_info("~TcpConnectionEventListener()");
+    }
+
     void setTcpConnection(PtrConn conn)
     {
         m_conn = conn;
@@ -63,35 +75,22 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
   public:
     enum class State
     {
-        Disconnected,
         Connecting,
         Connected,
+        Disconnecting,
+        Disconnected
     };
-    typedef std::function<void(PtrConn)> OnTcpConnected;
+    typedef std::function<void(const PtrConn &)> OnTcpConnected;
 
-    typedef std::function<void(PtrConn)> OnTcpDisconnected;
+    typedef std::function<void(const PtrConn &)> OnTcpDisconnected;
 
-    typedef std::function<void(PtrConn)> OnTcpSendComplete;
+    typedef std::function<void(const PtrConn &)> OnTcpSendComplete;
 
-    typedef std::function<void(PtrConn, SockBuffer &)> OnTcpRecvMessage;
+    typedef std::function<void(const PtrConn &)> OnTcpClose;
 
-    TcpConnection(SockFd sockfd = 0) : m_loop(nullptr),
-                                       m_sockFdCtrl(sockfd),
-                                       m_state(State::Connecting),
-                                       m_key(0),
-                                       m_kcpObj(nullptr),
-                                       m_connectId(0),
-                                       m_pendingRecvBuf("pendingRecvBuf"),
-                                       m_pendingSendBuf("pendingSendBuf"),
-                                       onTcpConnected(nullptr),
-                                       onTcpDisconnected(nullptr),
-                                       onTcpRecvMessage(nullptr),
-                                       onTcpSendComplete(nullptr)
-    {
-        log_debug("TcpConnection() %d", sockfd);
-        m_evtListener = TcpConnectionEventListener::create(sockfd);
-        m_evtListener->setName(std::string("TcpConnectionEventListener"));
-    }
+    typedef std::function<void(const PtrConn &, SockBuffer &)> OnTcpRecvMessage;
+
+    TcpConnection(SockFd sockfd = 0);
 
     virtual ~TcpConnection();
 
@@ -199,9 +198,9 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         onTcpSendComplete = cb;
     }
 
-    void shutdown(int flag = SHUT_WR);
+    void shutdown();
 
-    void close(bool force = false);
+    void forceClose();
 
     void send(const uint8_t *data, const size_t len);
 
@@ -216,8 +215,20 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         return m_state;
     }
 
+    // internal
+    void setCloseCallback(const OnTcpClose &cb);
+
+    // internal
+    void onDestroy();
+
   protected:
     static void OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask);
+
+    void forceCloseInLoop();
+
+    void close();
+
+    void closeInLoop();
 
     void onEstablished();
 
@@ -229,9 +240,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
 
     void sendInLoop(const std::string &);
 
-    void closeInLoop(bool force);
-
-    void shutdownInLoop(int flag);
+    void shutdownInLoop();
 
   protected:
     EventLoop *m_loop;
@@ -249,6 +258,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     OnTcpDisconnected onTcpDisconnected;
     OnTcpRecvMessage onTcpRecvMessage;
     OnTcpSendComplete onTcpSendComplete;
+    OnTcpClose onTcpClose;
 };
 }; // namespace wynet
 

@@ -9,19 +9,17 @@ class TestClient
 {
   public:
     TestClient(WyNet *net, const char *ip, int port, int blockSize, int timeout) : m_net(net),
-                                                                                   m_clientId(0),
                                                                                    m_messagesRead(0),
                                                                                    m_bytesRead(0),
                                                                                    m_bytesWritten(0),
                                                                                    m_timeout(timeout)
     {
-        PtrClient client = Client::create(net);
-        PtrTcpClient tcpClient = client->newTcpClient();
+        EventLoop *loop = m_net->getThreadPool().getNextLoop();
+        PtrTcpClient tcpClient = std::make_shared<TcpClient>(loop);
         tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
         tcpClient->onTcpDisconnected = std::bind(&TestClient::OnTcpDisconnected, this, _1);
         tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);
         tcpClient->connect(ip, port);
-        m_clientId = m_net->getPeerManager().addClient(client);
         m_tcpClient = tcpClient;
 
         for (int i = 0; i < blockSize; ++i)
@@ -32,10 +30,6 @@ class TestClient
 
     ~TestClient()
     {
-        if (m_clientId)
-        {
-            m_net->getPeerManager().removeClient(m_clientId);
-        }
     }
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
@@ -43,7 +37,7 @@ class TestClient
         log_info("[test.onTimeout]");
         auto conn = m_tcpClient->getConn();
         // conn->send(m_message);
-        conn->close(false);
+        conn->shutdown();
         return -1;
     }
 
@@ -99,7 +93,6 @@ class TestClient
 
   private:
     WyNet *m_net;
-    UniqID m_clientId;
     PtrTcpClient m_tcpClient;
     int64_t m_messagesRead;
     int64_t m_bytesRead;

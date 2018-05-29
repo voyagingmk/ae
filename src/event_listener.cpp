@@ -7,14 +7,22 @@ namespace wynet
 EventListener::EventListener() : m_loop(nullptr),
                                  m_sockfd(0)
 {
-    log_debug("EventListener() sockfd %d", m_sockfd);
 }
 
 EventListener::~EventListener()
 {
+}
 
-    m_loop = nullptr;
-    m_sockfd = 0;
+bool EventListener::hasFileEvent(int mask)
+{
+    if (m_loop && m_sockfd)
+    {
+        m_loop->hasFileEvent(shared_from_this(), mask);
+    }
+    else
+    {
+        log_error("EventListener::isWaitingFileEvent no m_loop or no m_sockfd");
+    }
 }
 
 void EventListener::deleteAllFileEvent()

@@ -19,13 +19,6 @@ Client::~Client()
 {
 }
 
-PtrTcpClient Client::newTcpClient()
-{
-    PtrTcpClient tcpClient = std::make_shared<TcpClient>(shared_from_this());
-    m_tcpClient = tcpClient;
-    return tcpClient;
-}
-
 /*
 void Client::_onTcpMessage()
 {

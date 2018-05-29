@@ -14,28 +14,55 @@ int sock_socket(int family, int type, int protocol)
     return n;
 }
 
-void sock_close(int fd)
+void sock_close(SockFd sockfd)
 {
-    if (close(fd) == -1)
+    if (close(sockfd) == -1)
         log_fatal("sock_close error");
 }
 
-void sock_listen(int fd, int backlog)
+// to avoid large numbers of connections sitting in the TIME_WAIT state
+// tying up all the available resources
+void sock_linger(SockFd sockfd)
+{
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ms739165(v=vs.85).aspx
+    struct linger l;
+    // Specifies whether a socket should remain open for a specified amount of time
+    // after a closesocket function call to enable queued data to be sent.
+    l.l_onoff = 1;
+    /*
+    The linger time in seconds. This member specifies how long to remain open after 
+    a closesocket function call to enable queued data to be sent. This member is only 
+    applicable if the l_onoff member of the linger structure is set to a nonzero value.
+    */
+    l.l_linger = 0;
+    /*
+    组合  l_onoff    l_linger   作用
+    A     0           忽略      closesocket立即返回，发送队列保持直到发完，意思是操作会负责把数据发完，防止丢失最后的包
+
+    B     非0          0        closesocket立即返回，发送队列里的数据立即全部丢弃，直接发RST，不经过2MSL状态
+
+    C     非0         非0       阻塞模式下，closesocket阻塞到l_linger超时或者数据发送完成，
+                               发送队列在超时前会继续发送，但超时时还是得丢弃，超时后同情况2.
+    */
+    socketUtils ::sock_setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+}
+
+void sock_listen(SockFd sockfd, int backlog)
 {
     char *ptr;
 
     if ((ptr = getenv("LISTENQ")) != NULL)
         backlog = atoi(ptr);
 
-    if (listen(fd, backlog) < 0)
+    if (listen(sockfd, backlog) < 0)
         log_fatal("listen error %d, %s", errno, strerror(errno));
 }
 
-void sock_setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
+void sock_setsockopt(SockFd sockfd, int level, int optname, const void *optval, socklen_t optlen)
 {
-    if (setsockopt(fd, level, optname, optval, optlen) < 0)
+    if (setsockopt(sockfd, level, optname, optval, optlen) < 0)
     {
-        log_fatal("setsockopt error %d", errno);
+        log_fatal("setsockopt %d error %d %s", sockfd, errno, strerror(errno));
     }
 }
 

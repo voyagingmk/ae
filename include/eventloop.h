@@ -86,6 +86,8 @@ class EventLoop : Noncopyable
   private:
     void processTaskQueue();
 
+    bool hasFileEvent(PtrEvtListener, int mask);
+
     void createFileEvent(PtrEvtListener, int mask);
 
     void deleteFileEvent(PtrEvtListener, int mask);

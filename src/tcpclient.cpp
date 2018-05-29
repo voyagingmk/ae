@@ -7,6 +7,12 @@
 namespace wynet
 {
 
+void removeConnection(EventLoop *loop, const PtrConn &conn)
+{
+    log_info("------removeConnection");
+    loop->queueInLoop(std::bind(&TcpConnection::onDestroy, conn));
+}
+
 // http://man7.org/linux/man-pages/man2/connect.2.html
 void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
@@ -46,26 +52,57 @@ void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int
     tcpClient->_onTcpConnected(asyncSockfd);
 }
 
-TcpClient::TcpClient(PtrClient client) : onTcpConnected(nullptr),
-                                         onTcpDisconnected(nullptr),
-                                         onTcpRecvMessage(nullptr),
-                                         m_asyncConnect(false),
-                                         m_asyncSockfd(0)
+TcpClient::TcpClient(EventLoop *loop) : onTcpConnected(nullptr),
+                                        onTcpDisconnected(nullptr),
+                                        onTcpRecvMessage(nullptr),
+                                        m_asyncConnect(false),
+                                        m_asyncSockfd(0)
 {
-    m_parent = client;
+    if (LOG_CTOR_DTOR)
+        log_info("TcpClient()");
+    m_loop = loop;
 }
 
 TcpClient::~TcpClient()
 {
-    log_debug("~TcpClient()");
-    if (m_conn)
+    if (LOG_CTOR_DTOR)
+        log_info("~TcpClient()");
+    PtrConn conn;
+    bool unique = false;
     {
-        m_conn->close();
+        MutexLockGuard<MutexLock> lock(m_mutex);
+        unique = m_conn.unique();
+        conn = m_conn;
+        m_conn = nullptr;
     }
-    endAsyncConnect();
+    if (conn)
+    {
+        log_info("~TcpClient() has conn");
+        assert(m_loop == conn->getLoop());
+        TcpConnection::OnTcpClose cb = std::bind(&removeConnection, m_loop, std::placeholders::_1);
+        m_loop->runInLoop(
+            std::bind(
+                &TcpConnection::setCloseCallback,
+                conn,
+                cb));
+        if (unique)
+        {
+            conn->close();
+        }
+    }
+    else if (m_asyncConnect)
+    {
+        log_info("~TcpClient() endAsyncConnect");
+        endAsyncConnect();
+    }
 }
 
 void TcpClient::connect(const char *host, int port)
+{
+    m_loop->runInLoop(std::bind(&TcpClient::connectInLoop, shared_from_this(), host, port));
+}
+
+void TcpClient::connectInLoop(const char *host, int port)
 {
     int n;
     struct addrinfo hints, *res, *ressave;
@@ -150,19 +187,25 @@ void TcpClient::connect(const char *host, int port)
 
 EventLoop &TcpClient::getLoop()
 {
-    return m_parent->getNet()->getLoop();
+    return *m_loop;
 }
 
 void TcpClient::_onTcpConnected(int sockfd)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_conn = std::make_shared<TcpConnection>(sockfd);
-    m_conn->setEventLoop(&getLoop());
+    m_conn->setEventLoop(m_loop);
     m_conn->setCtrl(shared_from_this());
     m_conn->setCallBack_Connected(onTcpConnected);
     m_conn->setCallBack_Disconnected(onTcpDisconnected);
     m_conn->setCallBack_Message(onTcpRecvMessage);
-    getLoop().runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
+    m_loop->runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
+}
+
+PtrConn TcpClient::getConn()
+{
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    return m_conn;
 }
 
 void TcpClient::disconnect()
@@ -183,7 +226,7 @@ void TcpClient::asyncConnect(int sockfd)
     log_debug("asyncConnect %d", sockfd);
     m_evtListener = TcpClientEventListener::create();
     m_evtListener->setName(std::string("asyncConnect"));
-    m_evtListener->setEventLoop(&getLoop());
+    m_evtListener->setEventLoop(m_loop);
     m_evtListener->setTcpClient(shared_from_this());
     m_evtListener->setSockfd(sockfd);
     m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
@@ -197,6 +240,7 @@ bool TcpClient::isAsyncConnecting()
 
 void TcpClient::endAsyncConnect()
 {
+    log_info("endAsyncConnect");
     if (m_evtListener)
     {
         m_evtListener->deleteAllFileEvent();

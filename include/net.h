@@ -23,6 +23,8 @@ class PeerManager
   typedef std::map<UniqID, PtrClient> Clients;
 
 public:
+  PeerManager();
+
   ~PeerManager();
 
   UniqID addServer(PtrServer);
@@ -44,7 +46,9 @@ class WyNet
 {
 
 public:
-  WyNet(int threadNum = 4);
+  WyNet(int threadNum = 0);
+
+  ~WyNet();
 
   void startLoop();
 
@@ -55,7 +59,7 @@ public:
     return m_loop;
   }
 
-  PtrThreadPool getThreadPool()
+  EventLoopThreadPool &getThreadPool()
   {
     return m_threadPool;
   }
@@ -66,7 +70,7 @@ public:
 
 private:
   EventLoop m_loop;
-  PtrThreadPool m_threadPool;
+  EventLoopThreadPool m_threadPool;
   PeerManager m_peerMgr;
 };
 }; // namespace wynet

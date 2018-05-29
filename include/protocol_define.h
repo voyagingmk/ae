@@ -70,7 +70,7 @@ struct UserPacket : public ProtocolBase
     ProtoType(UserPacket);
     ProtoSize(UserPacket);
 };
-};
+}; // namespace protocol
 
 template <class P>
 PacketHeader *SerializeProtocol(P &p, size_t len = 0)
@@ -93,6 +93,6 @@ PacketHeader *SerializeProtocol(P &p, size_t len = 0)
     memcpy(buf + header.getHeaderLength(), p.BeginPos(), len);
     return (PacketHeader *)buf;
 }
-};
+}; // namespace wynet
 
 #endif

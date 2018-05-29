@@ -6,6 +6,7 @@
 #include "buffer.h"
 #include "protocol.h"
 #include "multiple_inherit.h"
+#include "socket_utils.h"
 
 namespace wynet
 {
@@ -33,7 +34,7 @@ public:
     if (m_sockfd)
     {
       log_debug("close %d", m_sockfd);
-      ::close(m_sockfd);
+      socketUtils ::sock_close(m_sockfd);
     }
   }
 

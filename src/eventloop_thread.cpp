@@ -12,10 +12,14 @@ EventLoopThread::EventLoopThread(const ThreadInitCallback &cb,
       m_cond(m_mutex),
       m_callback(cb)
 {
+    if (LOG_CTOR_DTOR)
+        log_info("EventLoopThread()");
 }
 
 EventLoopThread::~EventLoopThread()
 {
+    if (LOG_CTOR_DTOR)
+        log_info("~EventLoopThread()");
     m_exiting = true;
     if (m_loop != NULL) // not 100% race-free, eg. threadEntry could be running callback_.
     {

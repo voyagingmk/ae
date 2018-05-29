@@ -3,8 +3,16 @@
 namespace wynet
 {
 
+PeerManager::PeerManager()
+{
+    if (LOG_CTOR_DTOR)
+        log_info("PeerManager()");
+}
+
 PeerManager::~PeerManager()
 {
+    if (LOG_CTOR_DTOR)
+        log_info("~PeerManager()");
     while (!m_servers.empty())
     {
         UniqID serverId = m_servers.begin()->first;
@@ -56,13 +64,20 @@ bool PeerManager::removeClient(UniqID clientId)
     return true;
 }
 
-WyNet::WyNet(int threadNum)
+WyNet::WyNet(int threadNum) : m_threadPool(&m_loop, "WyNet", threadNum)
 {
-    m_threadPool = std::make_shared<EventLoopThreadPool>(&m_loop, "WyNet");
-    m_threadPool->setThreadNum(threadNum);
-    m_threadPool->start([](EventLoop *loop) -> void {
+    if (LOG_CTOR_DTOR)
+        log_info("WyNet()");
+    m_threadPool.setThreadNum(threadNum);
+    m_threadPool.start([](EventLoop *loop) -> void {
         log_debug("ThreadInitCallback");
     });
+}
+
+WyNet::~WyNet()
+{
+    if (LOG_CTOR_DTOR)
+        log_info("~WyNet()");
 }
 
 void WyNet::stopLoop()

@@ -23,10 +23,23 @@ typedef std::shared_ptr<TcpServerEventListener> PtrTcpServerEvtListener;
 class TcpServerEventListener : public EventListener
 {
 public:
+  TcpServerEventListener()
+  {
+    if (LOG_CTOR_DTOR)
+      log_info("TcpServerEventListener()");
+  }
+
+  ~TcpServerEventListener()
+  {
+    if (LOG_CTOR_DTOR)
+      log_info("~TcpServerEventListener()");
+  }
+
   void setTcpServer(PtrTcpServer tcpServer)
   {
     m_tcpServer = tcpServer;
   }
+
   PtrTcpServer getTcpServer()
   {
     return m_tcpServer.lock();

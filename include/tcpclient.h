@@ -8,20 +8,29 @@
 namespace wynet
 {
 
-class Client;
-typedef std::shared_ptr<Client> PtrClient;
-typedef std::weak_ptr<Client> WeakPtrClient;
-
 class TcpClientEventListener;
 typedef std::shared_ptr<TcpClientEventListener> PtrTcpClientEvtListener;
 
 class TcpClientEventListener : public EventListener
 {
 public:
+  TcpClientEventListener()
+  {
+    if (LOG_CTOR_DTOR)
+      log_info("TcpClientEventListener()");
+  }
+
+  ~TcpClientEventListener()
+  {
+    if (LOG_CTOR_DTOR)
+      log_info("~TcpClientEventListener()");
+  }
+
   void setTcpClient(PtrTcpClient tcpClient)
   {
     m_tcpClient = tcpClient;
   }
+
   PtrTcpClient getTcpClient()
   {
     return m_tcpClient.lock();
@@ -42,22 +51,21 @@ typedef std::weak_ptr<TcpClient> WeakPtrTcpClient;
 class TcpClient : public Noncopyable, public std::enable_shared_from_this<TcpClient>
 {
 public:
-  TcpClient(PtrClient client);
+  TcpClient(EventLoop *loop);
 
   ~TcpClient();
 
   void connect(const char *host, int port);
 
-  PtrConn getConn()
-  {
-    return m_conn;
-  }
+  PtrConn getConn();
 
   void disconnect();
 
   EventLoop &getLoop();
 
 private:
+  void connectInLoop(const char *host, int port);
+
   void asyncConnect(int sockfd);
 
   bool isAsyncConnecting();
@@ -75,7 +83,7 @@ public:
 
 private:
   PtrConn m_conn;
-  PtrClient m_parent;
+  EventLoop *m_loop;
   SockAddr m_sockAddr;
   PtrTcpClientEvtListener m_evtListener;
   bool m_asyncConnect;

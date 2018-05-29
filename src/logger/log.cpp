@@ -26,6 +26,12 @@ class LogVars
                 m_outputToConsole(true),
                 k_logLineMax(1024)
     {
+        fprintf(stderr, "LogVars()");
+    }
+
+    ~LogVars()
+    {
+        fprintf(stderr, "~LogVars()");
     }
 
     const char *getLogLevelStr(LOG_LEVEL level) const

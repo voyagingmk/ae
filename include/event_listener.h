@@ -27,7 +27,7 @@ class EventListener : public std::enable_shared_from_this<EventListener>
   public:
     EventListener();
 
-    virtual ~EventListener();
+    ~EventListener();
 
   public:
     // 可重载
@@ -60,6 +60,8 @@ class EventListener : public std::enable_shared_from_this<EventListener>
     {
         return m_loop;
     }
+
+    bool hasFileEvent(int mask);
 
     void deleteAllFileEvent();
 

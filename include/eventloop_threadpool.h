@@ -14,7 +14,7 @@ typedef std::function<void(EventLoop *)> ThreadInitCallback;
 class EventLoopThreadPool : Noncopyable
 {
   public:
-    EventLoopThreadPool(EventLoop *baseLoop, const std::string &nameArg);
+    EventLoopThreadPool(EventLoop *baseLoop, const std::string &nameArg, int threadNum = 0);
 
     ~EventLoopThreadPool();
 
@@ -50,7 +50,6 @@ class EventLoopThreadPool : Noncopyable
     std::vector<EventLoop *> m_loops;
 };
 
-typedef std::shared_ptr<EventLoopThreadPool> PtrThreadPool;
-};
+}; // namespace wynet
 
 #endif

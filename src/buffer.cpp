@@ -40,7 +40,7 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBuffer(UniqID uid)
     MutexLockGuard<MutexLock> lock(m_mutex);
     if (idx < 0 || idx >= static_cast<int32_t>(m_buffers.size()))
     {
-        return nullptr;
+        return std::shared_ptr<DynamicBuffer>();
     }
     return m_buffers[idx];
 }
@@ -49,7 +49,7 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
 {
     if (idx < 0)
     {
-        return nullptr;
+        return std::shared_ptr<DynamicBuffer>();
     }
     MutexLockGuard<MutexLock> lock(m_mutex);
     while ((idx + 1) > static_cast<int32_t>(m_buffers.size()))
@@ -58,6 +58,10 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
     }
     return m_buffers[idx];
 }
+
+//////////////////////////////
+//////////////////////////////
+//////////////////////////////
 
 BufferRef::BufferRef(const char *reason)
 {
@@ -100,6 +104,10 @@ std::shared_ptr<DynamicBuffer> BufferRef::get()
     {
         m_cachedPtr = BufferSet::getSingleton()->getBuffer(m_uniqID);
         log_debug("BufferRef cache %d", m_uniqID);
+    }
+    if (!m_cachedPtr)
+    {
+        log_fatal("BufferRef get, no m_cachedPtr");
     }
     return m_cachedPtr;
 }

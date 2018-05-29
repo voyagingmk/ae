@@ -16,14 +16,31 @@ int testOnTimerEvent(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void
     return LOOP_EVT_NOMORE;
 }
 
+TcpConnection::TcpConnection(SockFd sockfd) : m_loop(nullptr),
+                                              m_sockFdCtrl(sockfd),
+                                              m_state(State::Connecting),
+                                              m_key(0),
+                                              m_kcpObj(nullptr),
+                                              m_connectId(0),
+                                              m_pendingRecvBuf("pendingRecvBuf"),
+                                              m_pendingSendBuf("pendingSendBuf"),
+                                              onTcpConnected(nullptr),
+                                              onTcpDisconnected(nullptr),
+                                              onTcpRecvMessage(nullptr),
+                                              onTcpSendComplete(nullptr),
+                                              onTcpClose(nullptr)
+{
+    if (LOG_CTOR_DTOR)
+        log_info("TcpConnection() %d", sockfd);
+    m_evtListener = TcpConnectionEventListener::create(sockfd);
+    m_evtListener->setName(std::string("TcpConnectionEventListener"));
+}
+
 TcpConnection::~TcpConnection()
 {
-    if (m_evtListener)
-    {
-        m_evtListener->deleteAllFileEvent();
-    }
-    m_evtListener = nullptr;
-    log_debug("~TcpConnection() %d", m_sockFdCtrl.sockfd());
+    if (LOG_CTOR_DTOR)
+        log_info("~TcpConnection() %d", m_sockFdCtrl.sockfd());
+    assert(m_state == State::Disconnected);
 }
 
 void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask)
@@ -49,74 +66,108 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener liste
     // m_evtListener->createTimer(1000, testOnTimerEvent, nullptr);
 }
 
-void TcpConnection ::close(bool force)
+void TcpConnection ::close()
 {
     if (getLoop()->isInLoopThread())
     {
-        log_debug("[conn] close, already in loop");
-        closeInLoop(force);
+        closeInLoop();
     }
     else
     {
-        log_debug("[conn] close, not in loop");
         getLoop()->runInLoop(
             std::bind(&TcpConnection::closeInLoop,
-                      shared_from_this(),
-                      force));
+                      shared_from_this()));
     }
 }
 
-void TcpConnection ::shutdown(int flag)
+void TcpConnection ::shutdown()
 {
-    if (getLoop()->isInLoopThread())
+    if (m_state == State::Connected)
     {
-        shutdownInLoop(flag);
-    }
-    else
-    {
-        getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this(), flag));
+        m_state = State::Disconnecting;
+        getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
     }
 }
 
-void TcpConnection ::shutdownInLoop(int flag)
+void TcpConnection ::shutdownInLoop()
 {
-    log_debug("[conn] shutdownInLoop");
+    log_info("[conn] shutdownInLoop");
+    if (m_state == State::Connected || m_state == State::Disconnecting)
+    {
+        getLoop()->assertInLoopThread();
+        // shutdown WR only if not writing, in order to send out pendingBuf
+        if (!m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE))
+        {
+            if (::shutdown(sockfd(), SHUT_WR) < 0)
+            {
+                log_error("shutdown SHUT_WR failed");
+            }
+            else
+            {
+                log_debug("shutdown SHUT_WR");
+            }
+            m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
+        }
+    }
+}
+
+void TcpConnection ::forceClose()
+{
+    if (m_state == State::Connected || m_state == State::Disconnecting)
+    {
+        m_state = State::Disconnecting;
+        getLoop()->queueInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
+    }
+}
+
+void TcpConnection ::forceCloseInLoop()
+{
     getLoop()->assertInLoopThread();
-    if (::shutdown(sockfd(), flag) < 0)
+    if (m_state == State::Connected || m_state == State::Disconnecting)
     {
-        log_error("shutdown %d failed", flag);
+        close();
     }
 }
 
-void TcpConnection ::closeInLoop(bool force)
+void TcpConnection ::closeInLoop()
 {
-    log_debug("[conn] closeInLoop");
     getLoop()->assertInLoopThread();
     if (m_state == State::Disconnected)
     {
         log_warn("[conn] closeInLoop Disconnected");
         return;
     }
-    log_debug("[conn] close in thread: %s", CurrentThread::name());
+    log_debug("[conn] closeInLoop thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
-    if (force)
+    // Todo linger
+    if (m_evtListener)
     {
-        m_sockFdCtrl.close();
         m_evtListener->deleteAllFileEvent();
-        log_debug("[conn] closeInLoop force");
-        struct linger l;
-        l.l_onoff = 1; /* cause RST to be sent on close() */
-        l.l_linger = 0;
-        socketUtils ::sock_setsockopt(sockfd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
     }
-    else
-    {
-        log_debug("[conn] closeInLoop shutdown SHUT_WR");
-        shutdown(SHUT_WR);
-        m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
-    }
+    PtrConn self(shared_from_this());
     if (onTcpDisconnected)
-        onTcpDisconnected(shared_from_this());
+        onTcpDisconnected(self);
+    if (onTcpClose)
+        onTcpClose(self);
+}
+
+void TcpConnection::setCloseCallback(const OnTcpClose &cb)
+{
+    log_info("[conn] setCloseCallback");
+    onTcpClose = cb;
+}
+
+void TcpConnection::onDestroy()
+{
+    log_info("[conn] onDestroy");
+    getLoop()->assertInLoopThread();
+    if (m_state == State::Connected)
+    {
+        m_state = State::Disconnected;
+        log_info("[conn] m_state = State::Disconnected");
+        if (onTcpDisconnected)
+            onTcpDisconnected(shared_from_this());
+    }
 }
 
 void TcpConnection::onEstablished()
@@ -134,7 +185,7 @@ void TcpConnection::onEstablished()
 void TcpConnection::onReadable()
 {
     getLoop()->assertInLoopThread();
-    if (m_state != State::Connected)
+    if (m_state == State::Disconnected)
     {
         return;
     }
@@ -152,7 +203,7 @@ void TcpConnection::onReadable()
             log_error("[conn] readIn error: %d %s", errno, strerror(errno));
         }
         // has unknown error or has closed
-        closeInLoop(false);
+        close();
         return;
     }
     onTcpRecvMessage(shared_from_this(), sockBuf);
@@ -220,7 +271,7 @@ void TcpConnection::onWritable()
         }
         log_error("[conn] onWritable send error: %d", errno);
         // has unknown error or has closed
-        closeInLoop(false);
+        close();
     }
 }
 
@@ -287,6 +338,10 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
                 {
                     getLoop()->queueInLoop(std::bind(onTcpSendComplete, shared_from_this()));
                 }
+                if (m_state == State::Disconnecting)
+                {
+                    shutdownInLoop();
+                }
             }
         }
         else if (nwrote == -1)
@@ -297,7 +352,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             }
             log_error("[conn] sendInLoop send error: %d", errno);
             // has unknown error or has closed
-            closeInLoop(false);
+            close();
         }
     }
 }
