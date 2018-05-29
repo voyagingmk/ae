@@ -143,6 +143,7 @@ int main(int argc, char **argv)
     log_info("testClient");
     TestClient testClient(&net, ip, port, blocksize, seconds * 1000);
     net.startLoop();
+    sleep(1); // avoid RST problem
     log_info("exit");
     return 0;
 }
