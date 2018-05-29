@@ -66,20 +66,6 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener liste
     // m_evtListener->createTimer(1000, testOnTimerEvent, nullptr);
 }
 
-void TcpConnection ::close()
-{
-    if (getLoop()->isInLoopThread())
-    {
-        closeInLoop();
-    }
-    else
-    {
-        getLoop()->runInLoop(
-            std::bind(&TcpConnection::closeInLoop,
-                      shared_from_this()));
-    }
-}
-
 void TcpConnection ::shutdown()
 {
     if (m_state == State::Connected)
@@ -129,6 +115,21 @@ void TcpConnection ::forceCloseInLoop()
     }
 }
 
+void TcpConnection ::close()
+{
+    log_info("[conn] close() isInLoopThread: %d", getLoop()->isInLoopThread());
+    if (getLoop()->isInLoopThread())
+    {
+        closeInLoop();
+    }
+    else
+    {
+        getLoop()->runInLoop(
+            std::bind(&TcpConnection::closeInLoop,
+                      shared_from_this()));
+    }
+}
+
 void TcpConnection ::closeInLoop()
 {
     getLoop()->assertInLoopThread();
@@ -137,7 +138,7 @@ void TcpConnection ::closeInLoop()
         log_warn("[conn] closeInLoop Disconnected");
         return;
     }
-    log_debug("[conn] closeInLoop thread: %s", CurrentThread::name());
+    log_info("[conn] closeInLoop thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
     // Todo linger
     if (m_evtListener)

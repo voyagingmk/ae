@@ -68,9 +68,8 @@ WyNet::WyNet(int threadNum) : m_threadPool(&m_loop, "WyNet", threadNum)
 {
     if (LOG_CTOR_DTOR)
         log_info("WyNet()");
-    m_threadPool.setThreadNum(threadNum);
     m_threadPool.start([](EventLoop *loop) -> void {
-        log_debug("ThreadInitCallback");
+        log_info("ThreadInitCallback");
     });
 }
 

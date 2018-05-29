@@ -55,7 +55,6 @@ class EventLoop : Noncopyable
     size_t queueSize() const;
 
     static EventLoop *getCurrentThreadLoop();
-
     void abort(std::string reason)
     {
         log_fatal("EventLoop abort. %s. m_threadId %d curThreadId %d", reason.c_str(), m_threadId, CurrentThread::tid());

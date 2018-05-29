@@ -74,10 +74,11 @@ TcpClient::~TcpClient()
         unique = m_conn.unique();
         conn = m_conn;
         m_conn = nullptr;
+        log_info("conn->use_count() %d", conn.use_count());
     }
     if (conn)
     {
-        log_info("~TcpClient() has conn");
+        log_info("~TcpClient() has conn unique %d", unique);
         assert(m_loop == conn->getLoop());
         TcpConnection::OnTcpClose cb = std::bind(&removeConnection, m_loop, std::placeholders::_1);
         m_loop->runInLoop(
@@ -87,6 +88,7 @@ TcpClient::~TcpClient()
                 cb));
         if (unique)
         {
+            log_info("~TcpClient() conn->close()");
             conn->close();
         }
     }
