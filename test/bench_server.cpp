@@ -35,7 +35,7 @@ class TestServer
 
     void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
     {
-        log_info("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
+        log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
         conn->send(sockBuf.readBegin(), sockBuf.readableSize());
         sockBuf.readOut(sockBuf.readableSize());
     }
