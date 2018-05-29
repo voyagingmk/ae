@@ -70,7 +70,7 @@ void TcpConnection ::shutdown(int flag)
 {
     if (getLoop()->isInLoopThread())
     {
-        shutdownInLoop();
+        shutdownInLoop(flag);
     }
     else
     {
