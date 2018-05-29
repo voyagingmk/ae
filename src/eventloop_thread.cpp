@@ -21,12 +21,11 @@ EventLoopThread::~EventLoopThread()
     if (LOG_CTOR_DTOR)
         log_info("~EventLoopThread()");
     m_exiting = true;
-    if (m_loop != NULL) // not 100% race-free, eg. threadEntry could be running callback_.
+    if (m_loop != NULL)
     {
-        // still a tiny chance to call destructed object, if threadEntry exits just now.
-        // but when EventLoopThread destructs, usually programming is exiting anyway.
         m_loop->stop();
         m_thread.join();
+        log_info("~EventLoopThread() m_thread end");
     }
 }
 
@@ -34,7 +33,6 @@ EventLoop *EventLoopThread::startLoop()
 {
     assert(!m_thread.isStarted());
     m_thread.start(); // 启动线程
-
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
         while (m_loop == NULL) // 线程此时还没执行threadFunc，进入等待
@@ -42,7 +40,6 @@ EventLoop *EventLoopThread::startLoop()
             m_cond.wait();
         }
     }
-
     return m_loop;
 }
 

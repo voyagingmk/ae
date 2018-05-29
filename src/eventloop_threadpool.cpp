@@ -41,7 +41,7 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb)
     {
         char nameBuf[m_name.size() + 1 + sizeof(int)];
         snprintf(nameBuf, sizeof nameBuf, "%s_%d", m_name.c_str(), i);
-        EventLoopThread *t = new EventLoopThread(cb, nameBuf);
+        std::shared_ptr<EventLoopThread> t = std::make_shared<EventLoopThread>(cb, std::string(nameBuf));
         m_threads.push_back(t);
         m_loops.push_back(t->startLoop());
     }
