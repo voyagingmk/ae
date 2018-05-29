@@ -36,11 +36,6 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener liste
         log_debug("[conn] no conn");
         return;
     }
-    if (conn->getState() == TcpConnection::State::Disconnected)
-    {
-        log_debug("[conn] OnConnectionEvent after Disconnected");
-        return;
-    }
     if (mask & LOOP_EVT_READABLE)
     {
         log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
@@ -71,24 +66,53 @@ void TcpConnection ::close(bool force)
     }
 }
 
+void TcpConnection ::shutdown()
+{
+    if (getLoop()->isInLoopThread())
+    {
+        shutdownInLoop();
+    }
+    else
+    {
+        getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
+    }
+}
+
+void TcpConnection ::shutdownInLoop()
+{
+    log_info("[conn] shutdownInLoop");
+    getLoop()->assertInLoopThread();
+    if (::shutdown(sockfd(), SHUT_WR) < 0)
+    {
+        log_error("shutdown SHUT_WR failed");
+    }
+}
+
 void TcpConnection ::closeInLoop(bool force)
 {
+    log_info("[conn] closeInLoop");
     getLoop()->assertInLoopThread();
     if (m_state == State::Disconnected)
     {
+        log_info("[conn] closeInLoop Disconnected");
         return;
     }
     log_debug("[conn] close in thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
-    m_sockFdCtrl.close();
-    m_evtListener->deleteAllFileEvent();
     if (force)
     {
+        m_sockFdCtrl.close();
+        m_evtListener->deleteAllFileEvent();
         log_warn("TcpConnection ::closeInLoop force");
         struct linger l;
         l.l_onoff = 1; /* cause RST to be sent on close() */
         l.l_linger = 0;
         socketUtils ::sock_setsockopt(sockfd(), SOL_SOCKET, SO_LINGER, &l, sizeof(l));
+    }
+    else
+    {
+        shutdown();
+        m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
     }
     if (onTcpDisconnected)
         onTcpDisconnected(shared_from_this());
@@ -109,9 +133,13 @@ void TcpConnection::onEstablished()
 void TcpConnection::onReadable()
 {
     getLoop()->assertInLoopThread();
+    if (m_state != State::Connected)
+    {
+        return;
+    }
     SockBuffer &sockBuf = sockBuffer();
     int ret = sockBuf.readIn(sockfd());
-    log_debug("[conn] onReadable, readIn sockfd %d ret %d", sockfd(), ret);
+    log_info("[conn] onReadable, readIn sockfd %d ret %d", sockfd(), ret);
     if (ret <= 0)
     {
         if (ret < 0)
@@ -120,12 +148,19 @@ void TcpConnection::onReadable()
             {
                 return;
             }
-            log_error("[conn] readIn error: %d", errno);
+            log_error("[conn] readIn error: %d %s", errno, strerror(errno));
         }
         // has unknown error or has closed
-        closeInLoop(true);
+        closeInLoop(false);
         return;
     }
+    /*
+    ret = sockBuf.readIn(sockfd());
+    log_info("[conn] onReadable, second readIn sockfd %d ret %d", sockfd(), ret);
+    if (ret < 0)
+    {
+        log_error("[conn] second readIn error: %d %s", errno, strerror(errno));
+    }*/
     onTcpRecvMessage(shared_from_this(), sockBuf);
     /*
         BufferRef &bufRef = sockBuf.getBufRef();
@@ -159,14 +194,18 @@ void TcpConnection::onReadable()
 void TcpConnection::onWritable()
 {
     getLoop()->assertInLoopThread();
+    if (m_state != State::Connected)
+    {
+        return;
+    }
     int remain = m_pendingSendBuf.readableSize();
     if (remain <= 0)
     {
         log_warn("TcpConnection::onWritable remain <= 0");
     }
     log_debug("[conn] onWritable, remain:%d", remain);
-    int nwrote = ::send(sockfd(), m_pendingSendBuf.readBegin(), remain, 0);
-    log_debug("[conn] onWritable, nwrote:%d", nwrote);
+    int nwrote = ::write(sockfd(), m_pendingSendBuf.readBegin(), remain);
+    log_info("[conn] onWritable, nwrote:%d", nwrote);
     if (nwrote > 0)
     {
         m_pendingSendBuf.readOut(nwrote);
@@ -188,18 +227,18 @@ void TcpConnection::onWritable()
         }
         log_error("[conn] onWritable send error: %d", errno);
         // has unknown error or has closed
-        closeInLoop(true);
+        closeInLoop(false);
     }
 }
 
 void TcpConnection::send(const uint8_t *data, const size_t len)
 {
-    if (m_state != State::Connected)
-    {
-        return;
-    }
     if (getLoop()->isInLoopThread())
     {
+        if (m_state != State::Connected)
+        {
+            return;
+        }
         log_debug("[conn] send, already in loop");
         sendInLoop(data, len);
     }
@@ -238,13 +277,15 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
     {
         // write directly
         int nwrote = ::send(sockfd(), data, len, 0);
+        log_info("[conn] sendInLoop send nwrote: %d", nwrote);
         if (nwrote > 0)
         {
             int remain = len - nwrote;
-            log_debug("[conn] send sockfd %d, len:%d, nwrote:%d, remain:%d", sockfd(), len, nwrote, remain);
+            log_info("[conn] sendInLoop sockfd %d, len:%d, nwrote:%d, remain:%d", sockfd(), len, nwrote, remain);
             if (remain > 0)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
+                log_info("[conn] remain > 0 sockfd %d", sockfd());
                 m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
@@ -263,7 +304,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             }
             log_error("[conn] sendInLoop send error: %d", errno);
             // has unknown error or has closed
-            closeInLoop(true);
+            closeInLoop(false);
         }
     }
 }

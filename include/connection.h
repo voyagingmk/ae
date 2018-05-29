@@ -199,6 +199,8 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         onTcpSendComplete = cb;
     }
 
+    void shutdown();
+
     void close(bool force = false);
 
     void send(const uint8_t *data, const size_t len);
@@ -228,6 +230,8 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     void sendInLoop(const std::string &);
 
     void closeInLoop(bool force);
+
+    void shutdownInLoop();
 
   protected:
     EventLoop *m_loop;

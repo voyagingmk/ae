@@ -25,7 +25,7 @@ class TestServer
         conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
         conn->getCtrlAsServer()->addConnection(conn);
         log_debug("addConnection, connectId %d", conn->connectId());
-        socketUtils::setTcpNoDelay(conn->sockfd(), true);
+        //  socketUtils::setTcpNoDelay(conn->sockfd(), true);
     }
 
     void OnTcpDisconnected(PtrConn conn)
@@ -36,7 +36,7 @@ class TestServer
 
     void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
     {
-        log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
+        log_info("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
         conn->send(sockBuf.readBegin(), sockBuf.readableSize());
         sockBuf.readOut(sockBuf.readableSize());
     }

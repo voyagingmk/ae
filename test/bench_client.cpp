@@ -40,8 +40,10 @@ class TestClient
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
-        log_debug("[test.onTimeout]");
-        m_tcpClient->getConn()->close(false);
+        log_info("[test.onTimeout]");
+        auto conn = m_tcpClient->getConn();
+        // conn->send(m_message);
+        conn->close(false);
         return -1;
     }
 
@@ -57,13 +59,14 @@ class TestClient
 
     void OnTcpConnected(PtrConn conn)
     {
-        log_debug("[test.OnTcpConnected]");
+        log_info("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
         conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
 
         m_timeStart = std::chrono::system_clock::now();
         conn->send(m_message);
-        log_debug("m_timeout %d", this->m_timeout);
+        //  socketUtils::setTcpNoDelay(conn->sockfd(), true);
+        log_info("m_timeout %d", this->m_timeout);
         conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
         // m_net->stopLoop();
         //client->getTcpClient();
@@ -72,7 +75,7 @@ class TestClient
     void OnTcpDisconnected(PtrConn conn)
     {
         m_timeEnd = std::chrono::system_clock::now();
-        log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
+        log_info("[test.OnTcpDisconnected] %d", conn->connectId());
         size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count();
         log_info("took %d ms, m_timeout %d ms", ms, m_timeout);
         log_info("total bytes read: %lld", m_bytesRead);
@@ -133,7 +136,7 @@ int main(int argc, char **argv)
     const char *ip = argv[1];
     int port = atoi(argv[2]);
     int blocksize = atoi(argv[3]);
-    int seconds = atoi(argv[4]);
+    double seconds = atof(argv[4]);
     const int threadsNum = 1;
     WyNet net(threadsNum);
     g_net = &net;

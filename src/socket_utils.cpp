@@ -34,7 +34,9 @@ void sock_listen(int fd, int backlog)
 void sock_setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
 {
     if (setsockopt(fd, level, optname, optval, optlen) < 0)
-        log_fatal("setsockopt error");
+    {
+        log_fatal("setsockopt error %d", errno);
+    }
 }
 
 bool valid(SockFd sockfd) { return sockfd > 0; }
@@ -180,7 +182,6 @@ int setTcpNoDelay(SockFd sockfd, bool enabled)
 
 int setTcpNonBlock(SockFd sockfd)
 {
-
     int flags = sock_fcntl(sockfd, F_GETFL, 0);
     return sock_fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 }

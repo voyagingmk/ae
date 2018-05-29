@@ -26,13 +26,13 @@ void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int
     if (getsockopt(asyncSockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
     {
         log_debug("OnTcpWritable getsockopt failed, errno = %d", strerror(errno));
-        tcpClient->_onTcpDisconnected();
+        tcpClient->disconnect();
         return;
     }
     if (error != 0)
     {
         log_debug("OnTcpWritable getsockopt SO_ERROR = %d", error);
-        tcpClient->_onTcpDisconnected();
+        tcpClient->disconnect();
         return;
     }
     if (socketUtils::isSelfConnect(asyncSockfd))
@@ -58,7 +58,10 @@ TcpClient::TcpClient(PtrClient client) : onTcpConnected(nullptr),
 TcpClient::~TcpClient()
 {
     log_debug("~TcpClient()");
-    m_conn->close(true);
+    if (m_conn)
+    {
+        m_conn->close();
+    }
     endAsyncConnect();
 }
 
@@ -92,8 +95,8 @@ void TcpClient::connect(const char *host, int port)
         do
         {
             socketUtils::setTcpNonBlock(sockfd);
-            socketUtils::SetSockRecvBufSize(sockfd, 32 * 1024);
-            socketUtils::SetSockSendBufSize(sockfd, 32 * 1024);
+            // socketUtils::SetSockRecvBufSize(sockfd, 32 * 1024);
+            // socketUtils::SetSockSendBufSize(sockfd, 32 * 1024);
             ret = ::connect(sockfd, res->ai_addr, res->ai_addrlen);
             log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));
             if (ret == -1)
@@ -152,6 +155,7 @@ EventLoop &TcpClient::getLoop()
 
 void TcpClient::_onTcpConnected(int sockfd)
 {
+    MutexLockGuard<MutexLock> lock(m_mutex);
     m_conn = std::make_shared<TcpConnection>(sockfd);
     m_conn->setEventLoop(&getLoop());
     m_conn->setCtrl(shared_from_this());
@@ -161,9 +165,13 @@ void TcpClient::_onTcpConnected(int sockfd)
     getLoop().runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
 }
 
-void TcpClient::_onTcpDisconnected()
+void TcpClient::disconnect()
 {
-    m_conn = nullptr;
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    if (m_conn)
+    {
+        m_conn->shutdown();
+    }
 }
 
 void TcpClient::asyncConnect(int sockfd)

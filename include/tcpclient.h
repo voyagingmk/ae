@@ -53,6 +53,8 @@ public:
     return m_conn;
   }
 
+  void disconnect();
+
   EventLoop &getLoop();
 
 private:
@@ -63,8 +65,6 @@ private:
   void endAsyncConnect();
 
   void _onTcpConnected(int sockfd);
-
-  void _onTcpDisconnected();
 
   static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 
@@ -80,6 +80,7 @@ private:
   PtrTcpClientEvtListener m_evtListener;
   bool m_asyncConnect;
   SockFd m_asyncSockfd;
+  MutexLock m_mutex;
 };
 
 }; // namespace wynet

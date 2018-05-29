@@ -86,8 +86,7 @@ void TcpServer::startListen(const char *host, int port)
 		if (listenfd < 0)
 			continue; /* error, try next one */
 
-		int flags = socketUtils ::sock_fcntl(listenfd, F_GETFL, 0);
-		socketUtils ::sock_fcntl(listenfd, F_SETFL, flags | O_NONBLOCK);
+		socketUtils ::setTcpNonBlock(listenfd);
 
 		int ret = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 		if (ret < 0)
@@ -107,8 +106,8 @@ void TcpServer::startListen(const char *host, int port)
 	if (res == NULL) /* errno from final socket() or bind() */
 		log_error("tcp_listen error for %s, %s", host, serv);
 
-	socketUtils::SetSockRecvBufSize(listenfd, 32 * 1024);
-	socketUtils::SetSockSendBufSize(listenfd, 32 * 1024);
+	// socketUtils::SetSockRecvBufSize(listenfd, 32 * 1024);
+	// socketUtils::SetSockSendBufSize(listenfd, 32 * 1024);
 
 	socketUtils::sock_listen(listenfd, LISTENQUEUEMAX);
 

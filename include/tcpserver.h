@@ -81,8 +81,6 @@ protected:
 
   void acceptConnection();
 
-  void _onTcpDisconnected(int connfdTcp);
-
   static void OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener, int mask);
 };
 }; // namespace wynet
