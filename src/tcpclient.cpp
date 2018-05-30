@@ -58,15 +58,13 @@ TcpClient::TcpClient(EventLoop *loop) : onTcpConnected(nullptr),
                                         m_asyncConnect(false),
                                         m_asyncSockfd(0)
 {
-    if (LOG_CTOR_DTOR)
-        log_info("TcpClient()");
+    log_ctor("TcpClient()");
     m_loop = loop;
 }
 
 TcpClient::~TcpClient()
 {
-    if (LOG_CTOR_DTOR)
-        log_info("~TcpClient()");
+    log_dtor("~TcpClient()");
     PtrConn conn;
     bool unique = false;
     {

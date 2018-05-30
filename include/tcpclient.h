@@ -14,17 +14,7 @@ typedef std::shared_ptr<TcpClientEventListener> PtrTcpClientEvtListener;
 class TcpClientEventListener : public EventListener
 {
 public:
-  TcpClientEventListener()
-  {
-    if (LOG_CTOR_DTOR)
-      log_info("TcpClientEventListener()");
-  }
-
-  ~TcpClientEventListener()
-  {
-    if (LOG_CTOR_DTOR)
-      log_info("~TcpClientEventListener()");
-  }
+  ctor_dtor_forlogging(TcpClientEventListener);
 
   void setTcpClient(PtrTcpClient tcpClient)
   {

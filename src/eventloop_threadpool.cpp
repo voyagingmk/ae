@@ -12,14 +12,12 @@ EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string 
       m_numThreads(threadNum),
       m_next(0)
 {
-    if (LOG_CTOR_DTOR)
-        log_info("EventLoopThreadPool()");
+    log_ctor("EventLoopThreadPool()");
 }
 
 EventLoopThreadPool::~EventLoopThreadPool()
 {
-    if (LOG_CTOR_DTOR)
-        log_info("~EventLoopThreadPool()");
+    log_dtor("~EventLoopThreadPool()");
 }
 
 void EventLoopThreadPool::setThreadNum(int threadNum)

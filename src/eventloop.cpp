@@ -1,4 +1,5 @@
 #include "eventloop.h"
+#include "utils.h"
 
 namespace wynet
 {
@@ -84,8 +85,7 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
                                                                m_wakeupInterval(wakeupInterval),
                                                                m_doingTask(false)
 {
-    if (LOG_CTOR_DTOR)
-        log_info("EventLoop()");
+    log_ctor("EventLoop()");
     if (t_threadLoop)
     {
         log_fatal("Create 2 EventLoop For 1 thread?");
@@ -99,8 +99,7 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
 
 EventLoop::~EventLoop()
 {
-    if (LOG_CTOR_DTOR)
-        log_info("~EventLoop()");
+    log_dtor("~EventLoop()");
     aeDeleteEventLoop(m_aeloop);
     t_threadLoop = nullptr;
 }

@@ -4,6 +4,7 @@
 #include "common.h"
 #include "noncopyable.h"
 #include "thread.h"
+#include "utils.h"
 
 namespace wynet
 {
@@ -33,6 +34,6 @@ private:
   Condition m_cond;
   ThreadInitCallback m_callback;
 };
-};
+}; // namespace wynet
 
 #endif

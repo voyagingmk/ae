@@ -67,7 +67,8 @@
         "stack": "cpp",
         "slist": "cpp",
         "fstream": "cpp",
-        "ae_select.c": "cpp"
+        "ae_select.c": "cpp",
+        "strstream": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

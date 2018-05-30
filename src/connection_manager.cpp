@@ -5,15 +5,13 @@ namespace wynet
 
 ConnectionManager::ConnectionManager()
 {
-    if (LOG_CTOR_DTOR)
-        log_info("ConnectionManager()");
+    log_ctor("ConnectionManager()");
     m_convIdGen.setRecycleThreshold(2 << 15);
     m_convIdGen.setRecycleEnabled(true);
 }
 ConnectionManager::~ConnectionManager()
 {
-    if (LOG_CTOR_DTOR)
-        log_info("~ConnectionManager()");
+    log_dtor("~ConnectionManager()");
 }
 
 bool ConnectionManager::addConnection(const PtrConn &conn)

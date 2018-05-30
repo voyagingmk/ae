@@ -12,14 +12,12 @@ EventLoopThread::EventLoopThread(const ThreadInitCallback &cb,
       m_cond(m_mutex),
       m_callback(cb)
 {
-    if (LOG_CTOR_DTOR)
-        log_info("EventLoopThread()");
+    log_ctor("EventLoopThread()");
 }
 
 EventLoopThread::~EventLoopThread()
 {
-    if (LOG_CTOR_DTOR)
-        log_info("~EventLoopThread()");
+    log_dtor("~EventLoopThread()");
     m_exiting = true;
     if (m_loop != NULL)
     {

@@ -30,16 +30,14 @@ TcpConnection::TcpConnection(SockFd sockfd) : m_loop(nullptr),
                                               onTcpSendComplete(nullptr),
                                               onTcpClose(nullptr)
 {
-    if (LOG_CTOR_DTOR)
-        log_info("TcpConnection() %d", sockfd);
+    log_ctor("TcpConnection() %d", sockfd);
     m_evtListener = TcpConnectionEventListener::create(sockfd);
     m_evtListener->setName(std::string("TcpConnectionEventListener"));
 }
 
 TcpConnection::~TcpConnection()
 {
-    if (LOG_CTOR_DTOR)
-        log_info("~TcpConnection() %d", m_sockFdCtrl.sockfd());
+    log_dtor("~TcpConnection() %d", m_sockFdCtrl.sockfd());
     assert(m_state == State::Disconnected);
 }
 

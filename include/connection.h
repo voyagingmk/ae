@@ -8,6 +8,7 @@
 #include "sockbuffer.h"
 #include "noncopyable.h"
 #include "event_listener.h"
+#include "utils.h"
 
 namespace wynet
 {
@@ -29,17 +30,7 @@ typedef std::shared_ptr<TcpConnectionEventListener> PtrConnEvtListener;
 class TcpConnectionEventListener : public EventListener
 {
   public:
-    TcpConnectionEventListener()
-    {
-        if (LOG_CTOR_DTOR)
-            log_info("TcpConnectionEventListener()");
-    }
-
-    ~TcpConnectionEventListener()
-    {
-        if (LOG_CTOR_DTOR)
-            log_info("~TcpConnectionEventListener()");
-    }
+    ctor_dtor_forlogging(TcpConnectionEventListener);
 
     void setTcpConnection(const PtrConn &conn)
     {
