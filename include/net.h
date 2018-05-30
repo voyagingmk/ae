@@ -5,6 +5,7 @@
 #include "uniqid.h"
 #include "kcp.h"
 #include "server.h"
+#include "tcpclient.h"
 #include "thread.h"
 #include "mutex.h"
 #include "eventloop.h"

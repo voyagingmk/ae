@@ -47,6 +47,11 @@ public:
 
   void connect(const char *host, int port);
 
+  void setReconnectTimes(int times)
+  {
+    m_reconnectTimes = times;
+  }
+
   PtrConn getConn();
 
   void disconnect();
@@ -55,6 +60,10 @@ public:
 
 private:
   void connectInLoop(const char *host, int port);
+
+  void whetherReconnect();
+
+  void reconnect();
 
   void asyncConnect(int sockfd);
 
@@ -79,6 +88,7 @@ private:
   bool m_asyncConnect;
   SockFd m_asyncSockfd;
   MutexLock m_mutex;
+  int m_reconnectTimes; // -1: infinitely   0: no reconnect
 };
 
 }; // namespace wynet

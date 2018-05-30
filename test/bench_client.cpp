@@ -35,9 +35,10 @@ class TestClient
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
         log_info("[test.onTimeout]");
-        auto conn = m_tcpClient->getConn();
+        // auto conn = m_tcpClient->getConn();
         // conn->send(m_message);
-        conn->shutdown();
+        // conn->shutdown();
+        m_tcpClient = nullptr;
         return -1;
     }
 
