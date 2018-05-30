@@ -20,42 +20,40 @@ void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int
     std::shared_ptr<TcpClient> tcpClient = l->getTcpClient();
     if (!tcpClient)
     {
-        log_debug("OnTcpWritable no tcpClient");
+        log_error("OnTcpWritable no tcpClient");
         return;
     }
-    SockFd asyncSockfd = tcpClient->m_asyncSockfd;
+    SockFd sockfd = l->getSockFd();
     tcpClient->endAsyncConnect();
     int error;
     socklen_t len;
     len = sizeof(error);
-    if (getsockopt(asyncSockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
+    if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0)
     {
-        log_debug("OnTcpWritable getsockopt failed, errno = %d", strerror(errno));
-        tcpClient->disconnect();
+        log_error("OnTcpWritable getsockopt failed, errno = %d %s", errno, strerror(errno));
+        tcpClient->afterAsyncConnect(0);
         return;
     }
     if (error != 0)
     {
-        log_debug("OnTcpWritable getsockopt SO_ERROR = %d", error);
-        tcpClient->disconnect();
+        log_error("OnTcpWritable getsockopt SO_ERROR = %d", error);
+        tcpClient->afterAsyncConnect(0);
         return;
     }
-    if (socketUtils::isSelfConnect(asyncSockfd))
+    if (socketUtils::isSelfConnect(sockfd))
     {
-        log_warn("OnTcpWritable isSelfConnect = true");
+        log_warn("OnTcpWritable self connect");
+        tcpClient->afterAsyncConnect(0);
         return;
     }
-
-    log_debug("OnTcpWritable _onTcpConnected");
-    // connect ok, remove event
-    tcpClient->_onTcpConnected(asyncSockfd);
+    log_debug("OnTcpWritable onConnected");
+    tcpClient->afterAsyncConnect(sockfd);
 }
 
 TcpClient::TcpClient(EventLoop *loop) : onTcpConnected(nullptr),
                                         onTcpDisconnected(nullptr),
                                         onTcpRecvMessage(nullptr),
                                         m_asyncConnect(false),
-                                        m_asyncSockfd(0),
                                         m_reconnectTimes(0)
 {
     log_ctor("TcpClient()");
@@ -172,11 +170,9 @@ void TcpClient::connectInLoop(const char *host, int port)
     }
     else
     {
-        memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
-        m_sockAddr.m_socklen = res->ai_addrlen;
         if (ret == 0)
         {
-            _onTcpConnected(sockfd);
+            onConnected(sockfd);
         }
     }
     if (ressave)
@@ -190,8 +186,9 @@ EventLoop &TcpClient::getLoop()
     return *m_loop;
 }
 
-void TcpClient::_onTcpConnected(int sockfd)
+void TcpClient::onConnected(int sockfd)
 {
+    m_loop->assertInLoopThread();
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_conn = std::make_shared<TcpConnection>(sockfd);
     m_conn->setEventLoop(m_loop);
@@ -219,18 +216,19 @@ void TcpClient::disconnect()
 
 void TcpClient::asyncConnect(int sockfd)
 {
+    m_loop->assertInLoopThread();
     if (isAsyncConnecting())
     {
         endAsyncConnect();
     }
     log_debug("asyncConnect %d", sockfd);
+    m_asyncConnect = true;
     m_evtListener = TcpClientEventListener::create();
     m_evtListener->setName(std::string("asyncConnect"));
     m_evtListener->setEventLoop(m_loop);
     m_evtListener->setTcpClient(shared_from_this());
     m_evtListener->setSockfd(sockfd);
     m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
-    m_asyncSockfd = sockfd;
 }
 
 bool TcpClient::isAsyncConnecting()
@@ -240,6 +238,7 @@ bool TcpClient::isAsyncConnecting()
 
 void TcpClient::endAsyncConnect()
 {
+    m_loop->assertInLoopThread();
     log_info("endAsyncConnect");
     if (m_evtListener)
     {
@@ -247,7 +246,31 @@ void TcpClient::endAsyncConnect()
     }
     m_evtListener = nullptr;
     m_asyncConnect = false;
-    m_asyncSockfd = 0;
+}
+
+void TcpClient::afterAsyncConnect(int sockfd)
+{
+    if (sockfd)
+    {
+        onConnected(sockfd);
+    }
+    else if (whetherReconnect())
+    {
+        reconnect();
+    }
+}
+
+bool TcpClient::whetherReconnect()
+{
+    return m_reconnectTimes == -1 || m_reconnectTimes > 0;
+}
+
+void TcpClient::reconnect()
+{
+    if (m_reconnectTimes > 0)
+    {
+        m_reconnectTimes--;
+    }
 }
 
 }; // namespace wynet

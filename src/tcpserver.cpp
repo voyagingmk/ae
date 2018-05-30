@@ -114,11 +114,8 @@ void TcpServer::startListen(const char *host, int port)
 	m_sockFdCtrl.setSockfd(listenfd);
 	m_evtListener->setSockfd(listenfd);
 
-	memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
-	m_sockAddr.m_socklen = res->ai_addrlen;
-
 	freeaddrinfo(ressave);
-	socketUtils::log_debug_addr(&m_sockAddr.m_addr, "<TcpServer.startListen>");
+	socketUtils::log_debug_addr(res->ai_addr, "<TcpServer.startListen>");
 	m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpServer::OnNewTcpConnection);
 }
 

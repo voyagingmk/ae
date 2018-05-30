@@ -84,7 +84,6 @@ private:
   PtrServer m_parent;
   int m_tcpPort;
   PtrConnMgr m_connMgr;
-  SockAddr m_sockAddr;
   PtrTcpServerEvtListener m_evtListener;
 };
 }; // namespace wynet

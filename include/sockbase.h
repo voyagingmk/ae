@@ -45,7 +45,30 @@ public:
 class SockAddr
 {
 public:
-  sockaddr_storage m_addr;
+  SockAddr(const char *host, int port) : m_host(host),
+                                         m_port(port)
+  {
+  }
+
+  SockAddr(const std::string &host, int port) : m_host(host),
+                                                m_port(port)
+  {
+  }
+
+  const char *getHost() const
+  {
+    return m_host.c_str();
+  }
+
+  int getPort() const
+  {
+    return m_port;
+  }
+
+private:
+  std::string m_host;
+  int m_port;
+  sockaddr_storage *m_addr;
   socklen_t m_socklen;
 };
 

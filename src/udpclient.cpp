@@ -35,14 +35,7 @@ UdpClient::UdpClient(const char *host, int port)
 
     if (res == NULL) /* errno set from final socket() */
         log_error("udp_client error %d for %s, %s", errno, host, serv);
-
-    memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
-    m_sockAddr.m_socklen = res->ai_addrlen;
-
     freeaddrinfo(ressave);
-    // setSockfd(fd);
-
-    // Connect(sockfd(), &m_sockAddr.m_addr, m_socklen);
 }
 
 UdpClient::~UdpClient()

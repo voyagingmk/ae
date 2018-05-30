@@ -61,7 +61,7 @@ public:
 private:
   void connectInLoop(const char *host, int port);
 
-  void whetherReconnect();
+  bool whetherReconnect();
 
   void reconnect();
 
@@ -71,8 +71,11 @@ private:
 
   void endAsyncConnect();
 
-  void _onTcpConnected(int sockfd);
+  void afterAsyncConnect(int sockfd);
 
+  void onConnected(int sockfd);
+
+  // in order to access private members
   static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 
 public:
@@ -83,11 +86,9 @@ public:
 private:
   PtrConn m_conn;
   EventLoop *m_loop;
-  SockAddr m_sockAddr;
   PtrTcpClientEvtListener m_evtListener;
-  bool m_asyncConnect;
-  SockFd m_asyncSockfd;
   MutexLock m_mutex;
+  bool m_asyncConnect;
   int m_reconnectTimes; // -1: infinitely   0: no reconnect
 };
 

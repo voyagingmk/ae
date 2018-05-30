@@ -52,9 +52,6 @@ void UdpServer::init(int port)
     if (res == NULL) 
         log_error("udp_server error for %s, %s", host, serv);
 
-    memcpy(&m_sockAddr.m_addr, res->ai_addr, res->ai_addrlen);
-    m_sockAddr.m_socklen = res->ai_addrlen;
-
     freeaddrinfo(ressave);
     */
 } // namespace wynet

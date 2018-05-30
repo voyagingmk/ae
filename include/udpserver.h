@@ -14,8 +14,6 @@ typedef std::weak_ptr<UdpServer> WeakPtrUdpServer;
 
 class UdpServer
 {
-  SockAddr m_sockAddr;
-
 public:
   UdpServer(int port);
 

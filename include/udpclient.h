@@ -8,8 +8,6 @@ namespace wynet
 {
 class UdpClient
 {
-  SockAddr m_sockAddr;
-
 public:
   UdpClient(const char *host, int port);
   ~UdpClient();
