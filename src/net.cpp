@@ -11,17 +11,6 @@ PeerManager::PeerManager()
 PeerManager::~PeerManager()
 {
     log_dtor("~PeerManager()");
-    while (!m_servers.empty())
-    {
-        UniqID serverId = m_servers.begin()->first;
-        removeServer(serverId);
-    }
-    while (!m_clients.empty())
-    {
-        UniqID clientId = m_clients.begin()->first;
-        removeClient(clientId);
-    }
-    log_debug("PeerManager destroyed.");
 }
 
 UniqID PeerManager::addServer(PtrServer server)
@@ -40,25 +29,6 @@ bool PeerManager::removeServer(UniqID serverId)
     }
     m_servers.erase(it);
     m_serverIdGen.recycleID(serverId);
-    return true;
-}
-
-UniqID PeerManager::addClient(PtrClient c)
-{
-    UniqID clientId = m_clientIdGen.getNewID();
-    m_clients[clientId] = c;
-    return clientId;
-}
-
-bool PeerManager::removeClient(UniqID clientId)
-{
-    Clients::iterator it = m_clients.find(clientId);
-    if (it == m_clients.end())
-    {
-        return false;
-    }
-    m_clients.erase(it);
-    m_serverIdGen.recycleID(clientId);
     return true;
 }
 

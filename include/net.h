@@ -19,7 +19,6 @@ namespace wynet
 class PeerManager
 {
   typedef std::map<UniqID, PtrServer> Servers;
-  typedef std::map<UniqID, PtrClient> Clients;
 
 public:
   PeerManager();
@@ -30,13 +29,8 @@ public:
 
   bool removeServer(UniqID serverId);
 
-  UniqID addClient(PtrClient);
-
-  bool removeClient(UniqID serverId);
-
 private:
   Servers m_servers;
-  Clients m_clients;
   UniqIDGenerator m_serverIdGen;
   UniqIDGenerator m_clientIdGen;
 };
