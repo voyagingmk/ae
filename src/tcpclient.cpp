@@ -1,5 +1,4 @@
 #include "tcpclient.h"
-#include "client.h"
 #include "net.h"
 #include "utils.h"
 #include "socket_utils.h"
