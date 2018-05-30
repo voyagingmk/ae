@@ -12,6 +12,17 @@ void removeConnection(EventLoop *loop, const PtrConn &conn)
     loop->queueInLoop(std::bind(&TcpConnection::onDestroy, conn));
 }
 
+int TcpClient::onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
+{
+    PtrTcpClientEvtListener l = std::dynamic_pointer_cast<TcpClientEventListener>(listener);
+    PtrTcpClient tcpClient = l->getTcpClient();
+    if (tcpClient)
+    {
+        tcpClient->reconnect();
+    }
+    return -1;
+}
+
 // http://man7.org/linux/man-pages/man2/connect.2.html
 void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {
@@ -54,7 +65,8 @@ TcpClient::TcpClient(EventLoop *loop) : onTcpConnected(nullptr),
                                         onTcpDisconnected(nullptr),
                                         onTcpRecvMessage(nullptr),
                                         m_asyncConnect(false),
-                                        m_reconnectTimes(0)
+                                        m_reconnectTimes(0),
+                                        m_reconnectInterval(200)
 {
     log_ctor("TcpClient()");
     m_loop = loop;
@@ -190,6 +202,7 @@ EventLoop &TcpClient::getLoop()
 
 void TcpClient::onConnected(int sockfd)
 {
+    m_evtListener = nullptr;
     m_loop->assertInLoopThread();
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_conn = std::make_shared<TcpConnection>(sockfd);
@@ -259,7 +272,10 @@ void TcpClient::afterAsyncConnect(int sockfd)
     }
     else if (whetherReconnect())
     {
-        reconnect();
+        reconnectWithDelay(m_reconnectInterval);
+    }
+    else
+    {
     }
 }
 
@@ -268,12 +284,24 @@ bool TcpClient::whetherReconnect()
     return m_reconnectTimes == -1 || m_reconnectTimes > 0;
 }
 
+void TcpClient::reconnectWithDelay(int ms)
+{
+    m_loop->assertInLoopThread();
+    m_evtListener = TcpClientEventListener::create();
+    m_evtListener->setName(std::string("reconnect"));
+    m_evtListener->setEventLoop(m_loop);
+    m_evtListener->setTcpClient(shared_from_this());
+    m_evtListener->createTimer(ms, onReconnectTimeout, nullptr);
+}
+
 void TcpClient::reconnect()
 {
     m_loop->assertInLoopThread();
+    m_evtListener = nullptr;
     if (m_reconnectTimes > 0)
     {
         m_reconnectTimes--;
+        log_info("reconnect, left times: %d", m_reconnectTimes);
         connect(m_sockAddr.getHost(), m_sockAddr.getPort());
     }
 }

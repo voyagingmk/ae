@@ -45,6 +45,8 @@ public:
 
   ~TcpClient();
 
+  void reconnectWithDelay(int ms);
+
   void connect(const char *host, int port);
 
   void setReconnectTimes(int times)
@@ -78,6 +80,8 @@ private:
   // in order to access private members
   static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 
+  static int onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data);
+
 public:
   TcpConnection::OnTcpConnected onTcpConnected;
   TcpConnection::OnTcpDisconnected onTcpDisconnected;
@@ -89,7 +93,8 @@ private:
   PtrTcpClientEvtListener m_evtListener;
   MutexLock m_mutex;
   bool m_asyncConnect;
-  int m_reconnectTimes; // -1: infinitely   0: no reconnect
+  int m_reconnectTimes;    // -1: infinitely   0: no reconnect
+  int m_reconnectInterval; // ms
   SockAddr m_sockAddr;
 };
 

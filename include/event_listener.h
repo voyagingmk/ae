@@ -27,7 +27,7 @@ class EventListener : public std::enable_shared_from_this<EventListener>
   public:
     EventListener();
 
-    ~EventListener();
+    virtual ~EventListener();
 
   public:
     // 可重载
