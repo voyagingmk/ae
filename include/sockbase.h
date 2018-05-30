@@ -45,13 +45,22 @@ public:
 class SockAddr
 {
 public:
+  SockAddr() : m_port(0),
+               m_addr(nullptr),
+               m_socklen(0)
+  {
+  }
   SockAddr(const char *host, int port) : m_host(host),
-                                         m_port(port)
+                                         m_port(port),
+                                         m_addr(nullptr),
+                                         m_socklen(0)
   {
   }
 
   SockAddr(const std::string &host, int port) : m_host(host),
-                                                m_port(port)
+                                                m_port(port),
+                                                m_addr(nullptr),
+                                                m_socklen(0)
   {
   }
 

@@ -102,6 +102,8 @@ void TcpClient::connect(const char *host, int port)
 
 void TcpClient::connectInLoop(const char *host, int port)
 {
+    m_loop->assertInLoopThread();
+    m_sockAddr = SockAddr(host, port);
     int n;
     struct addrinfo hints, *res, *ressave;
 
@@ -250,6 +252,7 @@ void TcpClient::endAsyncConnect()
 
 void TcpClient::afterAsyncConnect(int sockfd)
 {
+    m_loop->assertInLoopThread();
     if (sockfd)
     {
         onConnected(sockfd);
@@ -267,9 +270,11 @@ bool TcpClient::whetherReconnect()
 
 void TcpClient::reconnect()
 {
+    m_loop->assertInLoopThread();
     if (m_reconnectTimes > 0)
     {
         m_reconnectTimes--;
+        connect(m_sockAddr.getHost(), m_sockAddr.getPort());
     }
 }
 

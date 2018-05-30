@@ -90,6 +90,7 @@ private:
   MutexLock m_mutex;
   bool m_asyncConnect;
   int m_reconnectTimes; // -1: infinitely   0: no reconnect
+  SockAddr m_sockAddr;
 };
 
 }; // namespace wynet
