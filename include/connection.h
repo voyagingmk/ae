@@ -217,7 +217,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
 
     void forceCloseInLoop();
 
-    void close();
+    void close(const char *reason);
 
     void closeInLoop();
 

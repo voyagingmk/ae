@@ -87,7 +87,7 @@ TcpClient::~TcpClient()
         if (unique)
         {
             log_info("~TcpClient() conn->close()");
-            conn->close();
+            conn->close("~TcpClient");
         }
     }
     else if (m_asyncConnect)
