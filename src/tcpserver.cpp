@@ -124,6 +124,7 @@ void TcpServer::startListen(const char *host, int port)
 
 TcpServer::~TcpServer()
 {
+	m_evtListener->deleteAllFileEvent();
 	log_trace("~TcpServer()");
 }
 
