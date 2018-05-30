@@ -16,6 +16,8 @@ class TestClient
     {
         EventLoop *loop = m_net->getThreadPool().getNextLoop();
         PtrTcpClient tcpClient = std::make_shared<TcpClient>(loop);
+        tcpClient->setReconnectTimes(-1);
+        tcpClient->setReconnectInterval(1000);
         tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
         tcpClient->onTcpDisconnected = std::bind(&TestClient::OnTcpDisconnected, this, _1);
         tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);

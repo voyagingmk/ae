@@ -54,6 +54,11 @@ public:
     m_reconnectTimes = times;
   }
 
+  void setReconnectInterval(int ms)
+  {
+    m_reconnectInterval = ms;
+  }
+
   PtrConn getConn();
 
   void disconnect();

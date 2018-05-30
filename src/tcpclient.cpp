@@ -8,16 +8,19 @@ namespace wynet
 
 void removeConnection(EventLoop *loop, const PtrConn &conn)
 {
-    log_info("------removeConnection");
+    log_debug("removeConnection");
     loop->queueInLoop(std::bind(&TcpConnection::onDestroy, conn));
 }
 
 int TcpClient::onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
 {
+
+    log_info("onReconnectTimeout");
     PtrTcpClientEvtListener l = std::dynamic_pointer_cast<TcpClientEventListener>(listener);
     PtrTcpClient tcpClient = l->getTcpClient();
     if (tcpClient)
     {
+        log_info("onReconnectTimeout tcpClient");
         tcpClient->reconnect();
     }
     return -1;
@@ -286,6 +289,7 @@ bool TcpClient::whetherReconnect()
 
 void TcpClient::reconnectWithDelay(int ms)
 {
+    log_info("reconnectWithDelay %d ms", ms);
     m_loop->assertInLoopThread();
     m_evtListener = TcpClientEventListener::create();
     m_evtListener->setName(std::string("reconnect"));
@@ -301,9 +305,9 @@ void TcpClient::reconnect()
     if (m_reconnectTimes > 0)
     {
         m_reconnectTimes--;
-        log_info("reconnect, left times: %d", m_reconnectTimes);
-        connect(m_sockAddr.getHost(), m_sockAddr.getPort());
     }
+    log_info("reconnect, left times: %d", m_reconnectTimes);
+    connect(m_sockAddr.getHost(), m_sockAddr.getPort());
 }
 
 }; // namespace wynet
