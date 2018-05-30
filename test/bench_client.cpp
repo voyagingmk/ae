@@ -41,7 +41,7 @@ class TestClient
         return -1;
     }
 
-    void OnTcpSendComplete(PtrConn conn)
+    void OnTcpSendComplete(const PtrConn &conn)
     {
         log_info("[test.OnTcpSendComplete]");
         //      std::string msg(buffer, ret_in);
@@ -51,7 +51,7 @@ class TestClient
         //
     }
 
-    void OnTcpConnected(PtrConn conn)
+    void OnTcpConnected(const PtrConn &conn)
     {
         log_info("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
@@ -66,7 +66,7 @@ class TestClient
         //client->getTcpClient();
     }
 
-    void OnTcpDisconnected(PtrConn conn)
+    void OnTcpDisconnected(const PtrConn &conn)
     {
         m_timeEnd = std::chrono::system_clock::now();
         log_info("[test.OnTcpDisconnected] %d", conn->connectId());
@@ -80,7 +80,7 @@ class TestClient
         m_net->stopLoop();
     }
 
-    void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
+    void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
     {
         size_t bytes = sockBuf.readableSize();
         log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", bytes);

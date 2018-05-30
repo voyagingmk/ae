@@ -45,12 +45,12 @@ PtrConnMgr TcpServer::initConnMgr()
 	return m_connMgr;
 }
 
-bool TcpServer::addConnection(PtrConn conn)
+bool TcpServer::addConnection(const PtrConn &conn)
 {
 	return getConnMgr()->addConnection(conn);
 }
 
-bool TcpServer::removeConnection(PtrConn conn)
+bool TcpServer::removeConnection(const PtrConn &conn)
 {
 	return getConnMgr()->removeConnection(conn);
 }

@@ -20,7 +20,7 @@ int OnHeartbeat(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *dat
     return 1000;
 }
 
-void OnTcpSendComplete(PtrConn conn)
+void OnTcpSendComplete(const PtrConn &conn)
 {
     log_debug("[test.OnTcpSendComplete]");
     int ret_in = read(input_fd, &buffer, BUF_SIZE);
@@ -35,7 +35,7 @@ void OnTcpSendComplete(PtrConn conn)
     }
 }
 
-void OnTcpConnected(PtrConn conn)
+void OnTcpConnected(const PtrConn &conn)
 {
     log_debug("[test.OnTcpConnected]");
     // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
@@ -69,13 +69,13 @@ void OnTcpConnected(PtrConn conn)
     // conn->getLoop()->createTimer(1000, OnHeartbeat);
 }
 
-void OnTcpDisconnected(PtrConn conn)
+void OnTcpDisconnected(const PtrConn &conn)
 {
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
     g_net->stopLoop();
 }
 
-void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
+void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
 {
     int readOutSize = write(output_fd,
                             sockBuf.readBegin(),

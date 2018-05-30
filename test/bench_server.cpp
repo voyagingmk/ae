@@ -19,7 +19,7 @@ class TestServer
         net->getPeerManager().addServer(server);
     }
 
-    void OnTcpConnected(PtrConn conn)
+    void OnTcpConnected(const PtrConn &conn)
     {
         log_info("[test.OnTcpConnected] sockfd %d", conn->sockfd());
         // conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
@@ -27,20 +27,20 @@ class TestServer
         socketUtils::setTcpNoDelay(conn->sockfd(), true);
     }
 
-    void OnTcpDisconnected(PtrConn conn)
+    void OnTcpDisconnected(const PtrConn &conn)
     {
         log_info("[test.OnTcpDisconnected] sockfd %d", conn->sockfd());
         conn->getCtrlAsServer()->removeConnection(conn);
     }
 
-    void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
+    void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
     {
         log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
         conn->send(sockBuf.readBegin(), sockBuf.readableSize());
         sockBuf.readOut(sockBuf.readableSize());
     }
 
-    void OnTcpSendComplete(PtrConn conn)
+    void OnTcpSendComplete(const PtrConn &conn)
     {
         log_info("[test.OnTcpSendComplete]");
         //      std::string msg(buffer, ret_in);

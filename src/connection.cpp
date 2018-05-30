@@ -154,7 +154,6 @@ void TcpConnection ::closeInLoop()
 
 void TcpConnection::setCloseCallback(const OnTcpClose &cb)
 {
-    log_info("[conn] setCloseCallback");
     onTcpClose = cb;
 }
 

@@ -56,18 +56,6 @@ protected:
 
 class TcpServer : public Noncopyable, public std::enable_shared_from_this<TcpServer>
 {
-  PtrServer m_parent;
-  int m_tcpPort;
-  PtrConnMgr m_connMgr;
-  SockAddr m_sockAddr;
-  PtrTcpServerEvtListener m_evtListener;
-
-public:
-  SocketFdCtrl m_sockFdCtrl;
-  TcpConnection::OnTcpConnected onTcpConnected;
-  TcpConnection::OnTcpDisconnected onTcpDisconnected;
-  TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
-
 public:
   friend class Server;
 
@@ -81,9 +69,9 @@ public:
 
   PtrConnMgr getConnMgr() const { return m_connMgr; }
 
-  bool addConnection(PtrConn conn);
+  bool addConnection(const PtrConn &conn);
 
-  bool removeConnection(PtrConn conn);
+  bool removeConnection(const PtrConn &conn);
 
 protected:
   TcpServer(PtrServer parent);
@@ -95,6 +83,19 @@ protected:
   void acceptConnection();
 
   static void OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener, int mask);
+
+public:
+  SocketFdCtrl m_sockFdCtrl;
+  TcpConnection::OnTcpConnected onTcpConnected;
+  TcpConnection::OnTcpDisconnected onTcpDisconnected;
+  TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
+
+private:
+  PtrServer m_parent;
+  int m_tcpPort;
+  PtrConnMgr m_connMgr;
+  SockAddr m_sockAddr;
+  PtrTcpServerEvtListener m_evtListener;
 };
 }; // namespace wynet
 

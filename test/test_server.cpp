@@ -11,19 +11,19 @@ void Stop(int signo)
     g_net->stopLoop();
 }
 
-void OnTcpConnected(PtrConn conn)
+void OnTcpConnected(const PtrConn &conn)
 {
     log_debug("[test.OnTcpConnected] %d", conn->connectId());
     conn->getCtrlAsServer()->addConnection(conn);
 }
 
-void OnTcpDisconnected(PtrConn conn)
+void OnTcpDisconnected(const PtrConn &conn)
 {
     log_debug("[test.OnTcpDisconnected] %d", conn->connectId());
     conn->getCtrlAsServer()->removeConnection(conn);
 }
 
-void OnTcpRecvMessage(PtrConn conn, SockBuffer &sockBuf)
+void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
 {
     log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
     conn->send(sockBuf.readBegin(), sockBuf.readableSize());

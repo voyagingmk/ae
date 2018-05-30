@@ -16,13 +16,13 @@ ConnectionManager::~ConnectionManager()
         log_info("~ConnectionManager()");
 }
 
-bool ConnectionManager::addConnection(PtrConn conn)
+bool ConnectionManager::addConnection(const PtrConn &conn)
 {
     refConnection(conn);
     return true;
 }
 
-bool ConnectionManager::removeConnection(PtrConn conn)
+bool ConnectionManager::removeConnection(const PtrConn &conn)
 {
     return unrefConnection(conn);
 }
@@ -43,7 +43,7 @@ PtrConn ConnectionManager::getConncetion(UniqID connectId)
     return it->second;
 }
 
-UniqID ConnectionManager::refConnection(PtrConn conn)
+UniqID ConnectionManager::refConnection(const PtrConn &conn)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     UniqID connectId = m_connectIdGen.getNewID();
@@ -56,7 +56,7 @@ UniqID ConnectionManager::refConnection(PtrConn conn)
     return connectId;
 }
 
-bool ConnectionManager::unrefConnection(PtrConn conn)
+bool ConnectionManager::unrefConnection(const PtrConn &conn)
 {
     UniqID connectId = conn->connectId();
     return unrefConnection(connectId);

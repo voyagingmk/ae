@@ -41,7 +41,7 @@ class TcpConnectionEventListener : public EventListener
             log_info("~TcpConnectionEventListener()");
     }
 
-    void setTcpConnection(PtrConn conn)
+    void setTcpConnection(const PtrConn &conn)
     {
         m_conn = conn;
     }

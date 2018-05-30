@@ -20,9 +20,9 @@ public:
 
   ~ConnectionManager();
 
-  bool addConnection(PtrConn conn);
+  bool addConnection(const PtrConn &conn);
 
-  bool removeConnection(PtrConn conn);
+  bool removeConnection(const PtrConn &conn);
 
   bool removeConnection(UniqID connectId);
 
@@ -31,11 +31,11 @@ public:
 protected:
   static void weakDeleteCallback(std::weak_ptr<ConnectionManager>, TcpConnection *);
 
-  UniqID refConnection(PtrConn conn);
+  UniqID refConnection(const PtrConn & conn);
 
   bool unrefConnection(UniqID connectId);
 
-  bool unrefConnection(PtrConn conn);
+  bool unrefConnection(const PtrConn & conn);
 
 protected:
   MutexLock m_mutex;

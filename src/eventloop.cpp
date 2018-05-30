@@ -118,6 +118,7 @@ void EventLoop::loop()
         // log_debug("processTaskQueue");
         processTaskQueue();
     }
+    processTaskQueue();
     deleteTimerInLoop(aeTimerId);
 }
 
@@ -289,7 +290,6 @@ void EventLoop::processTaskQueue()
         MutexLockGuard<MutexLock> lock(m_mutex);
         taskFuncQueue.swap(m_taskFuncQueue);
     }
-
     for (size_t i = 0; i < taskFuncQueue.size(); ++i)
     {
         taskFuncQueue[i]();
