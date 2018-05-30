@@ -30,6 +30,7 @@ class TestClient
 
     ~TestClient()
     {
+        log_dtor(" ~TestClient()");
     }
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)

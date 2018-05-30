@@ -55,7 +55,8 @@ TcpClient::TcpClient(EventLoop *loop) : onTcpConnected(nullptr),
                                         onTcpDisconnected(nullptr),
                                         onTcpRecvMessage(nullptr),
                                         m_asyncConnect(false),
-                                        m_asyncSockfd(0)
+                                        m_asyncSockfd(0),
+                                        m_reconnectTimes(0)
 {
     log_ctor("TcpClient()");
     m_loop = loop;
