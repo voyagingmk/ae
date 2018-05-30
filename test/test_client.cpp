@@ -65,7 +65,6 @@ void OnTcpConnected(const PtrConn &conn)
     {
         g_net->stopLoop();
     }
-    //client->getTcpClient();
     // conn->getLoop()->createTimer(1000, OnHeartbeat);
 }
 
@@ -98,7 +97,6 @@ int main(int argc, char **argv)
     g_net = &net;
 
     log_info("aeGetApiName: %s", aeGetApiName());
-    PtrClient client = Client::create(&net);
     EventLoop *loop = net.getThreadPool().getNextLoop();
     PtrTcpClient tcpClient = std::make_shared<TcpClient>(loop);
     tcpClient->onTcpConnected = &OnTcpConnected;

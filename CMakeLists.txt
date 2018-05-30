@@ -43,7 +43,6 @@ FILE(GLOB MY_SOURCERS
     src/kcp.cpp
     src/net.cpp
     src/server.cpp
-    src/client.cpp
     src/tcpclient.cpp
     src/tcpserver.cpp
     src/udpclient.cpp
@@ -83,7 +82,6 @@ FILE(GLOB MY_HEADERS
     include/buffer.h
     include/sockbuffer.h
     include/socket_utils.h
-    include/client.h
     include/server.h
     include/udpclient.h
     include/tcpclient.h
