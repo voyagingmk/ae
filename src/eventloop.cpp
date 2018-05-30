@@ -100,6 +100,7 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
 EventLoop::~EventLoop()
 {
     log_dtor("~EventLoop()");
+    assert(m_fd2listener.size() == 0);
     aeDeleteEventLoop(m_aeloop);
     t_threadLoop = nullptr;
 }

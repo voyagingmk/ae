@@ -143,10 +143,8 @@ void TcpConnection ::closeInLoop()
     log_info("[conn] closeInLoop thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
     // Todo linger
-    if (m_evtListener)
-    {
-        m_evtListener->deleteAllFileEvent();
-    }
+    m_evtListener->deleteAllFileEvent();
+
     PtrConn self(shared_from_this());
     if (onTcpDisconnected)
         onTcpDisconnected(self);
@@ -166,6 +164,7 @@ void TcpConnection::onDestroy()
     if (m_state == State::Connected)
     {
         m_state = State::Disconnected;
+        m_evtListener->deleteAllFileEvent();
         log_info("[conn] m_state = State::Disconnected");
         if (onTcpDisconnected)
             onTcpDisconnected(shared_from_this());
