@@ -64,7 +64,8 @@ void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int
     tcpClient->afterAsyncConnect(sockfd);
 }
 
-TcpClient::TcpClient(EventLoop *loop) : onTcpConnected(nullptr),
+TcpClient::TcpClient(EventLoop *loop) : onTcpConnectFailed(nullptr),
+                                        onTcpConnected(nullptr),
                                         onTcpDisconnected(nullptr),
                                         onTcpRecvMessage(nullptr),
                                         m_asyncConnect(false),
@@ -184,6 +185,7 @@ void TcpClient::connectInLoop(const char *host, int port)
     if (res == NULL)
     {
         log_error("TcpClient.connect failed. %s, %s", host, serv);
+        onConnectFailed();
     }
     else
     {
@@ -273,16 +275,25 @@ void TcpClient::afterAsyncConnect(int sockfd)
     {
         onConnected(sockfd);
     }
-    else if (whetherReconnect())
-    {
-        reconnectWithDelay(m_reconnectInterval);
-    }
     else
     {
+        onConnectFailed();
     }
 }
 
-bool TcpClient::whetherReconnect()
+void TcpClient::onConnectFailed()
+{
+    if (needReconnect())
+    {
+        reconnectWithDelay(m_reconnectInterval);
+    }
+    if (onTcpConnectFailed)
+    {
+        onTcpConnectFailed(shared_from_this());
+    }
+}
+
+bool TcpClient::needReconnect()
 {
     return m_reconnectTimes == -1 || m_reconnectTimes > 0;
 }

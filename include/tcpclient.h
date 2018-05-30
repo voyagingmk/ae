@@ -49,6 +49,8 @@ public:
 
   void connect(const char *host, int port);
 
+  bool needReconnect();
+
   void setReconnectTimes(int times)
   {
     m_reconnectTimes = times;
@@ -68,8 +70,6 @@ public:
 private:
   void connectInLoop(const char *host, int port);
 
-  bool whetherReconnect();
-
   void reconnect();
 
   void asyncConnect(int sockfd);
@@ -82,12 +82,16 @@ private:
 
   void onConnected(int sockfd);
 
+  void onConnectFailed();
+
   // in order to access private members
   static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 
   static int onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data);
 
 public:
+  typedef std::function<void(const PtrTcpClient &)> OnTcpConnectFailed;
+  OnTcpConnectFailed onTcpConnectFailed;
   TcpConnection::OnTcpConnected onTcpConnected;
   TcpConnection::OnTcpDisconnected onTcpDisconnected;
   TcpConnection::OnTcpRecvMessage onTcpRecvMessage;
