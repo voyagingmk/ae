@@ -12,6 +12,7 @@ ConnectionManager::ConnectionManager()
 ConnectionManager::~ConnectionManager()
 {
     log_dtor("~ConnectionManager()");
+    m_connDict.clear();
 }
 
 bool ConnectionManager::addConnection(const PtrConn &conn)

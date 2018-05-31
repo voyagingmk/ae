@@ -6,7 +6,7 @@
 
 std::string hostname();
 
-// #define LOG_CTOR_DTOR 1
+#define LOG_CTOR_DTOR 1
 #ifdef LOG_CTOR_DTOR
 #define __str__(x) #x
 #define log_ctor(...) log_info(__VA_ARGS__);
