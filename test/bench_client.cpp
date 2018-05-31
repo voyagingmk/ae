@@ -88,9 +88,9 @@ class TestClient
     {
         m_timeEnd = std::chrono::system_clock::now();
         // log_info("[test.OnTcpDisconnected] %d", conn->connectId());
-        m_numConnected--;
+        int num = --m_numConnected;
         conn->getCtrlAsClient()->setReconnectTimes(0);
-        // log_info("m_numConnected %d", (int)(m_numConnected));
+        log_info("numConnected %d", num);
         if (m_numConnected == 0)
         {
             int64_t bytesRead = 0;

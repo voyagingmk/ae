@@ -346,7 +346,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             if (remain > 0)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
-                log_info("[conn] remain > 0 sockfd %d", sockfd());
+                log_debug("[conn] remain > 0 sockfd %d", sockfd());
                 m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
