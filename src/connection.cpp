@@ -191,7 +191,7 @@ void TcpConnection::onEstablished()
 {
     getLoop()->assertInLoopThread();
     assert(m_state == State::Connecting);
-    log_info("[conn] establish in thread: %s", CurrentThread::name());
+    log_debug("[conn] establish in thread: %s", CurrentThread::name());
     m_state = State::Connected;
     m_evtListener->setTcpConnection(shared_from_this());
     m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpConnection::OnConnectionEvent);
