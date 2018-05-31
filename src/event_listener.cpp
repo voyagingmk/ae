@@ -29,7 +29,7 @@ void EventListener::deleteAllFileEvent()
 {
     if (m_loop && m_sockfd)
     {
-        log_info("deleteAllFileEvent %d", m_sockfd);
+        // log_info("deleteAllFileEvent %d", m_sockfd);
         m_loop->deleteAllFileEvent(m_sockfd);
     }
     else
@@ -42,7 +42,7 @@ void EventListener::createFileEvent(int mask, OnFileEvent onFileEvent)
 {
     if (m_loop && m_sockfd)
     {
-        log_info("createFileEvent %d", m_sockfd);
+        // log_info("createFileEvent %d", m_sockfd);
         m_onFileEvent = onFileEvent;
         m_loop->createFileEvent(shared_from_this(), mask);
     }
