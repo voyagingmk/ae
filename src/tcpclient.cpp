@@ -120,20 +120,35 @@ void TcpClient::connectInLoop(const char *host, int port)
 {
     m_loop->assertInLoopThread();
     m_sockAddr = SockAddr(host, port);
-    int n;
+    int err;
     struct addrinfo hints, *res, *ressave;
 
     bzero(&hints, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-
+    hints.ai_flags = AI_NUMERICSERV;
     char buf[5];
     sprintf(buf, "%d", port);
     const char *serv = (char *)&buf;
 
-    if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)
-        log_fatal("TcpClient.getaddrinfo error: %s, %s: %s",
-                  host, serv, gai_strerror(n));
+    if ((err = getaddrinfo(host, serv, &hints, &res)) != 0)
+    {
+        log_warn("TcpClient.getaddrinfo error: %s, %s, %d, %s",
+                 host, serv, err, gai_strerror(err));
+        switch (err)
+        {
+        case EAI_AGAIN:
+        case EAI_NONAME:
+            onConnectFailed();
+            break;
+        case EAI_SYSTEM:
+            log_error("EAI_SYSTEM %d", errno);
+            break;
+        default:
+            log_fatal("getaddrinfo %d", err);
+        }
+        return;
+    }
     ressave = res;
     int ret;
     int sockfd;
@@ -214,7 +229,7 @@ void TcpClient::onConnected(int sockfd)
     m_conn->setEventLoop(m_loop);
     m_conn->setCtrl(shared_from_this());
     m_conn->setCallBack_Connected(onTcpConnected);
-    m_conn->setCallBack_Disconnected(onTcpDisconnected);
+    m_conn->setCallBack_Disconnected(std::bind(&TcpClient::onDisconnected, shared_from_this(), std::placeholders::_1));
     m_conn->setCallBack_Message(onTcpRecvMessage);
     m_loop->runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
 }
@@ -293,6 +308,16 @@ void TcpClient::onConnectFailed()
     }
 }
 
+void TcpClient::onDisconnected(const PtrConn &conn)
+{
+    if (needReconnect())
+    {
+        reconnectWithDelay(m_reconnectInterval);
+    }
+    if (onTcpDisconnected)
+        onTcpDisconnected(conn);
+}
+
 bool TcpClient::needReconnect()
 {
     return m_reconnectTimes == -1 || m_reconnectTimes > 0;
@@ -300,7 +325,7 @@ bool TcpClient::needReconnect()
 
 void TcpClient::reconnectWithDelay(int ms)
 {
-    log_debug("reconnectWithDelay %d ms", ms);
+    log_info("reconnectWithDelay %d ms", ms);
     m_loop->assertInLoopThread();
     m_evtListener = TcpClientEventListener::create();
     m_evtListener->setName(std::string("reconnect"));

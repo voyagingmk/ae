@@ -12,7 +12,7 @@
 namespace wynet
 {
 
-const size_t LISTENQUEUEMAX = 128;
+const size_t LISTENQUEUEMAX = 1024;
 
 void TcpServer::OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener listener, int mask)
 {

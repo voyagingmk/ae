@@ -84,6 +84,8 @@ private:
 
   void onConnectFailed();
 
+  void onDisconnected(const PtrConn &);
+
   // in order to access private members
   static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 

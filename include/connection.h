@@ -185,11 +185,6 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         onTcpConnected = cb;
     }
 
-    void setCallBack_Disconnected(OnTcpDisconnected cb)
-    {
-        onTcpDisconnected = cb;
-    }
-
     void setCallBack_Message(OnTcpRecvMessage cb)
     {
         onTcpRecvMessage = cb;
@@ -225,6 +220,11 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
 
   protected:
     static void OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask);
+
+    void setCallBack_Disconnected(OnTcpDisconnected cb)
+    {
+        onTcpDisconnected = cb;
+    }
 
     void forceCloseInLoop();
 
