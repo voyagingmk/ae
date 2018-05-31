@@ -15,12 +15,12 @@ void removeConnection(EventLoop *loop, const PtrConn &conn)
 int TcpClient::onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
 {
 
-    log_info("onReconnectTimeout");
+    log_debug("onReconnectTimeout");
     PtrTcpClientEvtListener l = std::dynamic_pointer_cast<TcpClientEventListener>(listener);
     PtrTcpClient tcpClient = l->getTcpClient();
     if (tcpClient)
     {
-        log_info("onReconnectTimeout tcpClient");
+        log_debug("onReconnectTimeout tcpClient");
         tcpClient->reconnect();
     }
     return -1;
@@ -86,11 +86,11 @@ TcpClient::~TcpClient()
         unique = m_conn.unique();
         conn = m_conn;
         m_conn = nullptr;
-        log_info("conn->use_count() %d", conn.use_count());
+        log_debug("conn->use_count() %d", conn.use_count());
     }
     if (conn)
     {
-        log_info("~TcpClient() has conn unique %d", unique);
+        log_debug("~TcpClient() has conn unique %d", unique);
         assert(m_loop == conn->getLoop());
         TcpConnection::OnTcpClose cb = std::bind(&removeConnection, m_loop, std::placeholders::_1);
         m_loop->runInLoop(
@@ -106,7 +106,7 @@ TcpClient::~TcpClient()
     }
     else if (m_asyncConnect)
     {
-        log_info("~TcpClient() endAsyncConnect");
+        log_debug("~TcpClient() endAsyncConnect");
         endAsyncConnect();
     }
 }
@@ -259,7 +259,7 @@ bool TcpClient::isAsyncConnecting()
 void TcpClient::endAsyncConnect()
 {
     m_loop->assertInLoopThread();
-    log_info("endAsyncConnect");
+    log_debug("endAsyncConnect");
     if (m_evtListener)
     {
         m_evtListener->deleteAllFileEvent();
@@ -300,7 +300,7 @@ bool TcpClient::needReconnect()
 
 void TcpClient::reconnectWithDelay(int ms)
 {
-    log_info("reconnectWithDelay %d ms", ms);
+    log_debug("reconnectWithDelay %d ms", ms);
     m_loop->assertInLoopThread();
     m_evtListener = TcpClientEventListener::create();
     m_evtListener->setName(std::string("reconnect"));
@@ -317,7 +317,7 @@ void TcpClient::reconnect()
     {
         m_reconnectTimes--;
     }
-    log_info("reconnect, left times: %d", m_reconnectTimes);
+    log_debug("reconnect, left times: %d", m_reconnectTimes);
     connect(m_sockAddr.getHost(), m_sockAddr.getPort());
 }
 

@@ -73,7 +73,7 @@ class TestClient
 
     void OnTcpConnected(const PtrConn &conn)
     {
-        log_info("[test.OnTcpConnected]");
+        // log_info("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
         // conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
         int i = m_numConnected;
@@ -82,18 +82,15 @@ class TestClient
         m_timeStart = std::chrono::system_clock::now();
         conn->send(m_message);
         socketUtils::setTcpNoDelay(conn->sockfd(), true);
-        log_info("m_timeout %d", this->m_timeout);
         conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
-        // m_net->stopLoop();
-        //client->getTcpClient();
     }
 
     void OnTcpDisconnected(const PtrConn &conn)
     {
         m_timeEnd = std::chrono::system_clock::now();
-        log_info("[test.OnTcpDisconnected] %d", conn->connectId());
+        // log_info("[test.OnTcpDisconnected] %d", conn->connectId());
         m_numConnected--;
-        log_info("m_numConnected %d", (int)(m_numConnected));
+        // log_info("m_numConnected %d", (int)(m_numConnected));
         if (m_numConnected == 0)
         {
             int64_t bytesRead = 0;
