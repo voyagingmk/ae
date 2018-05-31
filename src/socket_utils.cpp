@@ -100,56 +100,64 @@ int sock_fcntl(int sockfd, int cmd, int arg)
     return n;
 }
 
-sockaddr_storage getSrcAddr(int sockfd)
+void getSrcAddr(int sockfd, sockaddr_storage *addr, socklen_t &addrlen)
 {
-    struct sockaddr_storage addr = {0};
-    socklen_t addrlen = static_cast<socklen_t>(sizeof(addr));
-    if (::getsockname(sockfd, (sockaddr *)(&addr), &addrlen) < 0)
+    if (::getsockname(sockfd, (struct sockaddr *)(addr), &addrlen) < 0)
     {
         log_fatal("socket_utils.getSrcAddr");
     }
-    assert(addrlen <= static_cast<socklen_t>(sizeof(addr)));
-    return addr;
+    assert(addrlen <= static_cast<socklen_t>(sizeof(sockaddr_storage)));
 }
 
-sockaddr_storage getDestAddr(int sockfd)
+void getDestAddr(int sockfd, sockaddr_storage *addr, socklen_t &addrlen)
 {
-    struct sockaddr_storage addr = {0};
-    socklen_t addrlen = static_cast<socklen_t>(sizeof addr);
-    if (::getpeername(sockfd, (struct sockaddr *)(&addr), &addrlen) < 0)
+    if (::getpeername(sockfd, (struct sockaddr *)(addr), &addrlen) < 0)
     {
         log_fatal("socket_utils.getDestAddr");
     }
-    assert(addrlen <= static_cast<socklen_t>(sizeof(addr)));
-    return addr;
+    assert(addrlen <= static_cast<socklen_t>(sizeof(sockaddr_storage)));
 }
 
 bool isSelfConnect(int sockfd)
 {
-    sockaddr_storage srcAddr = getSrcAddr(sockfd);
-    sockaddr_storage destAddr = getDestAddr(sockfd);
-    log_debug_addr((struct sockaddr *)(&srcAddr), "socket_utils.isSelfConnect srcAddr");
-    log_debug_addr((struct sockaddr *)(&destAddr), "socket_utils.isSelfConnect destAddr");
+    sockaddr_storage srcAddr;
+    socklen_t srcAddrlen = sizeof(sockaddr_storage);
+    sockaddr_storage destAddr;
+    socklen_t destAddrlen = sizeof(sockaddr_storage);
+    getSrcAddr(sockfd, &srcAddr, srcAddrlen);
+    getDestAddr(sockfd, &destAddr, destAddrlen);
+    // log_debug_addr(&srcAddr, srcAddrlen, "socket_utils.isSelfConnect srcAddr");
+    // log_debug_addr(&destAddr, destAddrlen, "socket_utils.isSelfConnect destAddr");
 
     if (srcAddr.ss_family == AF_INET)
     {
         sockaddr_in *srcAddr_v4 = (struct sockaddr_in *)(&srcAddr);
         sockaddr_in *destAddr_v4 = (struct sockaddr_in *)(&destAddr);
-        return srcAddr_v4->sin_port == destAddr_v4->sin_port && srcAddr_v4->sin_addr.s_addr == destAddr_v4->sin_addr.s_addr;
+        // log_info("isSelfConnect ipv4 port %d %d addr %d %d",
+        //        srcAddr_v4->sin_port, destAddr_v4->sin_port,
+        //        srcAddr_v4->sin_addr.s_addr, destAddr_v4->sin_addr.s_addr);
+        return srcAddr_v4->sin_port == destAddr_v4->sin_port &&
+               srcAddr_v4->sin_addr.s_addr == destAddr_v4->sin_addr.s_addr;
     }
     else if (srcAddr.ss_family == AF_INET6)
     {
         sockaddr_in6 *srcAddr_v6 = (struct sockaddr_in6 *)(&srcAddr);
         sockaddr_in6 *destAddr_v6 = (struct sockaddr_in6 *)(&destAddr);
+        // log_info("isSelfConnect ipv6 port %d %d",
+        //         srcAddr_v6->sin6_port, destAddr_v6->sin6_port);
         return srcAddr_v6->sin6_port == destAddr_v6->sin6_port &&
                memcmp(&srcAddr_v6->sin6_addr,
                       &destAddr_v6->sin6_addr,
                       sizeof(struct in6_addr)) == 0;
     }
+    else
+    {
+        log_fatal("isSelfConnect wrong srcAddr.ss_family %d", srcAddr.ss_family);
+    }
     return false;
 }
 
-void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, char *portBuf, size_t portBufSize)
+void getNameInfo(struct sockaddr *addr, socklen_t addrlen, char *ipBuf, size_t ipBufSize, char *portBuf, size_t portBufSize)
 {
     if (!ipBuf && !portBuf)
     {
@@ -164,21 +172,32 @@ void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, c
     {
         flag |= NI_NUMERICSERV;
     }
-    socklen_t addrlen = sizeof(sockaddr_storage);
-    int err = getnameinfo((struct sockaddr *)addr, addrlen,
+    socklen_t len;
+    switch (addr->sa_family)
+    {
+    case AF_INET:
+        len = sizeof(sockaddr_in);
+        break;
+    case AF_INET6:
+        len = sizeof(sockaddr_in6);
+        break;
+    }
+    // log_warn("getnameinfo addr sa_family %d len %d", addr->sa_family, len);
+    int err = getnameinfo(addr, addrlen,
                           ipBuf, ipBufSize,
                           portBuf, portBufSize,
-                          NI_NUMERICHOST);
+                          flag);
     if (err != 0)
     {
-        log_warn("socketUtils.getAddrIP error: %d, %s", err, gai_strerror(err));
+        log_warn("socketUtils.getNameInfo addrlen %d error: %d, %s", addrlen, err, gai_strerror(err));
     }
 }
 
-void log_debug_addr(struct sockaddr *addr, const char *tag)
+void log_debug_addr(struct sockaddr *addr, socklen_t addrlen, const char *tag)
 {
     char ipBuf[NI_MAXHOST];
     char portBuf[NI_MAXSERV];
+    /*
     int port = 0;
     if (addr->sa_family == AF_INET)
     {
@@ -190,14 +209,15 @@ void log_debug_addr(struct sockaddr *addr, const char *tag)
         sockaddr_in6 *addr_v6 = (struct sockaddr_in6 *)(addr);
         port = (int)ntohs(addr_v6->sin6_port);
     }
-
-    getNameInfo((struct sockaddr_storage *)addr, ipBuf, NI_MAXHOST, portBuf, NI_MAXSERV);
-    log_debug("%s, ip=%s, port=%d|%s", tag, ipBuf, port, portBuf);
+    */
+    getNameInfo(addr, addrlen, ipBuf, NI_MAXHOST, portBuf, NI_MAXSERV);
+    log_info("%s, ip=%s, port=%s", tag, ipBuf, portBuf);
+    // log_info("%s, ip=%s, port=%d", tag, ipBuf, port);
 }
 
-void log_debug_addr(struct sockaddr_storage *addr, const char *tag)
+void log_debug_addr(struct sockaddr_storage *addr, socklen_t addrlen, const char *tag)
 {
-    log_debug_addr((struct sockaddr *)(addr), tag);
+    log_debug_addr((struct sockaddr *)(addr), addrlen, tag);
 }
 
 int setTcpNoDelay(SockFd sockfd, bool enabled)

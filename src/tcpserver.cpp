@@ -103,20 +103,21 @@ void TcpServer::startListen(const char *host, int port)
 		break; /* success */
 	} while ((res = res->ai_next) != NULL);
 
-	if (res == NULL) /* errno from final socket() or bind() */
+	if (res == NULL)
+	{
 		log_error("tcp_listen error for %s, %s", host, serv);
-
-	// socketUtils::SetSockRecvBufSize(listenfd, 32 * 1024);
-	// socketUtils::SetSockSendBufSize(listenfd, 32 * 1024);
-
-	socketUtils::sock_listen(listenfd, LISTENQUEUEMAX);
-
-	m_sockFdCtrl.setSockfd(listenfd);
-	m_evtListener->setSockfd(listenfd);
-
+	}
+	else
+	{
+		// socketUtils::SetSockRecvBufSize(listenfd, 32 * 1024);
+		// socketUtils::SetSockSendBufSize(listenfd, 32 * 1024);
+		socketUtils::sock_listen(listenfd, LISTENQUEUEMAX);
+		m_sockFdCtrl.setSockfd(listenfd);
+		m_evtListener->setSockfd(listenfd);
+		socketUtils::log_debug_addr(res->ai_addr, res->ai_addrlen, "<TcpServer.startListen>");
+		m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpServer::OnNewTcpConnection);
+	}
 	freeaddrinfo(ressave);
-	socketUtils::log_debug_addr(res->ai_addr, "<TcpServer.startListen>");
-	m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpServer::OnNewTcpConnection);
 }
 
 TcpServer::~TcpServer()

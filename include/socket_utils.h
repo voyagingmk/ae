@@ -26,17 +26,17 @@ extern bool isIPv6(sockaddr_storage sockAddr);
 
 extern int sock_fcntl(int sockfd, int cmd, int arg);
 
-extern sockaddr_storage getSrcAddr(SockFd sockfd);
+extern void getSrcAddr(SockFd sockfd, sockaddr_storage *addr, socklen_t &addrlen);
 
-extern sockaddr_storage getDestAddr(SockFd sockfd);
+extern void getDestAddr(SockFd sockfd, sockaddr_storage *addr, socklen_t &addrlen);
 
 extern bool isSelfConnect(SockFd sockfd);
 
-extern void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, char *portBuf, size_t portBufSize);
+extern void getNameInfo(struct sockaddr *addr, socklen_t addrlen, char *ipBuf, size_t ipBufSize, char *portBuf, size_t portBufSize);
 
-extern void log_debug_addr(struct sockaddr *addr, const char *tag = "");
+extern void log_debug_addr(struct sockaddr *addr, socklen_t addrlen, const char *tag = "");
 
-extern void log_debug_addr(struct sockaddr_storage *addr, const char *tag = "");
+extern void log_debug_addr(struct sockaddr_storage *addr, socklen_t addrlen, const char *tag = "");
 
 extern int setTcpNoDelay(SockFd sockfd, bool enabled);
 

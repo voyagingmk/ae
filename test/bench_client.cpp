@@ -86,18 +86,21 @@ class TestClient
     {
         m_timeEnd = std::chrono::system_clock::now();
         log_info("[test.OnTcpDisconnected] %d", conn->connectId());
-        size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count();
-        log_info("took %d ms, m_timeout %d ms", ms, m_timeout);
-        log_info("total bytes read: %lld", m_bytesRead);
-        log_info("total messages read: %lld", m_messagesRead);
-        log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(m_bytesRead) / static_cast<double>(m_messagesRead)));
-        log_info("%f MiB/s throughput",
-                 static_cast<double>(m_bytesRead) / (ms * 1024 * 1024 / 1000));
+
         PtrTcpClient tcpClient = conn->getCtrlAsClient();
         auto it = std::find(m_tcpClients.begin(), m_tcpClients.end(), tcpClient);
         m_tcpClients.erase(it);
         if (m_tcpClients.size() == 0)
+        {
+            size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count();
+            log_info("took %d ms, m_timeout %d ms", ms, m_timeout);
+            log_info("total bytes read: %lld", m_bytesRead);
+            log_info("total messages read: %lld", m_messagesRead);
+            log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(m_bytesRead) / static_cast<double>(m_messagesRead)));
+            log_info("%f MiB/s throughput",
+                     static_cast<double>(m_bytesRead) / (ms * 1024 * 1024 / 1000));
             m_net->stopLoop();
+        }
     }
 
     void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
