@@ -149,6 +149,7 @@ void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
     while (sockfd >= setsize)
     {
         assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize << 1));
+        setsize = aeGetSetSize(m_aeloop);
     }
     int oldMask = aeGetFileEvents(m_aeloop, sockfd);
     if (oldMask == mask)
