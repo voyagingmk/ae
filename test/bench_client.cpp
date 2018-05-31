@@ -8,15 +8,19 @@ using namespace std::placeholders;
 class TestClient
 {
   public:
-    TestClient(WyNet *net, const char *ip, int port, int blockSize, int sessions, int timeout) : m_net(net),
-                                                                                                 m_messagesRead(0),
-                                                                                                 m_bytesRead(0),
-                                                                                                 m_bytesWritten(0),
-                                                                                                 m_timeout(timeout)
+    TestClient(WyNet *net, const char *ip,
+               int port, int blockSize,
+               int sessions, int timeout) : m_net(net),
+                                            m_numConnected(0),
+                                            m_timeout(timeout)
     {
-        EventLoop *loop = m_net->getThreadPool().getNextLoop();
+        m_bytesRead.resize(sessions);
+        m_messagesRead.resize(sessions);
         for (int i = 0; i < sessions; i++)
         {
+            m_bytesRead[i] = 0;
+            m_messagesRead[i] = 0;
+            EventLoop *loop = m_net->getThreadPool().getNextLoop();
             PtrTcpClient tcpClient = std::make_shared<TcpClient>(loop);
             tcpClient->setReconnectTimes(5);
             tcpClient->setReconnectInterval(1000);
@@ -72,7 +76,9 @@ class TestClient
         log_info("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
         // conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
-
+        int i = m_numConnected;
+        conn->setUserData(i);
+        m_numConnected++;
         m_timeStart = std::chrono::system_clock::now();
         conn->send(m_message);
         socketUtils::setTcpNoDelay(conn->sockfd(), true);
@@ -86,19 +92,24 @@ class TestClient
     {
         m_timeEnd = std::chrono::system_clock::now();
         log_info("[test.OnTcpDisconnected] %d", conn->connectId());
-
-        PtrTcpClient tcpClient = conn->getCtrlAsClient();
-        auto it = std::find(m_tcpClients.begin(), m_tcpClients.end(), tcpClient);
-        m_tcpClients.erase(it);
-        if (m_tcpClients.size() == 0)
+        m_numConnected--;
+        log_info("m_numConnected %d", (int)(m_numConnected));
+        if (m_numConnected == 0)
         {
+            int64_t bytesRead = 0;
+            int64_t messagesRead = 0;
+            for (int i = 0; i < m_bytesRead.size(); i++)
+            {
+                bytesRead += m_bytesRead[i];
+                messagesRead += m_messagesRead[i];
+            }
             size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count();
             log_info("took %d ms, m_timeout %d ms", ms, m_timeout);
-            log_info("total bytes read: %lld", m_bytesRead);
-            log_info("total messages read: %lld", m_messagesRead);
-            log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(m_bytesRead) / static_cast<double>(m_messagesRead)));
+            log_info("total bytes read: %lld", bytesRead);
+            log_info("total messages read: %lld", messagesRead);
+            log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));
             log_info("%f MiB/s throughput",
-                     static_cast<double>(m_bytesRead) / (ms * 1024 * 1024 / 1000));
+                     static_cast<double>(bytesRead) / (ms * 1024 * 1024 / 1000));
             m_net->stopLoop();
         }
     }
@@ -108,18 +119,18 @@ class TestClient
         size_t bytes = sockBuf.readableSize();
         log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", bytes);
         conn->send(sockBuf.readBegin(), bytes);
-        m_bytesRead += bytes;
-        m_bytesWritten += bytes;
-        ++m_messagesRead;
+        int i = conn->getUserData();
+        m_bytesRead[i] += bytes;
+        ++m_messagesRead[i];
         sockBuf.readOut(bytes);
     }
 
   private:
     WyNet *m_net;
     std::list<PtrTcpClient> m_tcpClients;
-    int64_t m_messagesRead;
-    int64_t m_bytesRead;
-    int64_t m_bytesWritten;
+    std::vector<int64_t> m_messagesRead;
+    std::vector<int64_t> m_bytesRead;
+    std::atomic_int m_numConnected;
     int m_timeout;
     std::string m_message;
     std::chrono::system_clock::time_point m_timeStart;

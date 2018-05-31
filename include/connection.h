@@ -9,6 +9,7 @@
 #include "noncopyable.h"
 #include "event_listener.h"
 #include "utils.h"
+#include "any.h"
 
 namespace wynet
 {
@@ -134,6 +135,16 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
         return m_loop;
     }
 
+    void setUserData(Any userData)
+    {
+        m_userData = userData;
+    }
+
+    Any getUserData() const
+    {
+        return m_userData;
+    }
+
     inline void setConnectId(UniqID connectId)
     {
         m_connectId = connectId;
@@ -244,6 +255,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     UniqID m_connectId;
     SockBuffer m_pendingRecvBuf;
     SockBuffer m_pendingSendBuf;
+    Any m_userData;
 
     OnTcpConnected onTcpConnected;
     OnTcpDisconnected onTcpDisconnected;

@@ -75,7 +75,7 @@ void TcpConnection ::shutdown()
 
 void TcpConnection ::shutdownInLoop()
 {
-    log_info("[conn] shutdownInLoop");
+    log_debug("[conn] shutdownInLoop");
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
         getLoop()->assertInLoopThread();
@@ -115,10 +115,10 @@ void TcpConnection ::forceCloseInLoop()
 
 void TcpConnection ::close(const char *reason)
 {
-    log_info("[conn] close() isInLoopThread: %d", getLoop()->isInLoopThread());
+    log_debug("[conn] close() isInLoopThread: %d", getLoop()->isInLoopThread());
     if (reason)
     {
-        log_info("[conn] close() reason %s", reason);
+        log_debug("[conn] close() reason %s", reason);
     }
     if (getLoop()->isInLoopThread())
     {
@@ -137,10 +137,9 @@ void TcpConnection ::closeInLoop()
     getLoop()->assertInLoopThread();
     if (m_state == State::Disconnected)
     {
-        log_warn("[conn] closeInLoop Disconnected");
         return;
     }
-    log_info("[conn] closeInLoop thread: %s", CurrentThread::name());
+    log_debug("[conn] closeInLoop thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
     // Todo linger
     m_evtListener->deleteAllFileEvent();
@@ -159,13 +158,13 @@ void TcpConnection::setCloseCallback(const OnTcpClose &cb)
 
 void TcpConnection::onDestroy()
 {
-    log_info("[conn] onDestroy");
+    log_debug("[conn] onDestroy");
     getLoop()->assertInLoopThread();
     if (m_state == State::Connected)
     {
         m_state = State::Disconnected;
         m_evtListener->deleteAllFileEvent();
-        log_info("[conn] m_state = State::Disconnected");
+        log_debug("[conn] m_state = State::Disconnected");
         if (onTcpDisconnected)
             onTcpDisconnected(shared_from_this());
     }

@@ -100,7 +100,7 @@ TcpClient::~TcpClient()
                 cb));
         if (unique)
         {
-            log_info("~TcpClient() conn->close()");
+            log_debug("~TcpClient() conn->close()");
             conn->close("~TcpClient");
         }
     }
