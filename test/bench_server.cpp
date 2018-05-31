@@ -82,9 +82,9 @@ int main(int argc, char **argv)
     const char *ip = argv[1];
     int port = static_cast<int>(atoi(argv[2]));
     int threadsNum = atoi(argv[3]);
-    if (threadsNum < 1)
+    if (threadsNum < 0)
     {
-        threadsNum = 1;
+        threadsNum = 0;
     }
     WyNet net(threadsNum);
     TestServer server(&net, ip, port);

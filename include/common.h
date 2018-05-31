@@ -9,6 +9,7 @@
 #include <arpa/inet.h> /* inet(3) functions */
 #include <sys/ioctl.h>
 #include <vector>
+#include <list>
 #include <iostream>
 #include <map>
 #include <set>

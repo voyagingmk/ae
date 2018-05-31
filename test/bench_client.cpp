@@ -8,22 +8,25 @@ using namespace std::placeholders;
 class TestClient
 {
   public:
-    TestClient(WyNet *net, const char *ip, int port, int blockSize, int timeout) : m_net(net),
-                                                                                   m_messagesRead(0),
-                                                                                   m_bytesRead(0),
-                                                                                   m_bytesWritten(0),
-                                                                                   m_timeout(timeout)
+    TestClient(WyNet *net, const char *ip, int port, int blockSize, int sessions, int timeout) : m_net(net),
+                                                                                                 m_messagesRead(0),
+                                                                                                 m_bytesRead(0),
+                                                                                                 m_bytesWritten(0),
+                                                                                                 m_timeout(timeout)
     {
         EventLoop *loop = m_net->getThreadPool().getNextLoop();
-        PtrTcpClient tcpClient = std::make_shared<TcpClient>(loop);
-        tcpClient->setReconnectTimes(5);
-        tcpClient->setReconnectInterval(1000);
-        tcpClient->onTcpConnectFailed = std::bind(&TestClient::OnTcpConnectFailed, this, _1);
-        tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
-        tcpClient->onTcpDisconnected = std::bind(&TestClient::OnTcpDisconnected, this, _1);
-        tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);
-        tcpClient->connect(ip, port);
-        m_tcpClient = tcpClient;
+        for (int i = 0; i < sessions; i++)
+        {
+            PtrTcpClient tcpClient = std::make_shared<TcpClient>(loop);
+            tcpClient->setReconnectTimes(5);
+            tcpClient->setReconnectInterval(1000);
+            tcpClient->onTcpConnectFailed = std::bind(&TestClient::OnTcpConnectFailed, this, _1);
+            tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
+            tcpClient->onTcpDisconnected = std::bind(&TestClient::OnTcpDisconnected, this, _1);
+            tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);
+            tcpClient->connect(ip, port);
+            m_tcpClients.push_back(tcpClient);
+        }
 
         for (int i = 0; i < blockSize; ++i)
         {
@@ -39,10 +42,10 @@ class TestClient
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
         log_info("[test.onTimeout]");
-        // auto conn = m_tcpClient->getConn();
-        // conn->send(m_message);
-        // conn->shutdown();
-        m_tcpClient = nullptr;
+        PtrConnEvtListener l = std::dynamic_pointer_cast<TcpConnectionEventListener>(listener);
+        auto conn = l->getTcpConnection();
+        conn->shutdown();
+        // m_tcpClient = nullptr;
         return -1;
     }
 
@@ -90,7 +93,11 @@ class TestClient
         log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(m_bytesRead) / static_cast<double>(m_messagesRead)));
         log_info("%f MiB/s throughput",
                  static_cast<double>(m_bytesRead) / (ms * 1024 * 1024 / 1000));
-        m_net->stopLoop();
+        PtrTcpClient tcpClient = conn->getCtrlAsClient();
+        auto it = std::find(m_tcpClients.begin(), m_tcpClients.end(), tcpClient);
+        m_tcpClients.erase(it);
+        if (m_tcpClients.size() == 0)
+            m_net->stopLoop();
     }
 
     void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
@@ -106,7 +113,7 @@ class TestClient
 
   private:
     WyNet *m_net;
-    PtrTcpClient m_tcpClient;
+    std::list<PtrTcpClient> m_tcpClients;
     int64_t m_messagesRead;
     int64_t m_bytesRead;
     int64_t m_bytesWritten;
@@ -125,9 +132,10 @@ void Stop(int signo)
 
 int main(int argc, char **argv)
 {
-    if (argc < 5)
+    if (argc < 7)
     {
-        fprintf(stderr, "cmd args: <address> <port> <blockSize> <time>\n");
+        fprintf(stderr, "cmd args: <host_ip> <port> <threads> <blockSize>");
+        fprintf(stderr, "<sessions> <time>\n");
         return -1;
     }
     signal(SIGPIPE, SIG_IGN);
@@ -141,13 +149,18 @@ int main(int argc, char **argv)
 
     const char *ip = argv[1];
     int port = atoi(argv[2]);
-    int blocksize = atoi(argv[3]);
-    double seconds = atof(argv[4]);
-    const int threadsNum = 1;
+    int threadsNum = atoi(argv[3]);
+    int blocksize = atoi(argv[4]);
+    int sessions = atoi(argv[5]);
+    double seconds = atof(argv[6]);
+    if (threadsNum < 0)
+    {
+        threadsNum = 0;
+    }
     WyNet net(threadsNum);
     g_net = &net;
     log_info("testClient");
-    TestClient testClient(&net, ip, port, blocksize, seconds * 1000);
+    TestClient testClient(&net, ip, port, blocksize, sessions, seconds * 1000);
     net.startLoop();
     sleep(1); // avoid RST problem
     log_info("exit");

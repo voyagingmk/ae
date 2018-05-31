@@ -89,6 +89,7 @@ FILE(GLOB MY_HEADERS
     include/tcpserver.h
     include/uniqid.h
     include/utils.h
+    include/any.h
     include/eventloop.h
     include/eventloop_thread.h
     include/eventloop_threadpool.h
@@ -135,6 +136,7 @@ set( project_tests
     test_eventloop2
     test_eventloopthread
     test_buffer
+    test_any
    # test_concurrentqueue
     test_logging
     bench_client
@@ -163,6 +165,9 @@ set( EXE_test_buffer_SOURCES
     test/test_buffer.cpp
 )
 
+set( EXE_test_any_SOURCES
+    test/test_any.cpp
+)
 set( EXE_test_concurrentqueue_SOURCES
     test/test_concurrentqueue.cpp
 )
