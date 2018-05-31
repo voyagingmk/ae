@@ -12,6 +12,7 @@ class TestClient
                int port, int blockSize,
                int sessions, int timeout) : m_net(net),
                                             m_numConnected(0),
+                                            m_numTimeout(0),
                                             m_timeout(timeout)
     {
         m_bytesRead.resize(sessions);
@@ -52,6 +53,8 @@ class TestClient
         PtrConnEvtListener l = std::dynamic_pointer_cast<TcpConnectionEventListener>(listener);
         auto conn = l->getTcpConnection();
         conn->shutdown();
+        int num = ++m_numTimeout;
+        log_info("numTimeout %d", num);
         // m_tcpClient = nullptr;
         return -1;
     }
@@ -129,6 +132,7 @@ class TestClient
     std::vector<int64_t> m_messagesRead;
     std::vector<int64_t> m_bytesRead;
     std::atomic_int m_numConnected;
+    std::atomic_int m_numTimeout;
     int m_timeout;
     std::string m_message;
     std::chrono::system_clock::time_point m_timeStart;
