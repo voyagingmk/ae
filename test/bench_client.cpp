@@ -28,10 +28,12 @@ class TestClient
             tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
             tcpClient->onTcpDisconnected = std::bind(&TestClient::OnTcpDisconnected, this, _1);
             tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);
-            tcpClient->connect(ip, port);
             m_tcpClients.push_back(tcpClient);
         }
-
+        for (int i = 0; i < sessions; i++)
+        {
+            m_tcpClients[i]->connect(ip, port);
+        }
         for (int i = 0; i < blockSize; ++i)
         {
             m_message.push_back(static_cast<char>(i % 128));
@@ -41,6 +43,7 @@ class TestClient
     ~TestClient()
     {
         log_dtor(" ~TestClient()");
+        m_tcpClients.clear();
     }
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
@@ -65,10 +68,6 @@ class TestClient
 
     void OnTcpConnectFailed(const PtrTcpClient &tcpClient)
     {
-        if (!tcpClient->needReconnect())
-        {
-            m_net->stopLoop();
-        }
     }
 
     void OnTcpConnected(const PtrConn &conn)
@@ -90,6 +89,7 @@ class TestClient
         m_timeEnd = std::chrono::system_clock::now();
         // log_info("[test.OnTcpDisconnected] %d", conn->connectId());
         m_numConnected--;
+        conn->getCtrlAsClient()->setReconnectTimes(0);
         // log_info("m_numConnected %d", (int)(m_numConnected));
         if (m_numConnected == 0)
         {
@@ -107,6 +107,7 @@ class TestClient
             log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));
             log_info("%f MiB/s throughput",
                      static_cast<double>(bytesRead) / (ms * 1024 * 1024 / 1000));
+            m_tcpClients.clear();
             m_net->stopLoop();
         }
     }
@@ -124,7 +125,7 @@ class TestClient
 
   private:
     WyNet *m_net;
-    std::list<PtrTcpClient> m_tcpClients;
+    std::vector<PtrTcpClient> m_tcpClients;
     std::vector<int64_t> m_messagesRead;
     std::vector<int64_t> m_bytesRead;
     std::atomic_int m_numConnected;

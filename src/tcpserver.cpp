@@ -167,10 +167,15 @@ void TcpServer::acceptConnection()
 	conn->setEventLoop(ioLoop);
 	conn->setCtrl(shared_from_this());
 	conn->setCallBack_Connected(onTcpConnected);
-	conn->setCallBack_Disconnected(onTcpDisconnected);
 	conn->setCallBack_Message(onTcpRecvMessage);
 	ioLoop->runInLoop(std::bind(&TcpConnection::onEstablished, conn));
 	log_debug("acceptConnection end fd:%d", sockfd);
+}
+
+void TcpServer::onDisconnected(const PtrConn &conn)
+{
+	if (onTcpDisconnected)
+		onTcpDisconnected(conn);
 }
 
 }; // namespace wynet

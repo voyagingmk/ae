@@ -11,6 +11,7 @@ namespace wynet
 {
 class WyNet;
 class Server;
+class TcpConnection;
 typedef std::shared_ptr<Server> PtrServer;
 class TcpServer;
 typedef std::shared_ptr<TcpServer> PtrTcpServer;
@@ -47,6 +48,7 @@ protected:
 class TcpServer : public Noncopyable, public std::enable_shared_from_this<TcpServer>
 {
 public:
+  friend class TcpConnection;
   friend class Server;
 
   ~TcpServer();
@@ -71,6 +73,8 @@ protected:
   EventLoop &getLoop();
 
   void acceptConnection();
+
+  void onDisconnected(const PtrConn &);
 
   static void OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener, int mask);
 

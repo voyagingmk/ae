@@ -109,11 +109,15 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
 
     void setCtrl(PtrTcpServer ctrl)
     {
+        assert(m_ctrlType == 0);
+        m_ctrlType = 1;
         m_ctrl = ctrl;
     }
 
     void setCtrl(PtrTcpClient ctrl)
     {
+        assert(m_ctrlType == 0);
+        m_ctrlType = 2;
         m_ctrl = ctrl;
     }
 
@@ -221,11 +225,6 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
   protected:
     static void OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask);
 
-    void setCallBack_Disconnected(OnTcpDisconnected cb)
-    {
-        onTcpDisconnected = cb;
-    }
-
     void forceCloseInLoop();
 
     void close(const char *reason);
@@ -248,6 +247,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     EventLoop *m_loop;
     SocketFdCtrl m_sockFdCtrl;
     PtrConnEvtListener m_evtListener;
+    uint8_t m_ctrlType;         // 0: not set 1: PtrTcpServer 2: PtrTcpClient
     std::weak_ptr<void> m_ctrl; // PtrTcpServer / PtrTcpClient
     State m_state;
     uint32_t m_key;
@@ -258,7 +258,6 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     Any m_userData;
 
     OnTcpConnected onTcpConnected;
-    OnTcpDisconnected onTcpDisconnected;
     OnTcpRecvMessage onTcpRecvMessage;
     OnTcpSendComplete onTcpSendComplete;
     OnTcpClose onTcpClose;

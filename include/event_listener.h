@@ -46,6 +46,11 @@ class EventListener : public std::enable_shared_from_this<EventListener>
         m_name = name;
     }
 
+    const std::string &getName()
+    {
+        return m_name;
+    }
+
     void setEventLoop(EventLoop *loop)
     {
         m_loop = loop;

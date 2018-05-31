@@ -101,6 +101,16 @@ EventLoop::~EventLoop()
 {
     log_dtor("~EventLoop()");
     assert(m_fd2listener.size() == 0);
+
+    /*
+    if (m_fd2listener.size() > 0)
+    {
+        log_error("m_fd2listener.size(): %d", m_fd2listener.size());
+        for (auto it : m_fd2listener)
+        {
+            log_error("%s", it.second.lock()->getName().c_str());
+        }
+    }*/
     aeDeleteEventLoop(m_aeloop);
     t_threadLoop = nullptr;
 }

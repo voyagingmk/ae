@@ -18,6 +18,8 @@ int testOnTimerEvent(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void
 
 TcpConnection::TcpConnection(SockFd sockfd) : m_loop(nullptr),
                                               m_sockFdCtrl(sockfd),
+                                              m_evtListener(nullptr),
+                                              m_ctrlType(0),
                                               m_state(State::Connecting),
                                               m_key(0),
                                               m_kcpObj(nullptr),
@@ -25,14 +27,13 @@ TcpConnection::TcpConnection(SockFd sockfd) : m_loop(nullptr),
                                               m_pendingRecvBuf("pendingRecvBuf"),
                                               m_pendingSendBuf("pendingSendBuf"),
                                               onTcpConnected(nullptr),
-                                              onTcpDisconnected(nullptr),
                                               onTcpRecvMessage(nullptr),
                                               onTcpSendComplete(nullptr),
                                               onTcpClose(nullptr)
 {
     log_ctor("TcpConnection() %d", sockfd);
     m_evtListener = TcpConnectionEventListener::create(sockfd);
-    m_evtListener->setName(std::string("TcpConnectionEventListener"));
+    m_evtListener->setName(std::string("TcpConnectionEventListener") + std::to_string(sockfd));
 }
 
 TcpConnection::~TcpConnection()
@@ -143,10 +144,16 @@ void TcpConnection ::closeInLoop()
     m_state = State::Disconnected;
     // Todo linger
     m_evtListener->deleteAllFileEvent();
-
+    m_evtListener = nullptr;
     PtrConn self(shared_from_this());
-    if (onTcpDisconnected)
-        onTcpDisconnected(self);
+    if (m_ctrlType == 1)
+    {
+        getCtrlAsServer()->onDisconnected(self);
+    }
+    else if (m_ctrlType == 2)
+    {
+        getCtrlAsClient()->onDisconnected(self);
+    }
     if (onTcpClose)
         onTcpClose(self);
 }
@@ -164,9 +171,19 @@ void TcpConnection::onDestroy()
     {
         m_state = State::Disconnected;
         m_evtListener->deleteAllFileEvent();
+        m_evtListener = nullptr;
         log_debug("[conn] m_state = State::Disconnected");
-        if (onTcpDisconnected)
-            onTcpDisconnected(shared_from_this());
+        PtrConn self(shared_from_this());
+        if (m_ctrlType == 1)
+        {
+            getCtrlAsServer()->onDisconnected(self);
+        }
+        else if (m_ctrlType == 2)
+        {
+            getCtrlAsClient()->onDisconnected(self);
+        }
+        if (onTcpClose)
+            onTcpClose(self);
     }
 }
 
@@ -174,7 +191,7 @@ void TcpConnection::onEstablished()
 {
     getLoop()->assertInLoopThread();
     assert(m_state == State::Connecting);
-    log_debug("[conn] establish in thread: %s", CurrentThread::name());
+    log_info("[conn] establish in thread: %s", CurrentThread::name());
     m_state = State::Connected;
     m_evtListener->setTcpConnection(shared_from_this());
     m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpConnection::OnConnectionEvent);
@@ -329,7 +346,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             if (remain > 0)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
-                log_debug("[conn] remain > 0 sockfd %d", sockfd());
+                log_info("[conn] remain > 0 sockfd %d", sockfd());
                 m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else

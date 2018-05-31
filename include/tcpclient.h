@@ -8,6 +8,7 @@
 namespace wynet
 {
 
+class TcpConnection;
 class TcpClientEventListener;
 typedef std::shared_ptr<TcpClientEventListener> PtrTcpClientEvtListener;
 
@@ -41,6 +42,8 @@ typedef std::weak_ptr<TcpClient> WeakPtrTcpClient;
 class TcpClient : public Noncopyable, public std::enable_shared_from_this<TcpClient>
 {
 public:
+  friend class TcpConnection;
+
   TcpClient(EventLoop *loop);
 
   ~TcpClient();
@@ -85,6 +88,8 @@ private:
   void onConnectFailed();
 
   void onDisconnected(const PtrConn &);
+
+  void resetEvtListener();
 
   // in order to access private members
   static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);

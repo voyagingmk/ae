@@ -79,6 +79,7 @@ TcpClient::TcpClient(EventLoop *loop) : onTcpConnectFailed(nullptr),
 TcpClient::~TcpClient()
 {
     log_dtor("~TcpClient()");
+    resetEvtListener();
     PtrConn conn;
     bool unique = false;
     {
@@ -222,14 +223,13 @@ EventLoop &TcpClient::getLoop()
 
 void TcpClient::onConnected(int sockfd)
 {
-    m_evtListener = nullptr;
+    resetEvtListener();
     m_loop->assertInLoopThread();
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_conn = std::make_shared<TcpConnection>(sockfd);
     m_conn->setEventLoop(m_loop);
     m_conn->setCtrl(shared_from_this());
     m_conn->setCallBack_Connected(onTcpConnected);
-    m_conn->setCallBack_Disconnected(std::bind(&TcpClient::onDisconnected, shared_from_this(), std::placeholders::_1));
     m_conn->setCallBack_Message(onTcpRecvMessage);
     m_loop->runInLoop(std::bind(&TcpConnection::onEstablished, m_conn));
 }
@@ -258,10 +258,7 @@ void TcpClient::asyncConnect(int sockfd)
     }
     log_debug("asyncConnect %d", sockfd);
     m_asyncConnect = true;
-    m_evtListener = TcpClientEventListener::create();
-    m_evtListener->setName(std::string("asyncConnect"));
-    m_evtListener->setEventLoop(m_loop);
-    m_evtListener->setTcpClient(shared_from_this());
+    resetEvtListener();
     m_evtListener->setSockfd(sockfd);
     m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
 }
@@ -275,11 +272,7 @@ void TcpClient::endAsyncConnect()
 {
     m_loop->assertInLoopThread();
     log_debug("endAsyncConnect");
-    if (m_evtListener)
-    {
-        m_evtListener->deleteAllFileEvent();
-    }
-    m_evtListener = nullptr;
+    resetEvtListener();
     m_asyncConnect = false;
 }
 
@@ -310,12 +303,12 @@ void TcpClient::onConnectFailed()
 
 void TcpClient::onDisconnected(const PtrConn &conn)
 {
+    if (onTcpDisconnected)
+        onTcpDisconnected(conn);
     if (needReconnect())
     {
         reconnectWithDelay(m_reconnectInterval);
     }
-    if (onTcpDisconnected)
-        onTcpDisconnected(conn);
 }
 
 bool TcpClient::needReconnect()
@@ -327,23 +320,35 @@ void TcpClient::reconnectWithDelay(int ms)
 {
     log_info("reconnectWithDelay %d ms", ms);
     m_loop->assertInLoopThread();
-    m_evtListener = TcpClientEventListener::create();
-    m_evtListener->setName(std::string("reconnect"));
-    m_evtListener->setEventLoop(m_loop);
-    m_evtListener->setTcpClient(shared_from_this());
+    resetEvtListener();
     m_evtListener->createTimer(ms, onReconnectTimeout, nullptr);
 }
 
 void TcpClient::reconnect()
 {
     m_loop->assertInLoopThread();
-    m_evtListener = nullptr;
+    resetEvtListener();
     if (m_reconnectTimes > 0)
     {
         m_reconnectTimes--;
     }
     log_debug("reconnect, left times: %d", m_reconnectTimes);
     connect(m_sockAddr.getHost(), m_sockAddr.getPort());
+}
+
+void TcpClient::resetEvtListener()
+{
+    if (m_evtListener && m_evtListener->getSockFd())
+    {
+        m_evtListener->deleteAllFileEvent();
+        m_evtListener->setSockfd(0);
+    }
+    if (!m_evtListener)
+    {
+        m_evtListener = TcpClientEventListener::create();
+        m_evtListener->setEventLoop(m_loop);
+        m_evtListener->setTcpClient(shared_from_this());
+    }
 }
 
 }; // namespace wynet
