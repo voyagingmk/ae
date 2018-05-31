@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <cstdarg>
 #include <chrono>
 
 #if TIME_WITH_SYS_TIME

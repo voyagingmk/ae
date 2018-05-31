@@ -165,14 +165,13 @@ void getNameInfo(struct sockaddr_storage *addr, char *ipBuf, size_t ipBufSize, c
         flag |= NI_NUMERICSERV;
     }
     socklen_t addrlen = sizeof(sockaddr_storage);
-    int ret = getnameinfo((struct sockaddr *)addr, addrlen,
+    int err = getnameinfo((struct sockaddr *)addr, addrlen,
                           ipBuf, ipBufSize,
                           portBuf, portBufSize,
                           NI_NUMERICHOST);
-    if (ret != 0)
+    if (err != 0)
     {
-        int errnosave = errno;
-        log_warn("socketUtils.getAddrIP error: %d, %s", errnosave, strerror(errnosave));
+        log_warn("socketUtils.getAddrIP error: %d, %s", err, gai_strerror(err));
     }
 }
 

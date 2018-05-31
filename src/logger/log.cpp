@@ -2,8 +2,8 @@
 #include "logger/log.h"
 #include "logger/logger.h"
 #include "threadbase.h"
+#include "util.h"
 #include <sys/time.h>
-#include <cstdarg>
 
 namespace wynet
 {
@@ -26,12 +26,16 @@ class LogVars
                 m_outputToConsole(true),
                 k_logLineMax(1024)
     {
-        fprintf(stderr, "LogVars()");
+#ifdef LOG_CTOR_DTOR
+        fprintf(stderr, "LogVars()\n");
+#endif
     }
 
     ~LogVars()
     {
-        fprintf(stderr, "~LogVars()");
+#ifdef LOG_CTOR_DTOR
+        fprintf(stderr, "~LogVars()\n");
+#endif
     }
 
     const char *getLogLevelStr(LOG_LEVEL level) const
