@@ -48,7 +48,7 @@ class TestClient
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
-        log_info("[test.onTimeout]");
+        // log_info("[test.onTimeout]");
         PtrConnEvtListener l = std::dynamic_pointer_cast<TcpConnectionEventListener>(listener);
         auto conn = l->getTcpConnection();
         conn->shutdown();
