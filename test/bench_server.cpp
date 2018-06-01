@@ -7,7 +7,7 @@ class TestServer
 {
 
   public:
-    TestServer(WyNet *net, const char *ip, int port) : m_net(net)
+    TestServer(WyNet *net, const char *ip, int port) : m_net(net), m_numClient(0)
     {
         PtrServer server = Server::create(net);
         m_server = server;
@@ -30,8 +30,10 @@ class TestServer
 
     void OnTcpConnected(const PtrConn &conn)
     {
+        int i = ++m_numClient;
+        conn->setUserData(i);
         log_info("[test.OnTcpConnected] sockfd %d", conn->sockfd());
-        // conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
+        conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
         conn->getCtrlAsServer()->addConnection(conn);
         socketUtils::setTcpNoDelay(conn->sockfd(), true);
     }
@@ -51,7 +53,8 @@ class TestServer
 
     void OnTcpSendComplete(const PtrConn &conn)
     {
-        log_info("[test.OnTcpSendComplete]");
+        int i = conn->getUserData();
+        log_info("send ok %d", i);
         //      std::string msg(buffer, ret_in);
         //      conn->send(msg);
 
@@ -63,6 +66,7 @@ class TestServer
     WyNet *m_net;
     PtrServer m_server;
     PtrTcpServer m_tcpServer;
+    std::atomic_int m_numClient;
 };
 
 WyNet *g_net;
