@@ -82,16 +82,19 @@ class SockBuffer : public Noncopyable
 
     inline size_t headFreeSize()
     {
+        assert(m_pos1 >= 0);
         return m_pos1;
     }
 
     inline size_t tailFreeSize()
     {
+        assert((m_bufRef->length() - m_pos2) >= 0);
         return m_bufRef->length() - m_pos2;
     }
 
     inline size_t readableSize()
     {
+        assert((m_pos2 - m_pos1) >= 0);
         return m_pos2 - m_pos1;
     }
 
