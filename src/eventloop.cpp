@@ -16,16 +16,19 @@ int OnlyForWakeup(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
 
 void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
+    log_info("file evt %d", sockfd);
     EventLoop *loop = (EventLoop *)(clientData);
     if (loop->m_fd2listener.find(sockfd) == loop->m_fd2listener.end())
     {
+        log_error("aeOnFileEvent no wkListener %d", sockfd);
         return;
     }
     WeakPtrEvtListener wkListener = loop->m_fd2listener[sockfd];
-
     PtrEvtListener listener = wkListener.lock();
     if (!listener)
     {
+        log_error("aeOnFileEventt no listener %d", sockfd);
+        loop->m_fd2listener.erase(loop->m_fd2listener.find(sockfd));
         return;
     }
     if (listener->m_onFileEvent)
@@ -34,6 +37,10 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, 
         {
             listener->m_onFileEvent(loop, listener, mask);
         }
+    }
+    else
+    {
+        log_fatal("aeOnFileEvent no m_onFileEvent %d", sockfd);
     }
 }
 
@@ -130,9 +137,7 @@ void EventLoop::loop()
     {
         if (m_aeloop->beforesleep != NULL)
             m_aeloop->beforesleep(m_aeloop);
-        log_info("aeProcessEvents begin %p", (void *)this);
         aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
-        log_info("aeProcessEvents end %p", (void *)this);
         processTaskQueue();
     }
     processTaskQueue();
