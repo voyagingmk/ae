@@ -249,7 +249,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     PtrConnEvtListener m_evtListener;
     uint8_t m_ctrlType;         // 0: not set 1: PtrTcpServer 2: PtrTcpClient
     std::weak_ptr<void> m_ctrl; // PtrTcpServer / PtrTcpClient
-    State m_state;
+    std::atomic<State> m_state;
     uint32_t m_key;
     KCPObject *m_kcpObj;
     UniqID m_connectId;

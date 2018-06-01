@@ -101,7 +101,7 @@ void TcpConnection ::forceClose()
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
         m_state = State::Disconnecting;
-        getLoop()->queueInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
+        getLoop()->runInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
     }
 }
 
@@ -116,7 +116,7 @@ void TcpConnection ::forceCloseInLoop()
 
 void TcpConnection ::close(const char *reason)
 {
-    log_debug("[conn] close() isInLoopThread: %d", getLoop()->isInLoopThread());
+    log_info("[conn] close() isInLoopThread: %d", getLoop()->isInLoopThread());
     if (reason)
     {
         log_debug("[conn] close() reason %s", reason);
@@ -140,7 +140,7 @@ void TcpConnection ::closeInLoop()
     {
         return;
     }
-    log_debug("[conn] closeInLoop thread: %s", CurrentThread::name());
+    log_info("[conn] closeInLoop thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
     // Todo linger
     m_evtListener->deleteAllFileEvent();
@@ -148,11 +148,19 @@ void TcpConnection ::closeInLoop()
     PtrConn self(shared_from_this());
     if (m_ctrlType == 1)
     {
-        getCtrlAsServer()->onDisconnected(self);
+        PtrTcpServer tcpServer = getCtrlAsServer();
+        if (tcpServer)
+        {
+            tcpServer->onDisconnected(self);
+        }
     }
     else if (m_ctrlType == 2)
     {
-        getCtrlAsClient()->onDisconnected(self);
+        PtrTcpClient tcpClient = getCtrlAsClient();
+        if (tcpClient)
+        {
+            tcpClient->onDisconnected(self);
+        }
     }
     if (onTcpClose)
         onTcpClose(self);
@@ -276,7 +284,7 @@ void TcpConnection::onWritable()
             m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
             if (onTcpSendComplete)
             {
-                getLoop()->queueInLoop(std::bind(onTcpSendComplete, shared_from_this()));
+                getLoop()->runInLoop(std::bind(onTcpSendComplete, shared_from_this()));
             }
         }
     }

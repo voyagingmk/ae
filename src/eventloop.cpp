@@ -17,6 +17,10 @@ int OnlyForWakeup(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
 void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
     EventLoop *loop = (EventLoop *)(clientData);
+    if (loop->m_fd2listener.find(sockfd) == loop->m_fd2listener.end())
+    {
+        return;
+    }
     WeakPtrEvtListener wkListener = loop->m_fd2listener[sockfd];
 
     PtrEvtListener listener = wkListener.lock();
@@ -100,6 +104,7 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
 EventLoop::~EventLoop()
 {
     log_dtor("~EventLoop()");
+    assert(m_taskFuncQueue.size() == 0);
     assert(m_fd2listener.size() == 0);
 
     /*
@@ -112,6 +117,7 @@ EventLoop::~EventLoop()
         }
     }*/
     aeDeleteEventLoop(m_aeloop);
+    m_aeloop = nullptr;
     t_threadLoop = nullptr;
 }
 

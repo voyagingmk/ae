@@ -10,9 +10,7 @@
 namespace wynet
 {
 
-// optional tool:
-// in order to collect PtrConn (keep the PtrConn alive)
-// so user need to explicitly add and delete the connection
+// only for server
 class ConnectionManager : public std::enable_shared_from_this<ConnectionManager>, public Noncopyable
 {
 public:
@@ -31,11 +29,11 @@ public:
 protected:
   static void weakDeleteCallback(std::weak_ptr<ConnectionManager>, TcpConnection *);
 
-  UniqID refConnection(const PtrConn & conn);
+  UniqID refConnection(const PtrConn &conn);
 
   bool unrefConnection(UniqID connectId);
 
-  bool unrefConnection(const PtrConn & conn);
+  bool unrefConnection(const PtrConn &conn);
 
 protected:
   MutexLock m_mutex;

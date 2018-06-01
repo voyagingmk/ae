@@ -11,7 +11,12 @@ ConnectionManager::ConnectionManager()
 }
 ConnectionManager::~ConnectionManager()
 {
-    log_dtor("~ConnectionManager()");
+    log_dtor("~ConnectionManager() %d", m_connDict.size());
+    for (auto it : m_connDict)
+    {
+        const PtrConn &conn = it.second;
+        conn->forceClose();
+    }
     m_connDict.clear();
 }
 

@@ -65,6 +65,8 @@ public:
 
   bool removeConnection(const PtrConn &conn);
 
+  PtrTcpServerEvtListener getListener() const { return m_evtListener; }
+
 protected:
   TcpServer(PtrServer parent);
 

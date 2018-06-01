@@ -35,7 +35,7 @@ class TestServer
 
     void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
     {
-        log_debug("[test.OnTcpRecvMessage] readableSize=%d", sockBuf.readableSize());
+        log_debug("[test.recv] fd=%d size=%d", conn.sockfd(), sockBuf.readableSize());
         conn->send(sockBuf.readBegin(), sockBuf.readableSize());
         sockBuf.readOut(sockBuf.readableSize());
     }
@@ -60,6 +60,7 @@ WyNet *g_net;
 
 void Stop(int signo)
 {
+    log_info("Stop()");
     g_net->stopLoop();
 }
 
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
         return -1;
     }
     signal(SIGPIPE, SIG_IGN);
-    signal(SIGINT, Stop);
+    signal(SIGINT | SIGSTOP, Stop);
 
     //  log_file("bench_server");
     log_level(LOG_LEVEL::LOG_DEBUG);

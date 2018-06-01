@@ -143,6 +143,7 @@ WyNet *g_net;
 
 void Stop(int signo)
 {
+    log_info("Stop()");
     g_net->stopLoop();
 }
 
@@ -154,8 +155,10 @@ int main(int argc, char **argv)
         fprintf(stderr, "<sessions> <time>\n");
         return -1;
     }
-    signal(SIGPIPE, SIG_IGN);
-    signal(SIGINT, Stop);
+    if (signal(SIGINT, Stop) == SIG_ERR)
+    {
+        fprintf(stderr, "can't catch SIGPIPE\n");
+    }
 
     //  log_file("bench_client");
     log_level(LOG_LEVEL::LOG_DEBUG);
