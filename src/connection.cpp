@@ -361,7 +361,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             {
                 if (onTcpSendComplete)
                 {
-                    getLoop()->queueInLoop(std::bind(onTcpSendComplete, shared_from_this()));
+                    getLoop()->runInLoop(std::bind(onTcpSendComplete, shared_from_this()));
                 }
                 if (m_state == State::Disconnecting)
                 {
