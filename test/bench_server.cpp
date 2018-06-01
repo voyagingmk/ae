@@ -15,8 +15,17 @@ class TestServer
         tcpServer->onTcpConnected = std::bind(&TestServer::OnTcpConnected, this, _1);
         tcpServer->onTcpDisconnected = std::bind(&TestServer::OnTcpDisconnected, this, _1);
         tcpServer->onTcpRecvMessage = std::bind(&TestServer::OnTcpRecvMessage, this, _1, _2);
+        // tcpServer->getListener()->createTimer(5000, std::bind(&TestServer::onTimeout, this, _1, _2, _3, _4), nullptr);
         m_tcpServer = tcpServer;
+
         net->getPeerManager().addServer(server);
+    }
+
+    int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
+    {
+        log_info("[test.onTimeout]");
+        m_net->stopLoop();
+        return -1;
     }
 
     void OnTcpConnected(const PtrConn &conn)
@@ -71,9 +80,10 @@ int main(int argc, char **argv)
         fprintf(stderr, "cmd args: <address> <port> <threads num>\n");
         return -1;
     }
-    signal(SIGPIPE, SIG_IGN);
-    signal(SIGINT | SIGSTOP, Stop);
-
+    if (signal(SIGINT, Stop) == SIG_ERR)
+    {
+        fprintf(stderr, "can't catch SIGPIPE\n");
+    }
     //  log_file("bench_server");
     log_level(LOG_LEVEL::LOG_DEBUG);
     log_lineinfo(false);
