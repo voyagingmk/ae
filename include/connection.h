@@ -98,6 +98,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
 
     inline void setEventLoop(EventLoop *l)
     {
+        assert(!m_loop);
         m_loop = l;
         m_evtListener->setEventLoop(m_loop);
     }
