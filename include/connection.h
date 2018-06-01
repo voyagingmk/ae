@@ -257,6 +257,7 @@ class TcpConnection : public Noncopyable, public std::enable_shared_from_this<Tc
     SockBuffer m_pendingRecvBuf;
     SockBuffer m_pendingSendBuf;
     Any m_userData;
+    bool m_shutdownWrite;
 
     OnTcpConnected onTcpConnected;
     OnTcpRecvMessage onTcpRecvMessage;

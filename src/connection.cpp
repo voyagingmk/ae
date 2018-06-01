@@ -26,6 +26,7 @@ TcpConnection::TcpConnection(SockFd sockfd) : m_loop(nullptr),
                                               m_connectId(0),
                                               m_pendingRecvBuf("pendingRecvBuf"),
                                               m_pendingSendBuf("pendingSendBuf"),
+                                              m_shutdownWrite(false),
                                               onTcpConnected(nullptr),
                                               onTcpRecvMessage(nullptr),
                                               onTcpSendComplete(nullptr),
@@ -85,13 +86,14 @@ void TcpConnection ::shutdownInLoop()
         {
             if (::shutdown(sockfd(), SHUT_WR) < 0)
             {
-                log_error("shutdown SHUT_WR failed");
+                log_fatal("shutdown SHUT_WR failed %d %s", errno, strerror(errno));
             }
             else
             {
                 log_debug("shutdown SHUT_WR");
             }
             m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
+            m_shutdownWrite = true;
         }
     }
 }
@@ -271,7 +273,12 @@ void TcpConnection::onWritable()
     int remain = m_pendingSendBuf.readableSize();
     if (remain <= 0)
     {
-        log_warn("TcpConnection::onWritable remain <= 0");
+        log_warn("TcpConnection::onWritable remain <= 0 %d", remain);
+    }
+    if (m_shutdownWrite)
+    {
+        log_warn("TcpConnection::onWritable after shutdownWrite");
+        return;
     }
     int nwrote = ::write(sockfd(), m_pendingSendBuf.readBegin(), remain);
     log_debug("[conn] onWritable, remain:%d, nwrote:%d", remain, nwrote);
