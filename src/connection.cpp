@@ -218,7 +218,7 @@ void TcpConnection::onReadable()
     }
     SockBuffer &sockBuf = sockBuffer();
     int ret = sockBuf.readIn(sockfd());
-    log_debug("[conn] onReadable, readIn sockfd %d ret %d", sockfd(), ret);
+    log_info("[conn] readIn sockfd %d ret %d", sockfd(), ret);
     if (ret <= 0)
     {
         if (ret < 0)
