@@ -130,8 +130,9 @@ void EventLoop::loop()
     {
         if (m_aeloop->beforesleep != NULL)
             m_aeloop->beforesleep(m_aeloop);
+        log_info("aeProcessEvents begin %p", (void *)this);
         aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
-        // log_debug("processTaskQueue");
+        log_info("aeProcessEvents end %p", (void *)this);
         processTaskQueue();
     }
     processTaskQueue();
