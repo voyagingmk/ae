@@ -16,7 +16,9 @@ int OnlyForWakeup(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
 
 void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
-    log_info("file evt %d", sockfd);
+    log_info("file evt %d %s %s", sockfd,
+             (mask & LOOP_EVT_READABLE) ? "rd" : "",
+             (mask & LOOP_EVT_WRITABLE) ? "wr" : "");
     EventLoop *loop = (EventLoop *)(clientData);
     if (loop->m_fd2listener.find(sockfd) == loop->m_fd2listener.end())
     {

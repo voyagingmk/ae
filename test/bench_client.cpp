@@ -61,7 +61,8 @@ class TestClient
 
     void OnTcpSendComplete(const PtrConn &conn)
     {
-        log_info("[test.OnTcpSendComplete]");
+        int i = conn->getUserData();
+        log_info("send ok %d", i);
         //      std::string msg(buffer, ret_in);
         //      conn->send(msg);
 
@@ -77,7 +78,7 @@ class TestClient
     {
         // log_info("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
-        // conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
+        conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
         int i = m_numConnected;
         conn->setUserData(i);
         m_numConnected++;
