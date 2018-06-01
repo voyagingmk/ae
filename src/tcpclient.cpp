@@ -9,7 +9,7 @@ namespace wynet
 void removeConnection(EventLoop *loop, const PtrConn &conn)
 {
     log_debug("removeConnection");
-    loop->queueInLoop(std::bind(&TcpConnection::onDestroy, conn));
+    loop->runInLoop(std::bind(&TcpConnection::onDestroy, conn));
 }
 
 int TcpClient::onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
