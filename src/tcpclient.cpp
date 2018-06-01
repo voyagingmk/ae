@@ -132,10 +132,10 @@ void TcpClient::connectInLoop(const char *host, int port)
     sprintf(buf, "%d", port);
     const char *serv = (char *)&buf;
 
-    if ((err = getaddrinfo(host, serv, &hints, &res)) != 0)
+    if ((err = getaddrinfo(m_sockAddr.getHost(), serv, &hints, &res)) != 0)
     {
         log_warn("TcpClient.getaddrinfo error: %s, %s, %d, %s",
-                 host, serv, err, gai_strerror(err));
+                 m_sockAddr.getHost(), serv, err, gai_strerror(err));
         switch (err)
         {
         case EAI_AGAIN:
