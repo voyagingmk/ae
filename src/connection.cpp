@@ -264,7 +264,7 @@ void TcpConnection::onReadable()
 void TcpConnection::onWritable()
 {
     getLoop()->assertInLoopThread();
-    if (m_state != State::Connected)
+    if (m_state != State::Connected && m_state != State::Disconnecting)
     {
         return;
     }
