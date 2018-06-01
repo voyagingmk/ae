@@ -286,6 +286,10 @@ void TcpConnection::onWritable()
             {
                 getLoop()->runInLoop(std::bind(onTcpSendComplete, shared_from_this()));
             }
+            if (m_state == State::Disconnecting)
+            {
+                shutdownInLoop();
+            }
         }
     }
     else if (nwrote == -1)
