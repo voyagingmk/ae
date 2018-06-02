@@ -34,7 +34,7 @@ void SockBuffer::append(const uint8_t *data, size_t n)
         }
         else
         {
-            dataVec.resize(dataVec.size() + n);
+            dataVec.resize(dataVec.size() + n + 1024);
         }
         std::copy(data, data + n, begin() + m_pos2);
         m_pos2 += n;
