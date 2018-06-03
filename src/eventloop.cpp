@@ -155,11 +155,12 @@ void EventLoop::stop()
 
 void EventLoop::stopInLoop()
 {
+    log_info("EventLoop stop1");
     assertInLoopThread("stop");
     if (!m_aeloop->stop)
     {
         aeStop(m_aeloop);
-        log_debug("EventLoop stop");
+        log_info("EventLoop stop2");
     }
 }
 
