@@ -302,7 +302,10 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 {
     aeTimeEvent *te = eventLoop->timeEventHead;
     aeTimeEvent *nearest = NULL;
-    nearest = *eventLoop->pq.begin();
+    if (eventLoop->pq.size() > 0)
+    {
+        nearest = *eventLoop->pq.begin();
+    }
     /*
     while (te)
     {
