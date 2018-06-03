@@ -60,6 +60,8 @@
 #endif
 #endif
 
+static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop);
+
 aeEventLoop *aeCreateEventLoop(int setsize)
 {
     aeEventLoop *eventLoop;
@@ -241,6 +243,7 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
     te->clientData = clientData;
     te->next = eventLoop->timeEventHead;
     eventLoop->timeEventHead = te;
+    eventLoop->timeEventNearest = aeSearchNearestTimer(eventLoop);
     return id;
 }
 
@@ -256,6 +259,7 @@ int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id)
         }
         te = te->next;
     }
+    eventLoop->timeEventNearest = aeSearchNearestTimer(eventLoop);
     return AE_ERR; /* NO event with the specified ID found */
 }
 
@@ -335,7 +339,6 @@ static int processTimeEvents(aeEventLoop *eventLoop)
             te = next;
             continue;
         }
-
         /* Make sure we don't process time events created by time events in
          * this iteration. Note that this check is currently useless: we always
          * add new timers on the head, however if we change the implementation
@@ -366,6 +369,10 @@ static int processTimeEvents(aeEventLoop *eventLoop)
         }
         prev = te;
         te = te->next;
+    }
+    if (processed > 0)
+    {
+        eventLoop->timeEventNearest = aeSearchNearestTimer(eventLoop);
     }
     return processed;
 }
@@ -404,7 +411,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         struct timeval tv, *tvp;
 
         if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT))
-            shortest = aeSearchNearestTimer(eventLoop);
+            shortest = eventLoop->timeEventNearest;
         if (shortest)
         {
             long now_sec, now_ms;
