@@ -67,7 +67,7 @@ FILE(GLOB MY_SOURCERS
     src/logger/append_file.cpp
     src/logger/log_file.cpp
     src/logger/log.cpp
-    external/ae.c
+    external/ae.cpp
     external/zmalloc.c
     external/ikcp.c)
 

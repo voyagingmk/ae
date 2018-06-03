@@ -39,26 +39,43 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-
 #include "ae.h"
+extern "C"
+{
 #include "zmalloc.h"
+}
 #include "config.h"
 
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
 #ifdef HAVE_EVPORT
-#include "ae_evport.c"
+#include "ae_evport.cpp"
 #else
 #ifdef HAVE_EPOLL
-#include "ae_epoll.c"
+#include "ae_epoll.cpp"
 #else
 #ifdef HAVE_KQUEUE
-#include "ae_kqueue.c"
+#include "ae_kqueue.cpp"
 #else
-#include "ae_select.c"
+#include "ae_select.cpp"
 #endif
 #endif
 #endif
+
+bool GreateThanByTime::operator()(const aeTimeEvent *lhs, const aeTimeEvent *rhs) const
+{
+    return true;
+    assert(lhs);
+    assert(rhs);
+    if (lhs->when_sec == rhs->when_sec)
+    {
+        return lhs->when_ms > rhs->when_ms;
+    }
+    else
+    {
+        return lhs->when_sec > rhs->when_sec;
+    }
+}
 
 static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop);
 
@@ -67,10 +84,10 @@ aeEventLoop *aeCreateEventLoop(int setsize)
     aeEventLoop *eventLoop;
     int i;
 
-    if ((eventLoop = zmalloc(sizeof(*eventLoop))) == NULL)
+    if ((eventLoop = new aeEventLoop()) == NULL)
         goto err;
-    eventLoop->events = zmalloc(sizeof(aeFileEvent) * setsize);
-    eventLoop->fired = zmalloc(sizeof(aeFiredEvent) * setsize);
+    eventLoop->events = (aeFileEvent *)zmalloc(sizeof(aeFileEvent) * setsize);
+    eventLoop->fired = (aeFiredEvent *)zmalloc(sizeof(aeFiredEvent) * setsize);
     if (eventLoop->events == NULL || eventLoop->fired == NULL)
         goto err;
     eventLoop->setsize = setsize;
@@ -123,8 +140,8 @@ int aeResizeSetSize(aeEventLoop *eventLoop, int setsize)
     if (aeApiResize(eventLoop, setsize) == -1)
         return AE_ERR;
 
-    eventLoop->events = zrealloc(eventLoop->events, sizeof(aeFileEvent) * setsize);
-    eventLoop->fired = zrealloc(eventLoop->fired, sizeof(aeFiredEvent) * setsize);
+    eventLoop->events = (aeFileEvent *)zrealloc(eventLoop->events, sizeof(aeFileEvent) * setsize);
+    eventLoop->fired = (aeFiredEvent *)zrealloc(eventLoop->fired, sizeof(aeFiredEvent) * setsize);
     eventLoop->setsize = setsize;
 
     /* Make sure that if we created new slots, they are initialized with
@@ -233,7 +250,7 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
     long long id = eventLoop->timeEventNextId++;
     aeTimeEvent *te;
 
-    te = zmalloc(sizeof(*te));
+    te = (aeTimeEvent *)zmalloc(sizeof(*te));
     if (te == NULL)
         return AE_ERR;
     te->id = id;
@@ -243,6 +260,7 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
     te->clientData = clientData;
     te->next = eventLoop->timeEventHead;
     eventLoop->timeEventHead = te;
+    eventLoop->pq.insert(te);
     eventLoop->timeEventNearest = aeSearchNearestTimer(eventLoop);
     return id;
 }
@@ -255,6 +273,12 @@ int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id)
         if (te->id == id)
         {
             te->id = AE_DELETED_EVENT_ID;
+
+            auto it = eventLoop->pq.find(te);
+            if (it != eventLoop->pq.end())
+            {
+                eventLoop->pq.erase(it);
+            }
             return AE_OK;
         }
         te = te->next;
@@ -278,7 +302,8 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 {
     aeTimeEvent *te = eventLoop->timeEventHead;
     aeTimeEvent *nearest = NULL;
-
+    nearest = *eventLoop->pq.begin();
+    /*
     while (te)
     {
         if (!nearest || te->when_sec < nearest->when_sec ||
@@ -286,7 +311,7 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
              te->when_ms < nearest->when_ms))
             nearest = te;
         te = te->next;
-    }
+    }*/
     return nearest;
 }
 

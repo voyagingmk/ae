@@ -34,6 +34,7 @@
 #define __AE_H__
 
 #include <time.h>
+#include <set>
 
 #define AE_OK 0
 #define AE_ERR -1
@@ -90,6 +91,10 @@ typedef struct aeFiredEvent
     int mask;
 } aeFiredEvent;
 
+struct GreateThanByTime
+{
+    bool operator()(const aeTimeEvent *lhs, const aeTimeEvent *rhs) const;
+};
 /* State of an event based program */
 typedef struct aeEventLoop
 {
@@ -101,6 +106,7 @@ typedef struct aeEventLoop
     aeFiredEvent *fired; /* Fired events */
     aeTimeEvent *timeEventHead;
     aeTimeEvent *timeEventNearest;
+    std::set<aeTimeEvent *, GreateThanByTime> pq;
     int stop;
     void *apidata; /* This is used for polling API specific data */
     aeBeforeSleepProc *beforesleep;

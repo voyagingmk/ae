@@ -13,6 +13,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <queue>
 #include <algorithm>
 #include <memory>
 #include <errno.h>
@@ -96,9 +97,9 @@
 
 extern "C"
 {
-#include "ae.h"
 #include "ikcp.h"
 }
+#include "ae.h"
 
 using ConvID = IUINT32;
 
