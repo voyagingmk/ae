@@ -160,7 +160,7 @@ void TcpServer::acceptConnection()
 		return;
 	}
 
-	getLoop().assertInLoopThread();
+	getLoop().assertInLoopThread("acceptConnection");
 	EventLoop *ioLoop = getNet()->getThreadPool().getNextLoop();
 	PtrConn conn;
 	conn = std::make_shared<TcpConnection>(sockfd);

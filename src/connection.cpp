@@ -80,7 +80,7 @@ void TcpConnection ::shutdownInLoop()
     log_debug("[conn] shutdownInLoop");
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
-        getLoop()->assertInLoopThread();
+        getLoop()->assertInLoopThread("shutdownInLoop");
         // shutdown WR only if not writing, in order to send out pendingBuf
         if (!m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE))
         {
@@ -109,7 +109,7 @@ void TcpConnection ::forceClose()
 
 void TcpConnection ::forceCloseInLoop()
 {
-    getLoop()->assertInLoopThread();
+    getLoop()->assertInLoopThread("forceCloseInLoop");
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
         close("force");
@@ -137,7 +137,7 @@ void TcpConnection ::close(const char *reason)
 
 void TcpConnection ::closeInLoop()
 {
-    getLoop()->assertInLoopThread();
+    getLoop()->assertInLoopThread("closeInLoop");
     if (m_state == State::Disconnected)
     {
         return;
@@ -176,7 +176,7 @@ void TcpConnection::setCloseCallback(const OnTcpClose &cb)
 void TcpConnection::onDestroy()
 {
     log_debug("[conn] onDestroy");
-    getLoop()->assertInLoopThread();
+    getLoop()->assertInLoopThread("onDestroy");
     if (m_state == State::Connected)
     {
         m_state = State::Disconnected;
@@ -199,7 +199,7 @@ void TcpConnection::onDestroy()
 
 void TcpConnection::onEstablished()
 {
-    getLoop()->assertInLoopThread();
+    getLoop()->assertInLoopThread("onEstablished");
     assert(m_state == State::Connecting);
     log_debug("[conn] establish in thread: %s", CurrentThread::name());
     m_state = State::Connected;
@@ -211,7 +211,7 @@ void TcpConnection::onEstablished()
 
 void TcpConnection::onReadable()
 {
-    getLoop()->assertInLoopThread();
+    getLoop()->assertInLoopThread("onReadable");
     if (m_state == State::Disconnected)
     {
         return;
@@ -265,7 +265,7 @@ void TcpConnection::onReadable()
 
 void TcpConnection::onWritable()
 {
-    getLoop()->assertInLoopThread();
+    getLoop()->assertInLoopThread("onWritable");
     if (m_state != State::Connected && m_state != State::Disconnecting)
     {
         return;
@@ -344,7 +344,7 @@ void TcpConnection::sendInLoop(const std::string &msg)
 
 void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
 {
-    getLoop()->assertInLoopThread();
+    getLoop()->assertInLoopThread("sendInLoop");
     if (m_state != State::Connected)
     {
         return;

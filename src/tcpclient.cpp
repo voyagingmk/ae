@@ -116,7 +116,7 @@ void TcpClient::connect(const char *host, int port)
 
 void TcpClient::connectInLoop(const char *host, int port)
 {
-    m_loop->assertInLoopThread();
+    m_loop->assertInLoopThread("connectInLoop");
     m_sockAddr = SockAddr(host, port);
     int err;
     struct addrinfo hints, *res, *ressave;
@@ -221,7 +221,7 @@ EventLoop &TcpClient::getLoop()
 void TcpClient::onConnected(int sockfd)
 {
     resetEvtListener();
-    m_loop->assertInLoopThread();
+    m_loop->assertInLoopThread("onConnected");
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_conn = std::make_shared<TcpConnection>(sockfd);
     m_conn->setEventLoop(m_loop);
@@ -248,7 +248,7 @@ void TcpClient::disconnect()
 
 void TcpClient::asyncConnect(int sockfd)
 {
-    m_loop->assertInLoopThread();
+    m_loop->assertInLoopThread("asyncConnect");
     if (isAsyncConnecting())
     {
         endAsyncConnect();
@@ -267,7 +267,7 @@ bool TcpClient::isAsyncConnecting()
 
 void TcpClient::endAsyncConnect()
 {
-    m_loop->assertInLoopThread();
+    m_loop->assertInLoopThread("endAsyncConnect");
     log_debug("endAsyncConnect");
     resetEvtListener();
     m_asyncConnect = false;
@@ -275,7 +275,7 @@ void TcpClient::endAsyncConnect()
 
 void TcpClient::afterAsyncConnect(int sockfd)
 {
-    m_loop->assertInLoopThread();
+    m_loop->assertInLoopThread("afterAsyncConnect");
     if (sockfd)
     {
         onConnected(sockfd);
@@ -316,14 +316,14 @@ bool TcpClient::needReconnect()
 void TcpClient::reconnectWithDelay(int ms)
 {
     log_info("reconnectWithDelay %d ms", ms);
-    m_loop->assertInLoopThread();
+    m_loop->assertInLoopThread("reconnectWithDelay");
     resetEvtListener();
     m_evtListener->createTimer(ms, onReconnectTimeout, nullptr);
 }
 
 void TcpClient::reconnect()
 {
-    m_loop->assertInLoopThread();
+    m_loop->assertInLoopThread("reconnect");
     resetEvtListener();
     if (m_reconnectTimes > 0)
     {

@@ -132,7 +132,7 @@ EventLoop::~EventLoop()
 
 void EventLoop::loop()
 {
-    assertInLoopThread();
+    assertInLoopThread("loop");
     m_aeloop->stop = 0;
     AeTimerId aeTimerId = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
     while (!m_aeloop->stop)
@@ -165,7 +165,7 @@ void EventLoop::stopInLoop()
 
 bool EventLoop::hasFileEvent(PtrEvtListener listener, int mask)
 {
-    assertInLoopThread();
+    assertInLoopThread("hasFileEvent");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
     SockFd sockfd = listener->getSockFd();
     int oldMask = aeGetFileEvents(m_aeloop, sockfd);
@@ -174,7 +174,7 @@ bool EventLoop::hasFileEvent(PtrEvtListener listener, int mask)
 
 void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
 {
-    assertInLoopThread();
+    assertInLoopThread("createFileEvent");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
     int setsize = aeGetSetSize(m_aeloop);
     SockFd sockfd = listener->getSockFd();
@@ -212,7 +212,7 @@ void EventLoop ::deleteFileEvent(PtrEvtListener listener, int mask)
 
 void EventLoop ::deleteFileEvent(SockFd sockfd, int mask)
 {
-    assertInLoopThread();
+    assertInLoopThread("deleteFileEvent");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
     int setsize = aeGetSetSize(m_aeloop);
     if (sockfd >= setsize)
@@ -250,7 +250,7 @@ void EventLoop ::deleteTimer(TimerRef tr)
 
 bool EventLoop ::deleteTimerInLoop(AeTimerId aeTimerId)
 {
-    assertInLoopThread();
+    assertInLoopThread("deleteTimerInLoop");
     auto it = m_aeTimerId2ref.find(aeTimerId);
     if (it == m_aeTimerId2ref.end())
     {
@@ -262,7 +262,7 @@ bool EventLoop ::deleteTimerInLoop(AeTimerId aeTimerId)
 
 bool EventLoop ::deleteTimerInLoop(TimerRef tr)
 {
-    assertInLoopThread();
+    assertInLoopThread("deleteTimerInLoop");
     if (m_timerData.find(tr) != m_timerData.end())
     {
         TimerData &data = m_timerData[tr];
@@ -283,7 +283,7 @@ AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, int ms, OnTimer
 
 AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, TimerRef tr, int ms, OnTimerEvent onTimerEvent, void *data)
 {
-    assertInLoopThread();
+    assertInLoopThread("createTimerInLoop");
     // log_debug("createTimerInLoop ms %d", ms);
     AeTimerId aeTimerId = aeCreateTimeEvent(m_aeloop, ms, aeOnTimerEvent, (void *)this, NULL);
     assert(AE_ERR != aeTimerId);
