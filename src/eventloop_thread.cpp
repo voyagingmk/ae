@@ -18,12 +18,18 @@ EventLoopThread::EventLoopThread(const ThreadInitCallback &cb,
 EventLoopThread::~EventLoopThread()
 {
     log_dtor("~EventLoopThread()");
+}
+
+void EventLoopThread::stopAndJoin()
+{
+    log_info("stopAndJoin");
     m_exiting = true;
     if (m_loop != NULL)
     {
         m_loop->stop();
+        log_info("m_thread.join");
         m_thread.join();
-        log_info("~EventLoopThread() m_thread end");
+        log_info("m_thread.join end");
     }
 }
 

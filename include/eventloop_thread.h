@@ -21,6 +21,8 @@ public:
 
   ~EventLoopThread();
 
+  void stopAndJoin();
+
   EventLoop *startLoop();
 
 private:

@@ -18,6 +18,10 @@ EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string 
 EventLoopThreadPool::~EventLoopThreadPool()
 {
     log_dtor("~EventLoopThreadPool()");
+    for (auto it = m_threads.begin(); it != m_threads.end(); it++)
+    {
+        (*it)->stopAndJoin();
+    }
 }
 
 void EventLoopThreadPool::setThreadNum(int threadNum)
