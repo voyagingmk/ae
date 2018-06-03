@@ -99,11 +99,8 @@ TcpClient::~TcpClient()
                 &TcpConnection::setCloseCallback,
                 conn,
                 cb));
-        if (unique)
-        {
-            log_debug("~TcpClient() conn->close()");
-            conn->close("~TcpClient");
-        }
+        log_debug("~TcpClient() conn->close()");
+        conn->close("~TcpClient");
     }
     else if (m_asyncConnect)
     {

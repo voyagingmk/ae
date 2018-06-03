@@ -148,7 +148,14 @@ void EventLoop::loop()
 
 void EventLoop::stop()
 {
-    assertInLoopThread();
+    runInLoop([&]() {
+        stopInLoop();
+    });
+}
+
+void EventLoop::stopInLoop()
+{
+    assertInLoopThread("stop");
     if (!m_aeloop->stop)
     {
         aeStop(m_aeloop);

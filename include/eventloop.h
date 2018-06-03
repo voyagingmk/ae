@@ -40,11 +40,11 @@ class EventLoop : Noncopyable
         return m_threadId == CurrentThread::tid();
     }
 
-    void assertInLoopThread()
+    void assertInLoopThread(const char *tag = "")
     {
         if (!isInLoopThread())
         {
-            abort("notInLoopThread");
+            abort(std::string("notInLoopThread:") + std::string(tag));
         }
     }
 
@@ -83,6 +83,8 @@ class EventLoop : Noncopyable
     };
 
   private:
+    void stopInLoop();
+
     void processTaskQueue();
 
     bool hasFileEvent(PtrEvtListener, int mask);
