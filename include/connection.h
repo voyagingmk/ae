@@ -28,7 +28,7 @@ typedef std::shared_ptr<TcpConnection> PtrConn;
 typedef std::weak_ptr<TcpConnection> PtrConnWeak;
 typedef std::shared_ptr<TcpConnectionEventListener> PtrConnEvtListener;
 
-class TcpConnectionEventListener : public EventListener
+class TcpConnectionEventListener final : public EventListener
 {
   public:
     ctor_dtor_forlogging(TcpConnectionEventListener);
@@ -59,7 +59,7 @@ class TcpConnectionEventListener : public EventListener
     PtrConnWeak m_conn;
 };
 
-class TcpConnection : public Noncopyable, public std::enable_shared_from_this<TcpConnection>
+class TcpConnection final : public Noncopyable, public std::enable_shared_from_this<TcpConnection>
 {
     friend class TcpServer;
     friend class TcpClient;

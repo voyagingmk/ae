@@ -21,7 +21,7 @@ typedef std::shared_ptr<ConnectionManager> PtrConnMgr;
 class TcpServerEventListener;
 typedef std::shared_ptr<TcpServerEventListener> PtrTcpServerEvtListener;
 
-class TcpServerEventListener : public EventListener
+class TcpServerEventListener final : public EventListener
 {
 public:
   ctor_dtor_forlogging(TcpServerEventListener);
@@ -45,7 +45,7 @@ protected:
   WeakPtrTcpServer m_tcpServer;
 };
 
-class TcpServer : public Noncopyable, public std::enable_shared_from_this<TcpServer>
+class TcpServer final : public Noncopyable, public std::enable_shared_from_this<TcpServer>
 {
 public:
   friend class TcpConnection;
