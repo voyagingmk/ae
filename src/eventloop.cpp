@@ -148,6 +148,7 @@ void EventLoop::loop()
 
 void EventLoop::stop()
 {
+    assertInLoopThread();
     if (!m_aeloop->stop)
     {
         aeStop(m_aeloop);

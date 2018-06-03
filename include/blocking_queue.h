@@ -30,10 +30,7 @@ class BlockingQueue : Noncopyable
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
         m_queue.push_back(x);
-        m_notEmpty.notify(); // wait morphing
-        // This optimization moves directly the threads from the condition variable queue
-        // to the mutex queue without context switch, when the mutex is locked.
-        // For instance, NPTL implements a similar technique to optimize the broadcast operation[2].
+        m_notEmpty.notify(); // should occur wait morphing
     }
 
     void put(T &&x)
@@ -61,6 +58,6 @@ class BlockingQueue : Noncopyable
     Condition m_notEmpty;
     std::deque<T> m_queue;
 };
-}
+} // namespace wynet
 
 #endif
