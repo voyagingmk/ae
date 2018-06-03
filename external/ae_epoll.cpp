@@ -63,7 +63,7 @@ static int aeApiResize(aeEventLoop *eventLoop, int setsize)
 {
     aeApiState *state = (struct aeApiState *)eventLoop->apidata;
 
-    state->events = zrealloc(state->events, sizeof(struct epoll_event) * setsize);
+    state->events = (struct epoll_event *)zrealloc(state->events, sizeof(struct epoll_event) * setsize);
     return 0;
 }
 
