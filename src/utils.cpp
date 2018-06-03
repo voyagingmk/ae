@@ -1,5 +1,13 @@
 #include "utils.h"
 
+namespace wynet
+{
+
+void ignoreSignalPipe()
+{
+    ::signal(SIGPIPE, SIG_IGN);
+}
+
 std::string hostname()
 {
     char buf[256];
@@ -13,3 +21,5 @@ std::string hostname()
         return "unknownhost";
     }
 }
+
+} // namespace wynet

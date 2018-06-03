@@ -38,9 +38,11 @@ extern void log_debug_addr(struct sockaddr *addr, socklen_t addrlen, const char 
 
 extern void log_debug_addr(struct sockaddr_storage *addr, socklen_t addrlen, const char *tag = "");
 
-extern int setTcpNoDelay(SockFd sockfd, bool enabled);
+extern void setTcpNoDelay(SockFd sockfd, bool enabled);
 
 extern int setTcpNonBlock(SockFd sockfd);
+
+extern void setTcpKeepAlive(SockFd sockfd, bool enabled);
 
 extern int SetSockSendBufSize(SockFd sockfd, int newSndBuf, bool force = false);
 

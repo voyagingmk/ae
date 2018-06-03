@@ -4,6 +4,11 @@
 #include "common.h"
 #include "logger/log.h"
 
+namespace wynet
+{
+
+void ignoreSignalPipe();
+
 std::string hostname();
 
 #define LOG_CTOR_DTOR 1
@@ -25,5 +30,7 @@ std::string hostname();
 #define log_dtor(...)
 #define ctor_dtor_forlogging(classname)
 #endif
+
+}; // namespace wynet
 
 #endif

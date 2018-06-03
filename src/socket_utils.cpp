@@ -220,16 +220,24 @@ void log_debug_addr(struct sockaddr_storage *addr, socklen_t addrlen, const char
     log_debug_addr((struct sockaddr *)(addr), addrlen, tag);
 }
 
-int setTcpNoDelay(SockFd sockfd, bool enabled)
+void setTcpNoDelay(SockFd sockfd, bool enabled)
 {
-    int val = enabled ? 1 : 0;
-    return ::setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &val, static_cast<socklen_t>(sizeof val));
+    int optval = enabled ? 1 : 0;
+    sock_setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
+                    &optval, static_cast<socklen_t>(sizeof optval));
 }
 
 int setTcpNonBlock(SockFd sockfd)
 {
     int flags = sock_fcntl(sockfd, F_GETFL, 0);
     return sock_fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+}
+
+void setTcpKeepAlive(SockFd sockfd, bool enabled)
+{
+    int optval = enabled ? 1 : 0;
+    sock_setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE,
+                    &optval, static_cast<socklen_t>(sizeof optval));
 }
 
 int SetSockSendBufSize(int sockfd, int newSndBuf, bool force)
