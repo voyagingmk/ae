@@ -393,6 +393,11 @@ static int processTimeEvents(aeEventLoop *eventLoop)
             else
             {
                 te->id = AE_DELETED_EVENT_ID;
+                auto it = eventLoop->pq.find(te);
+                if (it != eventLoop->pq.end())
+                {
+                    eventLoop->pq.erase(it);
+                }
             }
         }
         prev = te;
