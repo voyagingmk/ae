@@ -16,12 +16,12 @@ namespace wynet
 #define LOOP_EVT_WRITABLE AE_WRITABLE
 #define LOOP_EVT_NOMORE AE_NOMORE
 
-typedef long long AeTimerId;
+using AeTimerId = long long;
 
 class EventLoop : Noncopyable
 {
   public:
-    typedef std::function<void()> TaskFunction;
+    using TaskFunction = std::function<void()>;
 
     EventLoop(int wakeupInterval = 10, int defaultSetsize = 64);
 

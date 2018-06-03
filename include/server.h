@@ -13,8 +13,8 @@ namespace wynet
 class WyNet;
 class EventLoop;
 class Server;
-typedef std::shared_ptr<Server> PtrServer;
-typedef std::weak_ptr<Server> WeakPtrServer;
+using PtrServer = std::shared_ptr<Server>;
+using WeakPtrServer = std::weak_ptr<Server>;
 
 class Server : public Noncopyable, public std::enable_shared_from_this<Server>
 {

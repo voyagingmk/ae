@@ -100,9 +100,9 @@ extern "C"
 #include "ikcp.h"
 }
 
-typedef IUINT32 ConvID;
+using ConvID = IUINT32;
 
-typedef int SockFd;
+using SockFd = int;
 
 #ifdef __APPLE__
 #define fwrite_unlocked fwrite

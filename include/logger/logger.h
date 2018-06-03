@@ -32,8 +32,8 @@ private:
   void updateCurBuffer();
 
 private:
-  typedef std::unique_ptr<LoggingBuffer> BufferUniquePtr;
-  typedef std::vector<BufferUniquePtr> BufferPtrVector;
+  using UniquePtrBuffer = std::unique_ptr<LoggingBuffer>;
+  using UniquePtrBuffers = std::vector<UniquePtrBuffer>;
 
   const int m_flushInterval;
   bool m_running;
@@ -43,10 +43,10 @@ private:
   CountDownLatch m_latch;
   MutexLock m_mutex;
   Condition m_cond;
-  BufferUniquePtr m_curBuffer;
-  BufferUniquePtr m_nextBuffer;
-  BufferPtrVector m_fulledBuffers;
-  BufferPtrVector m_freeBuffers;
+  UniquePtrBuffer m_curBuffer;
+  UniquePtrBuffer m_nextBuffer;
+  UniquePtrBuffers m_fulledBuffers;
+  UniquePtrBuffers m_freeBuffers;
 };
 } // namespace wynet
 #endif

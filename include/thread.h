@@ -11,7 +11,7 @@ namespace wynet
 class Thread : Noncopyable
 {
 public:
-  typedef std::function<void()> ThreadEntry;
+  using ThreadEntry = std::function<void()>;
 
   explicit Thread(ThreadEntry &&, const std::string &name = std::string(""));
 
@@ -50,6 +50,6 @@ private:
 
   static std::atomic<int32_t> m_numCreated; // increase only
 };
-};
+}; // namespace wynet
 
 #endif

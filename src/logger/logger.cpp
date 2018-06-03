@@ -100,7 +100,7 @@ void Logger::threadEntry()
     assert(m_running == true);
     m_latch.countDown();
     LogFile output(m_logtitle, m_rollSize, false);
-    BufferPtrVector buffersToWrite;
+    UniquePtrBuffers buffersToWrite;
     buffersToWrite.reserve(16);
     while (m_running)
     {

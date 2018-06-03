@@ -6,7 +6,7 @@
 namespace wynet
 {
 
-typedef long long WyTimerId;
+using WyTimerId = long long;
 
 class TimerRef
 {

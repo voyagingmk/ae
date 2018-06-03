@@ -60,7 +60,7 @@ class Any
     template <class U>
     bool is() const
     {
-        typedef StorageType<U> T;
+        using T = StorageType<U>;
 
         auto derived = dynamic_cast<Derived<T> *>(ptr);
 
@@ -70,7 +70,7 @@ class Any
     template <class U>
     StorageType<U> &as()
     {
-        typedef StorageType<U> T;
+        using T = StorageType<U>;
 
         auto derived = dynamic_cast<Derived<T> *>(ptr);
 

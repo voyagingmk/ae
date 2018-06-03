@@ -10,7 +10,7 @@ namespace wynet
 
 class TcpConnection;
 class TcpClientEventListener;
-typedef std::shared_ptr<TcpClientEventListener> PtrTcpClientEvtListener;
+using PtrTcpClientEvtListener = std::shared_ptr<TcpClientEventListener>;
 
 class TcpClientEventListener final : public EventListener
 {
@@ -36,8 +36,8 @@ protected:
   WeakPtrTcpClient m_tcpClient;
 };
 
-typedef std::shared_ptr<TcpClient> PtrTcpClient;
-typedef std::weak_ptr<TcpClient> WeakPtrTcpClient;
+using PtrTcpClient = std::shared_ptr<TcpClient>;
+using WeakPtrTcpClient = std::weak_ptr<TcpClient>;
 
 class TcpClient final : public Noncopyable, public std::enable_shared_from_this<TcpClient>
 {
@@ -97,7 +97,7 @@ private:
   static int onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data);
 
 public:
-  typedef std::function<void(const PtrTcpClient &)> OnTcpConnectFailed;
+  using OnTcpConnectFailed = std::function<void(const PtrTcpClient &)>;
   OnTcpConnectFailed onTcpConnectFailed;
   TcpConnection::OnTcpConnected onTcpConnected;
   TcpConnection::OnTcpDisconnected onTcpDisconnected;

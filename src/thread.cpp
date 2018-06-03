@@ -18,7 +18,7 @@ using namespace std;
 
 struct ThreadData
 {
-    typedef Thread::ThreadEntry ThreadEntry;
+    using ThreadEntry = Thread::ThreadEntry;
     ThreadEntry m_func;
     string m_name;
     pid_t *m_tid;
@@ -163,4 +163,4 @@ int Thread::join()
 }
 
 std::atomic<int32_t> Thread::m_numCreated;
-};
+}; // namespace wynet

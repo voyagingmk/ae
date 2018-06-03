@@ -20,13 +20,13 @@ class TcpServer;
 class TcpClient;
 class TcpConnectionEventListener;
 
-typedef std::shared_ptr<TcpServer> PtrTcpServer;
-typedef std::shared_ptr<TcpClient> PtrTcpClient;
-typedef std::weak_ptr<TcpServer> WeakPtrTcpServer;
-typedef std::weak_ptr<TcpClient> WeakPtrTcpClient;
-typedef std::shared_ptr<TcpConnection> PtrConn;
-typedef std::weak_ptr<TcpConnection> PtrConnWeak;
-typedef std::shared_ptr<TcpConnectionEventListener> PtrConnEvtListener;
+using PtrTcpServer = std::shared_ptr<TcpServer>;
+using PtrTcpClient = std::shared_ptr<TcpClient>;
+using WeakPtrTcpServer = std::weak_ptr<TcpServer>;
+using WeakPtrTcpClient = std::weak_ptr<TcpClient>;
+using PtrConn = std::shared_ptr<TcpConnection>;
+using PtrConnWeak = std::weak_ptr<TcpConnection>;
+using PtrConnEvtListener = std::shared_ptr<TcpConnectionEventListener>;
 
 class TcpConnectionEventListener final : public EventListener
 {
@@ -72,15 +72,15 @@ class TcpConnection final : public Noncopyable, public std::enable_shared_from_t
         Disconnecting,
         Disconnected
     };
-    typedef std::function<void(const PtrConn &)> OnTcpConnected;
+    using OnTcpConnected = std::function<void(const PtrConn &)>;
 
-    typedef std::function<void(const PtrConn &)> OnTcpDisconnected;
+    using OnTcpDisconnected = std::function<void(const PtrConn &)>;
 
-    typedef std::function<void(const PtrConn &)> OnTcpSendComplete;
+    using OnTcpSendComplete = std::function<void(const PtrConn &)>;
 
-    typedef std::function<void(const PtrConn &)> OnTcpClose;
+    using OnTcpClose = std::function<void(const PtrConn &)>;
 
-    typedef std::function<void(const PtrConn &, SockBuffer &)> OnTcpRecvMessage;
+    using OnTcpRecvMessage = std::function<void(const PtrConn &, SockBuffer &)>;
 
     TcpConnection(SockFd sockfd = 0);
 

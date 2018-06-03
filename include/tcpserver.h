@@ -12,14 +12,14 @@ namespace wynet
 class WyNet;
 class Server;
 class TcpConnection;
-typedef std::shared_ptr<Server> PtrServer;
+using PtrServer = std::shared_ptr<Server>;
 class TcpServer;
-typedef std::shared_ptr<TcpServer> PtrTcpServer;
-typedef std::weak_ptr<TcpServer> WeakPtrTcpServer;
+using PtrTcpServer = std::shared_ptr<TcpServer>;
+using WeakPtrTcpServer = std::weak_ptr<TcpServer>;
 class ConnectionManager;
-typedef std::shared_ptr<ConnectionManager> PtrConnMgr;
+using PtrConnMgr = std::shared_ptr<ConnectionManager>;
 class TcpServerEventListener;
-typedef std::shared_ptr<TcpServerEventListener> PtrTcpServerEvtListener;
+using PtrTcpServerEvtListener = std::shared_ptr<TcpServerEventListener>;
 
 class TcpServerEventListener final : public EventListener
 {

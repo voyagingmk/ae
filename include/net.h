@@ -19,7 +19,7 @@ namespace wynet
 // strong ref
 class PeerManager
 {
-  typedef std::map<UniqID, PtrServer> Servers;
+  using Servers = std::map<UniqID, PtrServer>;
 
 public:
   PeerManager();

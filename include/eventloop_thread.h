@@ -9,7 +9,7 @@
 namespace wynet
 {
 class EventLoop;
-typedef std::function<void(EventLoop *)> ThreadInitCallback;
+using ThreadInitCallback = std::function<void(EventLoop *)>;
 
 // 将一个thread和一个loop联合起来的对象
 // 每个EventLoopThread拥有一个mutex

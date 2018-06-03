@@ -11,10 +11,10 @@ class TimerRef;
 class EventLoop;
 class EventListener;
 
-typedef std::shared_ptr<EventListener> PtrEvtListener;
-typedef std::weak_ptr<EventListener> WeakPtrEvtListener;
-typedef std::function<void(EventLoop *, PtrEvtListener listener, int mask)> OnFileEvent;
-typedef std::function<int(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)> OnTimerEvent;
+using PtrEvtListener = std::shared_ptr<EventListener>;
+using WeakPtrEvtListener = std::weak_ptr<EventListener>;
+using OnFileEvent = std::function<void(EventLoop *, PtrEvtListener listener, int mask)>;
+using OnTimerEvent = std::function<int(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)>;
 
 // 用来发起事件监听
 // 触发~EventListener()时，从eventloop删除相关的事件，保证不会有无用的事件监听
