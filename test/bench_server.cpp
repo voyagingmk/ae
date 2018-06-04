@@ -23,7 +23,7 @@ class TestServer
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
-        log_info("[test.onTimeout]");
+        log_debug("[test.onTimeout]");
         m_net->stopLoop();
         return -1;
     }
@@ -32,7 +32,7 @@ class TestServer
     {
         int i = ++m_numClient;
         conn->setUserData(i);
-        log_info("[test.OnTcpConnected] sockfd %d", conn->sockfd());
+        log_debug("[test.OnTcpConnected] sockfd %d", conn->sockfd());
         conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
         conn->getCtrlAsServer()->addConnection(conn);
         socketUtils::setTcpNoDelay(conn->sockfd(), true);
@@ -40,7 +40,7 @@ class TestServer
 
     void OnTcpDisconnected(const PtrConn &conn)
     {
-        log_info("[test.OnTcpDisconnected] sockfd %d", conn->sockfd());
+        log_debug("[test.OnTcpDisconnected] sockfd %d", conn->sockfd());
         conn->getCtrlAsServer()->removeConnection(conn);
     }
 
@@ -54,7 +54,7 @@ class TestServer
     void OnTcpSendComplete(const PtrConn &conn)
     {
         int i = conn->getUserData();
-      //  log_info("send ok %d", i);
+        //  log_info("send ok %d", i);
         //      std::string msg(buffer, ret_in);
         //      conn->send(msg);
 
