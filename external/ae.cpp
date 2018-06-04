@@ -348,9 +348,10 @@ static int processTimeEvents(aeEventLoop *eventLoop)
     prev = NULL;
     te = eventLoop->timeEventHead;
     maxId = eventLoop->timeEventNextId - 1;
+    long now_sec, now_ms;
+    aeGetTime(&now_sec, &now_ms);
     while (te)
     {
-        long now_sec, now_ms;
         long long id;
 
         /* Remove events scheduled for deletion. */
@@ -377,7 +378,6 @@ static int processTimeEvents(aeEventLoop *eventLoop)
             te = te->next;
             continue;
         }
-        aeGetTime(&now_sec, &now_ms);
         if (now_sec > te->when_sec ||
             (now_sec == te->when_sec && now_ms >= te->when_ms))
         {
