@@ -21,11 +21,13 @@ SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 ")
 
 if(MACOSX)
     MESSAGE("It is MACOSX")  
-endif()
+else()
 if(UNIX)
     MESSAGE("It is UNIX")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lprofiler")
 endif()
+endif()
+
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     MESSAGE("Using Clang")

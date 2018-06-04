@@ -54,7 +54,7 @@ class TestServer
     void OnTcpSendComplete(const PtrConn &conn)
     {
         int i = conn->getUserData();
-        log_info("send ok %d", i);
+      //  log_info("send ok %d", i);
         //      std::string msg(buffer, ret_in);
         //      conn->send(msg);
 
