@@ -13,17 +13,18 @@ set (BUILD_SHARED_LIBS false)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
 
 SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS}  -O0  -g2 -ggdb")  
 SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 ")  
 
-#if(MACOSX)
-#    MESSAGE(STATUS "It is MACOSX")  
+if(MACOSX)
+    MESSAGE("It is MACOSX")  
+endif()
 if(UNIX)
     MESSAGE("It is UNIX")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lprofiler")
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
