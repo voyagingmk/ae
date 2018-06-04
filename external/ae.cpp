@@ -227,13 +227,12 @@ static void aeGetTime(long *seconds, long *milliseconds)
     *milliseconds = tv.tv_usec / 1000;
 }
 
-static void aeAddMillisecondsToNow(long long milliseconds, long *sec, long *ms)
+static void aeAddMillisecondsToNow(long now_sec, long now_ms, long long milliseconds, long *sec, long *ms)
 {
-    long cur_sec, cur_ms, when_sec, when_ms;
+    long when_sec, when_ms;
 
-    aeGetTime(&cur_sec, &cur_ms);
-    when_sec = cur_sec + milliseconds / 1000;
-    when_ms = cur_ms + milliseconds % 1000;
+    when_sec = now_sec + milliseconds / 1000;
+    when_ms = now_ms + milliseconds % 1000;
     if (when_ms >= 1000)
     {
         when_sec++;
@@ -254,7 +253,9 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
     if (te == NULL)
         return AE_ERR;
     te->id = id;
-    aeAddMillisecondsToNow(milliseconds, &te->when_sec, &te->when_ms);
+    long now_sec, now_ms;
+    aeGetTime(&now_sec, &now_ms);
+    aeAddMillisecondsToNow(now_sec, now_ms, milliseconds, &te->when_sec, &te->when_ms);
     te->timeProc = proc;
     te->finalizerProc = finalizerProc;
     te->clientData = clientData;
@@ -388,7 +389,7 @@ static int processTimeEvents(aeEventLoop *eventLoop)
             processed++;
             if (retval != AE_NOMORE)
             {
-                aeAddMillisecondsToNow(retval, &te->when_sec, &te->when_ms);
+                aeAddMillisecondsToNow(now_sec, now_ms, retval, &te->when_sec, &te->when_ms);
             }
             else
             {
