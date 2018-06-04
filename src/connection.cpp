@@ -268,16 +268,18 @@ void TcpConnection::onWritable()
     getLoop()->assertInLoopThread("onWritable");
     if (m_state != State::Connected && m_state != State::Disconnecting)
     {
+        m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
         return;
     }
     int remain = m_pendingSendBuf.readableSize();
     if (remain <= 0)
     {
-        log_warn("TcpConnection::onWritable remain <= 0 %d", remain);
+        m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
+        log_error("TcpConnection::onWritable remain <= 0 %d", remain);
     }
     if (m_shutdownWrite)
     {
-        log_warn("TcpConnection::onWritable after shutdownWrite");
+        log_error("TcpConnection::onWritable after shutdownWrite");
         return;
     }
     int nwrote = ::write(sockfd(), m_pendingSendBuf.readBegin(), remain);
@@ -315,10 +317,6 @@ void TcpConnection::send(const uint8_t *data, const size_t len)
 {
     if (getLoop()->isInLoopThread())
     {
-        if (m_state != State::Connected)
-        {
-            return;
-        }
         log_debug("[conn] send, already in loop");
         sendInLoop(data, len);
     }
