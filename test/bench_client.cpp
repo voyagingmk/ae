@@ -13,7 +13,8 @@ class TestClient
                int sessions, int timeout) : m_net(net),
                                             m_numConnected(0),
                                             m_numTimeout(0),
-                                            m_timeout(timeout)
+                                            m_timeout(timeout),
+                                            m_evtListener(EventListener::create())
     {
         m_bytesRead.resize(sessions);
         m_messagesRead.resize(sessions);
@@ -39,12 +40,40 @@ class TestClient
         {
             m_message.push_back(static_cast<char>(i % 128));
         }
+        m_evtListener->setEventLoop(&m_net->getLoop());
+        m_evtListener->createTimer(10 * 1000, std::bind(&TestClient::onStat, this, _1, _2, _3, _4), nullptr);
     }
 
     ~TestClient()
     {
         log_dtor(" ~TestClient()");
         m_tcpClients.clear();
+    }
+
+    int onStat(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
+    {
+        log_info("======== onStat ========");
+        logStat();
+        return 10 * 1000;
+    }
+
+    void logStat()
+    {
+        int64_t bytesRead = 0;
+        int64_t messagesRead = 0;
+        for (int i = 0; i < m_bytesRead.size(); i++)
+        {
+            bytesRead += m_bytesRead[i];
+            messagesRead += m_messagesRead[i];
+        }
+        auto timeEnd = std::chrono::system_clock::now();
+        size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - m_timeStart).count();
+        log_info("took %d ms, m_timeout %d ms", ms, m_timeout);
+        log_info("total bytes read: %lld", bytesRead);
+        log_info("total messages read: %lld", messagesRead);
+        log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));
+        log_info("%f MiB/s throughput",
+                 static_cast<double>(bytesRead) / (ms * 1024 * 1024 / 1000));
     }
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
@@ -90,27 +119,13 @@ class TestClient
 
     void OnTcpDisconnected(const PtrConn &conn)
     {
-        m_timeEnd = std::chrono::system_clock::now();
         // log_info("[test.OnTcpDisconnected] %d", conn->connectId());
         int num = --m_numConnected;
         conn->getCtrlAsClient()->setReconnectTimes(0);
         log_info("numConnected %d", num);
         if (m_numConnected == 0)
         {
-            int64_t bytesRead = 0;
-            int64_t messagesRead = 0;
-            for (int i = 0; i < m_bytesRead.size(); i++)
-            {
-                bytesRead += m_bytesRead[i];
-                messagesRead += m_messagesRead[i];
-            }
-            size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(m_timeEnd - m_timeStart).count();
-            log_info("took %d ms, m_timeout %d ms", ms, m_timeout);
-            log_info("total bytes read: %lld", bytesRead);
-            log_info("total messages read: %lld", messagesRead);
-            log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));
-            log_info("%f MiB/s throughput",
-                     static_cast<double>(bytesRead) / (ms * 1024 * 1024 / 1000));
+            logStat();
             m_tcpClients.clear();
             m_net->stopLoop();
         }
@@ -137,7 +152,7 @@ class TestClient
     int m_timeout;
     std::string m_message;
     std::chrono::system_clock::time_point m_timeStart;
-    std::chrono::system_clock::time_point m_timeEnd;
+    PtrEvtListener m_evtListener;
 };
 
 WyNet *g_net;
