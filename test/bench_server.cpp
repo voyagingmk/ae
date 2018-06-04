@@ -7,7 +7,9 @@ class TestServer
 {
 
   public:
-    TestServer(WyNet *net, const char *ip, int port) : m_net(net), m_numClient(0)
+    TestServer(WyNet *net, const char *ip, int port) : m_net(net),
+                                                       m_numClient(0),
+                                                       m_numConnected(0)
     {
         PtrServer server = Server::create(net);
         m_server = server;
@@ -30,6 +32,7 @@ class TestServer
 
     void OnTcpConnected(const PtrConn &conn)
     {
+        m_numConnected++;
         int i = ++m_numClient;
         conn->setUserData(i);
         log_debug("[test.OnTcpConnected] sockfd %d", conn->sockfd());
@@ -40,7 +43,8 @@ class TestServer
 
     void OnTcpDisconnected(const PtrConn &conn)
     {
-        log_debug("[test.OnTcpDisconnected] sockfd %d", conn->sockfd());
+        int num = --m_numConnected;
+        log_info("numConnected %d", num);
         conn->getCtrlAsServer()->removeConnection(conn);
     }
 
@@ -65,6 +69,7 @@ class TestServer
   private:
     WyNet *m_net;
     PtrServer m_server;
+    std::atomic_int m_numConnected;
     PtrTcpServer m_tcpServer;
     std::atomic_int m_numClient;
 };
