@@ -66,6 +66,8 @@ class EventListener : public std::enable_shared_from_this<EventListener>
         return m_loop;
     }
 
+    int getFileEventMask() { return m_mask; }
+
     bool hasFileEvent(int mask);
 
     void deleteAllFileEvent();
@@ -81,6 +83,7 @@ class EventListener : public std::enable_shared_from_this<EventListener>
     SockFd m_sockfd;
     std::string m_name;
     OnFileEvent m_onFileEvent;
+    int m_mask;
 };
 }; // namespace wynet
 

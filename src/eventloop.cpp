@@ -35,9 +35,17 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, 
     }
     if (listener->m_onFileEvent)
     {
-        if ((mask & LOOP_EVT_READABLE) || (mask & LOOP_EVT_WRITABLE))
+        int lmask = listener->getFileEventMask();
+        if ((lmask & mask) > 0)
         {
             listener->m_onFileEvent(loop, listener, mask);
+        }
+        else
+        {
+            log_error("sockfd %d not listening this evt: %s", sockfd,
+                      (mask & LOOP_EVT_READABLE) ? "rd" : "",
+                      (mask & LOOP_EVT_WRITABLE) ? "wr" : "");
+            loop->deleteFileEvent(listener, mask);
         }
     }
     else

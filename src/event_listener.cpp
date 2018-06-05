@@ -15,6 +15,8 @@ EventListener::~EventListener()
 
 bool EventListener::hasFileEvent(int mask)
 {
+    return static_cast<bool>(m_mask & mask);
+    /*
     if (m_loop && m_sockfd)
     {
         m_loop->hasFileEvent(shared_from_this(), mask);
@@ -22,13 +24,14 @@ bool EventListener::hasFileEvent(int mask)
     else
     {
         log_error("EventListener::isWaitingFileEvent no m_loop or no m_sockfd");
-    }
+    }*/
 }
 
 void EventListener::deleteAllFileEvent()
 {
     if (m_loop && m_sockfd)
     {
+        m_mask = 0;
         // log_info("deleteAllFileEvent %d", m_sockfd);
         m_loop->deleteAllFileEvent(m_sockfd);
     }
@@ -43,6 +46,7 @@ void EventListener::createFileEvent(int mask, OnFileEvent onFileEvent)
     if (m_loop && m_sockfd)
     {
         // log_info("createFileEvent %d", m_sockfd);
+        m_mask = m_mask | mask;
         m_onFileEvent = onFileEvent;
         m_loop->createFileEvent(shared_from_this(), mask);
     }
@@ -56,6 +60,7 @@ void EventListener::deleteFileEvent(int mask)
 {
     if (m_loop && m_sockfd)
     {
+        m_mask = m_mask & (~mask);
         m_loop->deleteFileEvent(getSockFd(), mask);
     }
     else
