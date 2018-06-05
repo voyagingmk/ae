@@ -137,15 +137,15 @@ void EventLoop::loop()
     AeTimerId aeTimerId = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
     while (!m_aeloop->stop)
     {
-        TimeMeasure measure("loop");
+        log_timemeasure("loop");
         if (m_aeloop->beforesleep != NULL)
             m_aeloop->beforesleep(m_aeloop);
         {
-            TimeMeasure measure("aeProcessEvents");
+            log_timemeasure("aeProcessEvents");
             aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
         }
         {
-            TimeMeasure measure("processTaskQueue");
+            log_timemeasure("processTaskQueue");
             processTaskQueue();
         }
     }

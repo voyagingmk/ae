@@ -11,6 +11,14 @@ void ignoreSignalPipe();
 
 std::string hostname();
 
+// #define ENABLE_TIME_MEASURE 1
+
+#ifdef ENABLE_TIME_MEASURE
+#define log_timemeasure(x) TimeMeasure measure(x);
+#else
+#define log_timemeasure(x)
+#endif
+
 // #define LOG_CTOR_DTOR 1
 #ifdef LOG_CTOR_DTOR
 #define __str__(x) #x
