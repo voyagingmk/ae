@@ -2,6 +2,7 @@
 #define WY_CLOCK_TIME_H
 
 #include "common.h"
+#include "logger/log.h"
 #include <time.h>
 #include <chrono>
 
@@ -88,6 +89,25 @@ class ClockTime
 
   private:
     static const int64_t kNanoSecondsPerSecond = 1000 * 1000 * 1000;
+};
+
+class TimeMeasure
+{
+  public:
+    TimeMeasure(const char *tag) : m_start(std::chrono::steady_clock::now()),
+                                   m_tag(tag)
+    {
+    }
+    ~TimeMeasure()
+    {
+        std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start);
+        duration.count();
+        log_info("[measure] %s %dms", m_tag, duration.count());
+    }
+
+  private:
+    std::chrono::time_point<std::chrono::steady_clock> m_start;
+    const char *m_tag;
 };
 
 }; // namespace wynet
