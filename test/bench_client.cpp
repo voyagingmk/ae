@@ -68,7 +68,8 @@ class TestClient
         }
         auto timeEnd = std::chrono::system_clock::now();
         size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - m_timeStart).count();
-        log_info("took %d ms, m_timeout %d ms", ms, m_timeout);
+        log_info("took %d ms", ms);
+        log_info("connected: %d", m_numConnected);
         log_info("total bytes read: %lld", bytesRead);
         log_info("total messages read: %lld", messagesRead);
         log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));
