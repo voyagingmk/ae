@@ -62,7 +62,7 @@ void sock_setsockopt(SockFd sockfd, int level, int optname, const void *optval, 
 {
     if (setsockopt(sockfd, level, optname, optval, optlen) < 0)
     {
-        log_fatal("setsockopt %d error %d %s", sockfd, errno, strerror(errno));
+        log_fatal("setsockopt sockfd: %d , optname: %d, error: %d %s", sockfd, optname, errno, strerror(errno));
     }
 }
 
