@@ -118,7 +118,7 @@ void TcpConnection ::forceCloseInLoop()
 
 void TcpConnection ::close(const char *reason)
 {
-    log_info("[conn] close() isInLoopThread: %d", getLoop()->isInLoopThread());
+    log_debug("[conn] close() isInLoopThread: %d", getLoop()->isInLoopThread());
     if (reason)
     {
         log_debug("[conn] close() reason %s", reason);
