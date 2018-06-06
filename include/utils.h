@@ -11,6 +11,8 @@ void ignoreSignalPipe();
 
 std::string hostname();
 
+void checkOpenFileNum(int expectedNum);
+
 // #define ENABLE_TIME_MEASURE 1
 
 #ifdef ENABLE_TIME_MEASURE

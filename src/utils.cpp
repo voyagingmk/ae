@@ -22,4 +22,18 @@ std::string hostname()
     }
 }
 
+void checkOpenFileNum(int expectedNum)
+{
+#if defined(__APPLE__)
+    struct rlimit rlp;
+    fprintf(stderr, "checkOpenFileNum:");
+    getrlimit(RLIMIT_NOFILE, &rlp);
+    fprintf(stderr, "before %d %d\n", rlp.rlim_cur, rlp.rlim_max);
+    rlp.rlim_cur = 10000;
+    setrlimit(RLIMIT_NOFILE, &rlp);
+    getrlimit(RLIMIT_NOFILE, &rlp);
+    fprintf(stderr, "after %d %d\n", rlp.rlim_cur, rlp.rlim_max);
+#endif
+}
+
 } // namespace wynet

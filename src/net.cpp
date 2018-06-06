@@ -36,6 +36,7 @@ bool PeerManager::removeServer(UniqID serverId)
 WyNet::WyNet(int threadNum) : m_threadPool(&m_loop, "WyNet", threadNum)
 {
     log_ctor("WyNet()");
+    checkOpenFileNum(100000);
     ignoreSignalPipe();
     m_threadPool.start([](EventLoop *loop) -> void {
         log_info("ThreadInitCallback");

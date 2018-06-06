@@ -1,3 +1,5 @@
+// disable the limit for the open files num on Mac
+#define _DARWIN_UNLIMITED_STREAMS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
