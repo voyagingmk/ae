@@ -53,15 +53,16 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener liste
         log_debug("[conn] no conn");
         return;
     }
-    if (mask & LOOP_EVT_READABLE)
-    {
-        log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
-        conn->onReadable();
-    }
     if (mask & LOOP_EVT_WRITABLE)
     {
         log_debug("[conn] onWritable sockfd=%d", conn->sockfd());
         conn->onWritable();
+    }
+    // 可读事件可能会把连接关了，要后处理
+    if (mask & LOOP_EVT_READABLE)
+    {
+        log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
+        conn->onReadable();
     }
     // m_evtListener->createTimer(1000, testOnTimerEvent, nullptr);
 }
