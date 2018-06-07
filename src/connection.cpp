@@ -54,6 +54,7 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
         log_debug("[conn] no conn");
         return;
     }
+    assert(conn->m_evtListener == listener);
     if (mask & LOOP_EVT_WRITABLE)
     {
         log_debug("[conn] onWritable sockfd=%d", conn->sockfd());
