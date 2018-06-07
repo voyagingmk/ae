@@ -191,7 +191,35 @@ bool EventLoop::hasFileEvent(PtrEvtListener listener, int mask)
 
 void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
 {
-    assertInLoopThread("createFileEvent");
+    runInLoop([&]() {
+        createFileEventInLoop(listener, mask);
+    });
+}
+
+void EventLoop::deleteFileEvent(PtrEvtListener listener, int mask)
+{
+    runInLoop([&]() {
+        deleteFileEventInLoop(listener, mask);
+    });
+}
+
+void EventLoop::deleteFileEvent(SockFd fd, int mask)
+{
+    runInLoop([&]() {
+        deleteFileEventInLoop(fd, mask);
+    });
+}
+
+void EventLoop::deleteAllFileEvent(SockFd fd)
+{
+    runInLoop([&]() {
+        deleteAllFileEventInLoop(fd);
+    });
+}
+
+void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
+{
+    assertInLoopThread("createFileEventInLoop");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
     int setsize = aeGetSetSize(m_aeloop);
     SockFd sockfd = listener->getSockFd();
@@ -217,13 +245,13 @@ void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
     m_fd2listener[sockfd] = listener;
 }
 
-void EventLoop ::deleteFileEvent(PtrEvtListener listener, int mask)
+void EventLoop ::deleteFileEventInLoop(const PtrEvtListener &listener, int mask)
 {
     SockFd sockfd = listener->getSockFd();
     deleteFileEvent(sockfd, mask);
 }
 
-void EventLoop ::deleteFileEvent(SockFd sockfd, int mask)
+void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
 {
     assertInLoopThread("deleteFileEvent");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
@@ -239,7 +267,7 @@ void EventLoop ::deleteFileEvent(SockFd sockfd, int mask)
     }
 }
 
-void EventLoop ::deleteAllFileEvent(SockFd sockfd)
+void EventLoop ::deleteAllFileEventInLoop(SockFd sockfd)
 {
     deleteFileEvent(sockfd, AE_READABLE | AE_WRITABLE);
 }

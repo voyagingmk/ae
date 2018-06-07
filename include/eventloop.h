@@ -35,6 +35,14 @@ class EventLoop : Noncopyable
 
     void deleteTimer(TimerRef tr);
 
+    void createFileEvent(PtrEvtListener, int mask);
+
+    void deleteFileEvent(PtrEvtListener, int mask);
+
+    void deleteFileEvent(SockFd fd, int mask);
+
+    void deleteAllFileEvent(SockFd fd);
+
     bool isInLoopThread() const
     {
         return m_threadId == CurrentThread::tid();
@@ -89,13 +97,13 @@ class EventLoop : Noncopyable
 
     bool hasFileEvent(PtrEvtListener, int mask);
 
-    void createFileEvent(PtrEvtListener, int mask);
+    void createFileEventInLoop(const PtrEvtListener &, int mask);
 
-    void deleteFileEvent(PtrEvtListener, int mask);
+    void deleteFileEventInLoop(const PtrEvtListener &, int mask);
 
-    void deleteFileEvent(SockFd fd, int mask);
+    void deleteFileEventInLoop(SockFd fd, int mask);
 
-    void deleteAllFileEvent(SockFd fd);
+    void deleteAllFileEventInLoop(SockFd fd);
 
     AeTimerId createTimerInLoop(PtrEvtListener listener, int delay, OnTimerEvent onTimerEvent, void *data);
 

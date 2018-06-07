@@ -30,11 +30,11 @@ class TestClient
             tcpClient->onTcpConnected = std::bind(&TestClient::OnTcpConnected, this, _1);
             tcpClient->onTcpDisconnected = std::bind(&TestClient::OnTcpDisconnected, this, _1);
             tcpClient->onTcpRecvMessage = std::bind(&TestClient::OnTcpRecvMessage, this, _1, _2);
-            m_tcpClients.push_back(tcpClient);
+            m_tcpClients.insert(tcpClient);
         }
-        for (int i = 0; i < sessions; i++)
+        for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
         {
-            m_tcpClients[i]->connect(ip, port);
+            (*it)->connect(ip, port);
         }
         for (int i = 0; i < blockSize; ++i)
         {
@@ -102,6 +102,13 @@ class TestClient
 
     void OnTcpConnectFailed(const PtrTcpClient &tcpClient)
     {
+        if (!tcpClient->needReconnect())
+        {
+            log_info("fail too many.");
+            auto it = m_tcpClients.find(tcpClient);
+            assert(it != m_tcpClients.end());
+            m_tcpClients.erase(it);
+        }
     }
 
     void OnTcpConnected(const PtrConn &conn)
@@ -109,12 +116,13 @@ class TestClient
         // log_info("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
         conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
+        log_info("conn ok %d", conn->sockfd());
+        socketUtils::setTcpNoDelay(conn->sockfd(), true);
         int i = m_numConnected;
         conn->setUserData(i);
         m_numConnected++;
         m_timeStart = std::chrono::system_clock::now();
         conn->send(m_message);
-        socketUtils::setTcpNoDelay(conn->sockfd(), true);
         conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
     }
 
@@ -145,7 +153,7 @@ class TestClient
 
   private:
     WyNet *m_net;
-    std::vector<PtrTcpClient> m_tcpClients;
+    std::set<PtrTcpClient> m_tcpClients;
     std::vector<int64_t> m_messagesRead;
     std::vector<int64_t> m_bytesRead;
     std::atomic_int m_numConnected;
