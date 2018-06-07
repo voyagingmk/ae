@@ -14,7 +14,7 @@ namespace wynet
 
 const size_t LISTENQUEUEMAX = 1024;
 
-void TcpServer::OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener listener, int mask)
+void TcpServer::OnNewTcpConnection(EventLoop *eventLoop, const PtrEvtListener &listener, int mask)
 {
 	PtrTcpServerEvtListener l = std::static_pointer_cast<TcpServerEventListener>(listener);
 	PtrTcpServer tcpServer = l->getTcpServer();

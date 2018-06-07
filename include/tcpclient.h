@@ -92,7 +92,7 @@ private:
   void resetEvtListener();
 
   // in order to access private members
-  static void OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask);
+  static void OnTcpWritable(EventLoop *eventLoop, const PtrEvtListener &listener, int mask);
 
   static int onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data);
 

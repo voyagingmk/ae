@@ -27,7 +27,7 @@ int TcpClient::onReconnectTimeout(EventLoop *, TimerRef tr, PtrEvtListener liste
 }
 
 // http://man7.org/linux/man-pages/man2/connect.2.html
-void TcpClient::OnTcpWritable(EventLoop *eventLoop, PtrEvtListener listener, int mask)
+void TcpClient::OnTcpWritable(EventLoop *eventLoop, const PtrEvtListener &listener, int mask)
 {
     log_debug("TcpClient::OnTcpWritable");
     PtrTcpClientEvtListener l = std::static_pointer_cast<TcpClientEventListener>(listener);

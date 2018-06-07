@@ -13,7 +13,7 @@ class EventListener;
 
 using PtrEvtListener = std::shared_ptr<EventListener>;
 using WeakPtrEvtListener = std::weak_ptr<EventListener>;
-using OnFileEvent = std::function<void(EventLoop *, PtrEvtListener listener, int mask)>;
+using OnFileEvent = std::function<void(EventLoop *, const PtrEvtListener &listener, int mask)>;
 using OnTimerEvent = std::function<int(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)>;
 
 // 用来发起事件监听

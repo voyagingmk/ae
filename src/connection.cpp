@@ -43,7 +43,7 @@ TcpConnection::~TcpConnection()
     assert(m_state == State::Disconnected);
 }
 
-void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask)
+void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener &listener, int mask)
 {
     log_debug("[conn] OnConnectionEvent");
     PtrConnEvtListener l = std::static_pointer_cast<TcpConnectionEventListener>(listener);

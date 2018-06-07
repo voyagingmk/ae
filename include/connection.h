@@ -224,7 +224,7 @@ class TcpConnection final : public Noncopyable, public std::enable_shared_from_t
     void onDestroy();
 
   protected:
-    static void OnConnectionEvent(EventLoop *eventLoop, PtrEvtListener listener, int mask);
+    static void OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener &listener, int mask);
 
     void forceCloseInLoop();
 

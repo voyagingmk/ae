@@ -78,7 +78,7 @@ protected:
 
   void onDisconnected(const PtrConn &);
 
-  static void OnNewTcpConnection(EventLoop *eventLoop, PtrEvtListener, int mask);
+  static void OnNewTcpConnection(EventLoop *eventLoop, const PtrEvtListener &, int mask);
 
 public:
   SocketFdCtrl m_sockFdCtrl;
