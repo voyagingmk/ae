@@ -266,6 +266,10 @@ void TcpConnection::onReadable()
 void TcpConnection::onWritable()
 {
     getLoop()->assertInLoopThread("onWritable");
+    if (m_evtListener)
+    {
+        assert(m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE));
+    }
     if (m_state != State::Connected && m_state != State::Disconnecting)
     {
         return;
@@ -291,7 +295,6 @@ void TcpConnection::onWritable()
         m_pendingSendBuf.readOut(nwrote);
         if (m_pendingSendBuf.readableSize() == 0)
         {
-            log_debug("[conn] onWritable, no remain");
             m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
             if (onTcpSendComplete)
             {
