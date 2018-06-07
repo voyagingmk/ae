@@ -55,20 +55,13 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
         return;
     }
     assert(conn->m_evtListener == listener);
-    if (mask & LOOP_EVT_WRITABLE)
+    if ((mask & LOOP_EVT_WRITABLE) && conn->m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE))
     {
-        assert(conn->m_evtListener->hasFileEvent(mask));
-        if (!conn->m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE))
-        {
-            log_info("--- %d %d %d", conn->m_evtListener->getFileEventMask(), mask, LOOP_EVT_WRITABLE);
-        }
-        assert(conn->m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE));
-
         log_debug("[conn] onWritable sockfd=%d", conn->sockfd());
         conn->onWritable();
     }
     // 可读事件可能会把连接关了，要后处理
-    if (mask & LOOP_EVT_READABLE)
+    if ((mask & LOOP_EVT_READABLE) && conn->m_evtListener->hasFileEvent(LOOP_EVT_READABLE))
     {
         log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
         conn->onReadable();
