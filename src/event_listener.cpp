@@ -37,7 +37,7 @@ void EventListener::deleteAllFileEvent()
     }
     else
     {
-        log_error("EventListener::deleteAllFileEvent no m_loop or no m_sockfd");
+        log_fatal("EventListener::deleteAllFileEvent no m_loop or no m_sockfd");
     }
 }
 
@@ -52,7 +52,7 @@ void EventListener::createFileEvent(int mask, OnFileEvent onFileEvent)
     }
     else
     {
-        log_error("EventListener::createFileEvent no m_loop or no m_sockfd");
+        log_fatal("EventListener::createFileEvent no m_loop or no m_sockfd");
     }
 }
 
@@ -65,7 +65,7 @@ void EventListener::deleteFileEvent(int mask)
     }
     else
     {
-        log_error("EventListener::deleteFileEvent no m_loop or no m_sockfd");
+        log_fatal("EventListener::deleteFileEvent no m_loop or no m_sockfd");
     }
 }
 
@@ -77,7 +77,7 @@ TimerRef EventListener::createTimer(int ms, OnTimerEvent onTimerEvent, void *dat
     }
     else
     {
-        log_error("EventListener::createTimer no m_loop");
+        log_fatal("EventListener::createTimer no m_loop");
         return TimerRef(0);
     }
 }
