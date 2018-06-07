@@ -15,7 +15,7 @@ EventListener::~EventListener()
 
 bool EventListener::hasFileEvent(int mask)
 {
-    return static_cast<bool>(m_mask & mask);
+    return (m_mask & mask) > 0;
     /*
     if (m_loop && m_sockfd)
     {
