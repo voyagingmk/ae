@@ -203,17 +203,13 @@ void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
         assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize));
     }
     int oldMask = aeGetFileEvents(m_aeloop, sockfd);
-    if (oldMask == mask)
-    {
-        return;
-    }
     if ((oldMask & AE_READABLE) && (mask & AE_READABLE))
     {
-        mask &= ~AE_READABLE;
+        log_warn("already has AE_READABLE");
     }
     else if ((oldMask & AE_WRITABLE) && (mask & AE_WRITABLE))
     {
-        mask &= ~AE_WRITABLE;
+        log_warn("already has AE_WRITABLE");
     }
     int ret = aeCreateFileEvent(m_aeloop, sockfd, mask, aeOnFileEvent, (void *)this);
     assert(AE_ERR != ret);
