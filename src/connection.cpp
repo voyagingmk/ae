@@ -46,6 +46,7 @@ TcpConnection::~TcpConnection()
 void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener &listener, int mask)
 {
     log_debug("[conn] OnConnectionEvent");
+    assert(listener->hasFileEvent(mask));
     PtrConnEvtListener l = std::static_pointer_cast<TcpConnectionEventListener>(listener);
     PtrConn conn = l->getTcpConnection();
     if (!conn)
