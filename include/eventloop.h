@@ -11,10 +11,10 @@
 namespace wynet
 {
 
-#define LOOP_EVT_NONE AE_NONE
-#define LOOP_EVT_READABLE AE_READABLE
-#define LOOP_EVT_WRITABLE AE_WRITABLE
-#define LOOP_EVT_NOMORE AE_NOMORE
+#define LOOP_EVT_NONE 0
+#define LOOP_EVT_READABLE 1
+#define LOOP_EVT_WRITABLE 2
+#define LOOP_EVT_NOMORE -1
 
 using AeTimerId = long long;
 
