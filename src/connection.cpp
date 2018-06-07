@@ -57,6 +57,8 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
     assert(conn->m_evtListener == listener);
     if (mask & LOOP_EVT_WRITABLE)
     {
+        assert(conn->m_evtListener->hasFileEvent(mask));
+        assert(conn->m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE));
         log_debug("[conn] onWritable sockfd=%d", conn->sockfd());
         conn->onWritable();
     }
