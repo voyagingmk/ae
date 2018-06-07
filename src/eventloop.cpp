@@ -38,6 +38,7 @@ void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, 
         int lmask = listener->getFileEventMask();
         if ((lmask & mask) > 0)
         {
+            assert(listener->hasFileEvent(mask));
             listener->m_onFileEvent(loop, listener, mask);
         }
         else
