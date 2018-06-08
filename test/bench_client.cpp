@@ -80,32 +80,41 @@ class TestClient
         int numConnected = 0;
         int numDisconnected = 0;
         int numDisconnecting = 0;
+        int numNoConn = 0;
 
         {
             MutexLockGuard<MutexLock> lock(m_mutex);
             for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
             {
                 PtrConn conn = (*it)->getConn();
-                switch (conn->getState())
+                if (conn)
                 {
-                case TcpConnection::State::Connected:
-                    numConnected++;
-                    break;
-                case TcpConnection::State::Disconnected:
-                    numDisconnected++;
-                    break;
-                case TcpConnection::State::Disconnecting:
-                    numDisconnecting++;
-                    break;
+                    switch (conn->getState())
+                    {
+                    case TcpConnection::State::Connected:
+                        numConnected++;
+                        break;
+                    case TcpConnection::State::Disconnected:
+                        numDisconnected++;
+                        break;
+                    case TcpConnection::State::Disconnecting:
+                        numDisconnecting++;
+                        break;
+                    }
+                }
+                else
+                {
+                    numNoConn++;
                 }
             }
         }
         log_info("took %d ms", ms);
         log_info("[atomic] connected: %d", (int)m_numConnected);
-        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d",
+        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d",
                  numConnected,
                  numDisconnected,
-                 numDisconnecting);
+                 numDisconnecting,
+                 numNoConn);
         log_info("total bytes read: %lld", bytesRead);
         log_info("total messages read: %lld", messagesRead);
         log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));
