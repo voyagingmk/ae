@@ -55,8 +55,9 @@ void WyNet::stopLoop()
 
 void WyNet::stopAllLoop()
 {
-    m_loop.stop();
+    log_info("stopAllLoop()");
     m_threadPool.stopAndJoinAll();
+    m_loop.stop();
 }
 
 void WyNet::startLoop()
