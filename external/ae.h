@@ -103,7 +103,7 @@ typedef struct aeFiredEvent
 /* State of an event based program */
 typedef struct aeEventLoop
 {
-    typedef std::set<aeTimeEventPtr, Compare> PriorityQueue;
+    typedef std::multiset<aeTimeEventPtr, Compare> PriorityQueue;
     int maxfd;   /* highest file descriptor currently registered */
     int setsize; /* max number of file descriptors tracked */
     long long timeEventNextId;

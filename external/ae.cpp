@@ -396,10 +396,8 @@ static int processTimeEvents(aeEventLoop *eventLoop)
         {
             eventLoop->pq.erase(it2);
         }
-
-        int retval;
         auto id = te->id;
-        retval = te->timeProc(eventLoop, id, te->clientData);
+        int retval = te->timeProc(eventLoop, id, te->clientData);
         processed++;
         if (retval != AE_NOMORE)
         {
@@ -480,7 +478,8 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
                 tvp->tv_sec = 0;
                 tvp->tv_usec = 0;
             }
-            //  fprintf(stderr, "wait %d %d\n", tvp->tv_sec, tvp->tv_usec);
+            // fprintf(stderr, "wait %d %d, te num: %d\n",
+            //          (int)tvp->tv_sec, (int)tvp->tv_usec, (int)eventLoop->pq.size());
         }
         else
         {
