@@ -29,6 +29,9 @@ class EventLoop : Noncopyable
 
     void loop();
 
+    // handle file event before timeout
+    void stopSafely();
+
     void stop();
 
     TimerRef createTimer(PtrEvtListener listener, int ms, OnTimerEvent onTimerEvent, void *data);
@@ -63,6 +66,7 @@ class EventLoop : Noncopyable
     size_t queueSize() const;
 
     static EventLoop *getCurrentThreadLoop();
+
     void abort(std::string reason)
     {
         log_fatal("EventLoop abort. %s. m_threadId %d curThreadId %d", reason.c_str(), m_threadId, CurrentThread::tid());
@@ -127,7 +131,9 @@ class EventLoop : Noncopyable
     std::map<TimerRef, TimerData> m_timerData;
     std::map<AeTimerId, TimerRef> m_aeTimerId2ref;
     const int m_wakeupInterval;
+    const int m_forceStopTime;
     bool m_doingTask;
+    bool m_stopping;
     mutable MutexLock m_mutex;
     std::vector<TaskFunction> m_taskFuncQueue;
 };

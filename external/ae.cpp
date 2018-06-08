@@ -62,22 +62,21 @@ extern "C"
 #endif
 #endif
 
-bool GreateThanByTime::operator()(const aeTimeEvent *lhs, const aeTimeEvent *rhs) const
+bool GreateThanByTime::operator()(const aeTimeEventPtr &lhs, const aeTimeEventPtr &rhs) const
 {
-    return true;
-    assert(lhs);
-    assert(rhs);
+    bool b;
     if (lhs->when_sec == rhs->when_sec)
     {
-        return lhs->when_ms > rhs->when_ms;
+        b = lhs->when_ms < rhs->when_ms;
     }
     else
     {
-        return lhs->when_sec > rhs->when_sec;
+        b = lhs->when_sec < rhs->when_sec;
     }
+    return b;
 }
 
-static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop);
+static aeTimeEventPtr aeSearchNearestTimer(aeEventLoop *eventLoop);
 
 aeEventLoop *aeCreateEventLoop(int setsize)
 {
@@ -92,7 +91,6 @@ aeEventLoop *aeCreateEventLoop(int setsize)
         goto err;
     eventLoop->setsize = setsize;
     eventLoop->lastTime = time(NULL);
-    eventLoop->timeEventHead = NULL;
     eventLoop->timeEventNextId = 0;
     eventLoop->stop = 0;
     eventLoop->maxfd = -1;
@@ -247,9 +245,9 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
                             aeEventFinalizerProc *finalizerProc)
 {
     long long id = eventLoop->timeEventNextId++;
-    aeTimeEvent *te;
+    aeTimeEventPtr te;
 
-    te = (aeTimeEvent *)zmalloc(sizeof(*te));
+    te = std::make_shared<aeTimeEvent>();
     if (te == NULL)
         return AE_ERR;
     te->id = id;
@@ -259,8 +257,6 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
     te->timeProc = proc;
     te->finalizerProc = finalizerProc;
     te->clientData = clientData;
-    te->next = eventLoop->timeEventHead;
-    eventLoop->timeEventHead = te;
     eventLoop->pq.insert(te);
     eventLoop->timeEventNearest = aeSearchNearestTimer(eventLoop);
     return id;
@@ -268,23 +264,15 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
 
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id)
 {
-    aeTimeEvent *te = eventLoop->timeEventHead;
-    while (te)
+    auto it = std::find_if(
+        eventLoop->pq.begin(), eventLoop->pq.end(),
+        [&id](const aeTimeEventPtr &x) { return (x->id) == id; });
+    if (it != eventLoop->pq.end())
     {
-        if (te->id == id)
-        {
-            te->id = AE_DELETED_EVENT_ID;
-
-            auto it = eventLoop->pq.find(te);
-            if (it != eventLoop->pq.end())
-            {
-                eventLoop->pq.erase(it);
-            }
-            return AE_OK;
-        }
-        te = te->next;
+        (*it)->id = AE_DELETED_EVENT_ID;
+        eventLoop->timeEventNearest = aeSearchNearestTimer(eventLoop);
+        return AE_OK;
     }
-    eventLoop->timeEventNearest = aeSearchNearestTimer(eventLoop);
     return AE_ERR; /* NO event with the specified ID found */
 }
 
@@ -299,23 +287,26 @@ int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id)
  *    Much better but still insertion or deletion of timers is O(N).
  * 2) Use a skiplist to have this operation as O(1) and insertion as O(log(N)).
  */
-static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
+static aeTimeEventPtr aeSearchNearestTimer(aeEventLoop *eventLoop)
 {
-    aeTimeEvent *te = eventLoop->timeEventHead;
-    aeTimeEvent *nearest = NULL;
+    aeTimeEventPtr nearest = nullptr;
     if (eventLoop->pq.size() > 0)
     {
-        nearest = *eventLoop->pq.begin();
+        for (auto it = eventLoop->pq.begin(); it != eventLoop->pq.end(); it++)
+        {
+            nearest = *it;
+            if (nearest->id != AE_DELETED_EVENT_ID)
+            {
+                break;
+            }
+        }
+        /*
+        int num = 0;
+        for (auto it = eventLoop->pq.begin(); it != eventLoop->pq.end(); it++)
+        {
+            fprintf(stderr, "[%d] sec %d ms %d\n", num++, (int)((*it)->when_sec), (int)((*it)->when_ms));
+        }*/
     }
-    /*
-    while (te)
-    {
-        if (!nearest || te->when_sec < nearest->when_sec ||
-            (te->when_sec == nearest->when_sec &&
-             te->when_ms < nearest->when_ms))
-            nearest = te;
-        te = te->next;
-    }*/
     return nearest;
 }
 
@@ -323,87 +314,82 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 static int processTimeEvents(aeEventLoop *eventLoop)
 {
     int processed = 0;
-    aeTimeEvent *te, *prev;
+    aeTimeEventPtr te;
     long long maxId;
     time_t now = time(NULL);
 
-    /* If the system clock is moved to the future, and then set back to the
-     * right value, time events may be delayed in a random way. Often this
-     * means that scheduled operations will not be performed soon enough.
-     *
-     * Here we try to detect system clock skews, and force all the time
-     * events to be processed ASAP when this happens: the idea is that
-     * processing events earlier is less dangerous than delaying them
-     * indefinitely, and practice suggests it is. */
-    if (now < eventLoop->lastTime)
-    {
-        te = eventLoop->timeEventHead;
-        while (te)
-        {
-            te->when_sec = 0;
-            te = te->next;
-        }
-    }
     eventLoop->lastTime = now;
 
-    prev = NULL;
-    te = eventLoop->timeEventHead;
     maxId = eventLoop->timeEventNextId - 1;
-    long now_sec, now_ms;
-    aeGetTime(&now_sec, &now_ms);
-    while (te)
-    {
-        long long id;
 
-        /* Remove events scheduled for deletion. */
+    aeEventLoop::PriorityQueue::iterator it;
+    std::vector<aeTimeEventPtr> teListTimeout;
+    it = eventLoop->pq.begin();
+    while (it != eventLoop->pq.end())
+    {
+        te = *it;
         if (te->id == AE_DELETED_EVENT_ID)
         {
-            aeTimeEvent *next = te->next;
-            if (prev == NULL)
-                eventLoop->timeEventHead = te->next;
-            else
-                prev->next = te->next;
-            if (te->finalizerProc)
-                te->finalizerProc(eventLoop, te->clientData);
-            zfree(te);
-            te = next;
-            continue;
+            teListTimeout.push_back(te);
         }
-        /* Make sure we don't process time events created by time events in
-         * this iteration. Note that this check is currently useless: we always
-         * add new timers on the head, however if we change the implementation
-         * detail, this check may be useful again: we keep it here for future
-         * defense. */
+        it++;
+    }
+    for (auto it2 = teListTimeout.begin(); it2 != teListTimeout.end(); it2++)
+    {
+        te = *it2;
+        auto it3 = eventLoop->pq.find(te);
+        assert(it3 != eventLoop->pq.end());
+        eventLoop->pq.erase(it3);
+        if (te->finalizerProc)
+            te->finalizerProc(eventLoop, te->clientData);
+    }
+    teListTimeout.clear();
+    long now_sec, now_ms;
+    aeGetTime(&now_sec, &now_ms);
+    std::vector<aeTimeEventPtr> teListReinsert;
+    for (it = eventLoop->pq.begin(); it != eventLoop->pq.end(); it++)
+    {
+        te = *it;
         if (te->id > maxId)
         {
-            te = te->next;
             continue;
         }
+        // fprintf(stderr, " te->when_sec - now_sec %d\n", int(te->when_sec - now_sec));
+        // fprintf(stderr, " te->when_ms - now_ms %d\n", int(te->when_ms - now_ms));
         if (now_sec > te->when_sec ||
             (now_sec == te->when_sec && now_ms >= te->when_ms))
         {
-            int retval;
-
-            id = te->id;
-            retval = te->timeProc(eventLoop, id, te->clientData);
-            processed++;
-            if (retval != AE_NOMORE)
-            {
-                aeAddMillisecondsToNow(now_sec, now_ms, retval, &te->when_sec, &te->when_ms);
-            }
-            else
-            {
-                te->id = AE_DELETED_EVENT_ID;
-                auto it = eventLoop->pq.find(te);
-                if (it != eventLoop->pq.end())
-                {
-                    eventLoop->pq.erase(it);
-                }
-            }
+            // fprintf(stderr, "to remove te id %d\n", int(te->id));
+            teListTimeout.push_back(te);
         }
-        prev = te;
-        te = te->next;
     }
+    for (auto itte = teListTimeout.begin(); itte != teListTimeout.end(); itte++)
+    {
+        aeTimeEventPtr te = *itte;
+        /*
+        fprintf(stderr, "remove te %d\n", int(te->id));
+        fprintf(stderr, "size: %d\n", int(eventLoop->pq.size()));
+        auto it2 = eventLoop->pq.find(te);
+        assert(it2 != eventLoop->pq.end());
+        eventLoop->pq.erase(it2);
+        */
+        int retval;
+        auto id = te->id;
+        retval = te->timeProc(eventLoop, id, te->clientData);
+        processed++;
+        if (retval != AE_NOMORE)
+        {
+            aeAddMillisecondsToNow(now_sec, now_ms, retval, &te->when_sec, &te->when_ms);
+            teListReinsert.push_back(te);
+        }
+    }
+    for (auto itte = teListReinsert.begin(); itte != teListReinsert.end(); itte++)
+    {
+        aeTimeEventPtr te = *itte;
+        // fprintf(stderr, "insert te %d\n", int(te->id));
+        eventLoop->pq.insert(te);
+    }
+
     if (processed > 0)
     {
         eventLoop->timeEventNearest = aeSearchNearestTimer(eventLoop);
@@ -441,7 +427,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         ((flags & AE_TIME_EVENTS) && !(flags & AE_DONT_WAIT)))
     {
         int j;
-        aeTimeEvent *shortest = NULL;
+        aeTimeEventPtr shortest = nullptr;
         struct timeval tv, *tvp;
 
         if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT))
@@ -469,6 +455,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
                 tvp->tv_sec = 0;
                 tvp->tv_usec = 0;
             }
+            //  fprintf(stderr, "wait %d %d\n", tvp->tv_sec, tvp->tv_usec);
         }
         else
         {

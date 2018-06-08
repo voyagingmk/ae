@@ -26,7 +26,7 @@ void EventLoopThread::stopAndJoin()
     m_exiting = true;
     if (m_loop != NULL)
     {
-        m_loop->stop();
+        m_loop->stopSafely();
         log_info("m_thread.join");
         m_thread.join();
         log_info("m_thread.join end");

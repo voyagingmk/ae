@@ -81,8 +81,9 @@ typedef struct aeTimeEvent
     aeTimeProc *timeProc;
     aeEventFinalizerProc *finalizerProc;
     void *clientData;
-    struct aeTimeEvent *next;
 } aeTimeEvent;
+
+typedef std::shared_ptr<aeTimeEvent> aeTimeEventPtr;
 
 /* A fired event */
 typedef struct aeFiredEvent
@@ -93,20 +94,22 @@ typedef struct aeFiredEvent
 
 struct GreateThanByTime
 {
-    bool operator()(const aeTimeEvent *lhs, const aeTimeEvent *rhs) const;
+  public:
+    using is_transparent = std::true_type;
+    bool operator()(const aeTimeEventPtr &lhs, const aeTimeEventPtr &rhs) const;
 };
 /* State of an event based program */
 typedef struct aeEventLoop
 {
+    typedef std::set<aeTimeEventPtr, GreateThanByTime> PriorityQueue;
     int maxfd;   /* highest file descriptor currently registered */
     int setsize; /* max number of file descriptors tracked */
     long long timeEventNextId;
     time_t lastTime;     /* Used to detect system clock skew */
     aeFileEvent *events; /* Registered events */
     aeFiredEvent *fired; /* Fired events */
-    aeTimeEvent *timeEventHead;
-    aeTimeEvent *timeEventNearest;
-    std::set<aeTimeEvent *, GreateThanByTime> pq;
+    aeTimeEventPtr timeEventNearest;
+    PriorityQueue pq;
     int stop;
     void *apidata; /* This is used for polling API specific data */
     aeBeforeSleepProc *beforesleep;

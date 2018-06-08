@@ -47,7 +47,14 @@ class TestClient
     ~TestClient()
     {
         log_dtor(" ~TestClient()");
-        m_tcpClients.clear();
+    }
+
+    void shutdownAll()
+    {
+        for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
+        {
+            (*it)->getConn()->shutdown();
+        }
     }
 
     int onStat(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
@@ -192,12 +199,14 @@ class TestClient
     PtrEvtListener m_evtListener;
 };
 
+typedef std::shared_ptr<TestClient> PtrTestClient;
+PtrTestClient ptrTestClient;
 WyNet *g_net;
 
 void Stop(int signo)
 {
     log_info("Stop()");
-    // g_net->stopLoop();
+    ptrTestClient->shutdownAll();
     g_net->stopAllLoop();
 }
 
@@ -233,7 +242,7 @@ int main(int argc, char **argv)
     WyNet net(threadsNum);
     g_net = &net;
     log_info("testClient");
-    TestClient testClient(&net, ip, port, blocksize, sessions, seconds * 1000);
+    ptrTestClient = std::make_shared<TestClient>(&net, ip, port, blocksize, sessions, seconds * 1000);
     net.startLoop();
     sleep(1); // avoid RST problem
     log_info("exit");

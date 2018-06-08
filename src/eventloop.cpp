@@ -10,8 +10,15 @@ __thread EventLoop *t_threadLoop = nullptr;
 int OnlyForWakeup(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
     const int *ms = (const int *)(data);
-    // log_debug("OnlyForWakeup %d", *ms);
+    // log_info("OnlyForWakeup %d", *ms);
     return *ms;
+}
+
+int ForceStop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
+{
+    log_info("ForceStop");
+    loop->stop();
+    return AE_NOMORE;
 }
 
 int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
@@ -102,7 +109,10 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *cli
         }
         return milliseconds;
     } while (0);
-    // log_debug("aeOnTimerEvent err %d", err);
+    if (err != 6)
+    {
+        log_error("aeOnTimerEvent err %d", err);
+    }
     loop->deleteTimerInLoop(aeTimerId);
     return AE_NOMORE;
 }
@@ -110,7 +120,9 @@ int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *cli
 EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(CurrentThread::tid()),
                                                                m_ownEvtListener(new EventListener()),
                                                                m_wakeupInterval(wakeupInterval),
-                                                               m_doingTask(false)
+                                                               m_forceStopTime(5000),
+                                                               m_doingTask(false),
+                                                               m_stopping(false)
 {
     log_ctor("EventLoop()");
     if (t_threadLoop)
@@ -152,21 +164,42 @@ void EventLoop::loop()
     // AeTimerId aeTimerIdStat = createTimerInLoop(m_ownEvtListener, 3000, StatEventLoop, nullptr);
     while (!m_aeloop->stop)
     {
+        // log_info("loop---1");
         log_timemeasure("loop");
         if (m_aeloop->beforesleep != NULL)
             m_aeloop->beforesleep(m_aeloop);
         {
             log_timemeasure("aeProcessEvents");
+            // log_info("loop---2");
             aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
         }
         {
             log_timemeasure("processTaskQueue");
+            // log_info("loop---3");
             processTaskQueue();
         }
+        if (m_stopping)
+        {
+            if (m_fd2listener.size() == 0)
+            {
+                log_info("stopSafely ok");
+                stopInLoop();
+            }
+        }
     }
+    log_info("loop exited");
     processTaskQueue();
     deleteTimerInLoop(aeTimerId);
     // deleteTimerInLoop(aeTimerIdStat);
+}
+
+void EventLoop::stopSafely()
+{
+    log_info("EventLoop::stopSafely");
+    runInLoop([&]() {
+        m_stopping = true;
+        createTimerInLoop(m_ownEvtListener, m_forceStopTime, ForceStop, nullptr);
+    });
 }
 
 void EventLoop::stop()
@@ -319,6 +352,7 @@ bool EventLoop ::deleteTimerInLoop(TimerRef tr)
         m_timerData.erase(tr);
         m_aeTimerId2ref.erase(aeTimerId);
         int ret = aeDeleteTimeEvent(m_aeloop, aeTimerId);
+        assert(AE_ERR != ret);
         return AE_ERR != ret;
     }
     return false;
