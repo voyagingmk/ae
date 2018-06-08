@@ -46,8 +46,10 @@ public:
 
   void startLoop();
 
+  // main loop
   void stopLoop();
 
+  // main loop + pool loops
   void stopAllLoop();
 
   EventLoop &getLoop()

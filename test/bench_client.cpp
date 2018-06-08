@@ -136,7 +136,7 @@ class TestClient
         {
             logStat();
             m_tcpClients.clear();
-            m_net->stopLoop();
+            m_net->stopAllLoop();
         }
     }
 

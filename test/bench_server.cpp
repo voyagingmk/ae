@@ -26,7 +26,7 @@ class TestServer
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
         log_debug("[test.onTimeout]");
-        m_net->stopLoop();
+        m_net->stopAllLoop();
         return -1;
     }
 
