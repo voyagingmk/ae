@@ -22,6 +22,7 @@ EventLoopThreadPool::~EventLoopThreadPool()
 
 void EventLoopThreadPool::stopAndJoinAll()
 {
+    log_info("EventLoopThreadPool::stopAndJoinAll");
     for (auto it = m_threads.begin(); it != m_threads.end(); it++)
     {
         (*it)->stopAndJoin();

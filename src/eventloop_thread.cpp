@@ -22,7 +22,7 @@ EventLoopThread::~EventLoopThread()
 
 void EventLoopThread::stopAndJoin()
 {
-    log_info("stopAndJoin");
+    log_info("EventLoopThread::stopAndJoin");
     m_exiting = true;
     if (m_loop != NULL)
     {
