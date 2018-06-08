@@ -46,6 +46,7 @@ class EventLoopThreadPool : Noncopyable
     EventLoop *m_baseLoop;
     std::string m_name;
     bool m_started;
+    bool m_stopped;
     int m_numThreads;
     int m_next;
     std::vector<std::shared_ptr<EventLoopThread>> m_threads;
