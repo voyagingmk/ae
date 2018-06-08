@@ -62,21 +62,21 @@ extern "C"
 #endif
 #endif
 
-bool GreateThanByTime::operator()(const aeTimeEventPtr &lhs, const aeTimeEventPtr &rhs) const
+static aeTimeEventPtr aeSearchNearestTimer(aeEventLoop *eventLoop);
+
+bool aeTimeEvent::operator<(const aeTimeEvent &rhs) const
 {
     bool b;
-    if (lhs->when_sec == rhs->when_sec)
+    if (when_sec == rhs.when_sec)
     {
-        b = lhs->when_ms < rhs->when_ms;
+        b = when_ms < rhs.when_ms;
     }
     else
     {
-        b = lhs->when_sec < rhs->when_sec;
+        b = when_sec < rhs.when_sec;
     }
     return b;
 }
-
-static aeTimeEventPtr aeSearchNearestTimer(aeEventLoop *eventLoop);
 
 aeEventLoop *aeCreateEventLoop(int setsize)
 {
@@ -321,19 +321,15 @@ static int processTimeEvents(aeEventLoop *eventLoop)
     eventLoop->lastTime = now;
 
     maxId = eventLoop->timeEventNextId - 1;
-
-    aeEventLoop::PriorityQueue::iterator it;
     std::vector<aeTimeEventPtr> teListDeleted;
     std::vector<aeTimeEventPtr> teListTimeout;
-    it = eventLoop->pq.begin();
-    while (it != eventLoop->pq.end())
+    for (auto it = eventLoop->pq.begin(); it != eventLoop->pq.end(); it++)
     {
         const aeTimeEventPtr &_te = *it;
         if (_te->id == AE_DELETED_EVENT_ID)
         {
             teListDeleted.push_back(_te);
         }
-        it++;
     }
     if (teListDeleted.size() > 0)
     {
@@ -341,6 +337,15 @@ static int processTimeEvents(aeEventLoop *eventLoop)
         {
             aeTimeEventPtr &_te = *it2;
             auto it3 = eventLoop->pq.find(_te);
+            if (it3 == eventLoop->pq.end())
+            {
+                fprintf(stderr, "pq.size= %d\n", eventLoop->pq.size());
+                for (auto it4 = teListDeleted.begin(); it4 != teListDeleted.end(); it4++)
+                {
+                    _te = *it4;
+                    fprintf(stderr, "= %d\n", (int)_te->id);
+                }
+            }
             assert(it3 != eventLoop->pq.end());
             eventLoop->pq.erase(it3);
         }
@@ -354,7 +359,7 @@ static int processTimeEvents(aeEventLoop *eventLoop)
     long now_sec, now_ms;
     aeGetTime(&now_sec, &now_ms);
     std::vector<aeTimeEventPtr> teListReinsert;
-    for (it = eventLoop->pq.begin(); it != eventLoop->pq.end(); it++)
+    for (auto it = eventLoop->pq.begin(); it != eventLoop->pq.end(); it++)
     {
         te = *it;
         if (te->id > maxId)

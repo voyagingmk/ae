@@ -81,10 +81,18 @@ typedef struct aeTimeEvent
     aeTimeProc *timeProc;
     aeEventFinalizerProc *finalizerProc;
     void *clientData;
+    bool operator<(const aeTimeEvent &rhs) const;
 } aeTimeEvent;
 
 typedef std::shared_ptr<aeTimeEvent> aeTimeEventPtr;
 
+struct Compare
+{
+    bool operator()(const aeTimeEventPtr &a, const aeTimeEventPtr &b)
+    {
+        return *a < *b;
+    }
+};
 /* A fired event */
 typedef struct aeFiredEvent
 {
@@ -92,16 +100,10 @@ typedef struct aeFiredEvent
     int mask;
 } aeFiredEvent;
 
-struct GreateThanByTime
-{
-  public:
-    using is_transparent = std::true_type;
-    bool operator()(const aeTimeEventPtr &lhs, const aeTimeEventPtr &rhs) const;
-};
 /* State of an event based program */
 typedef struct aeEventLoop
 {
-    typedef std::set<aeTimeEventPtr, GreateThanByTime> PriorityQueue;
+    typedef std::set<aeTimeEventPtr, Compare> PriorityQueue;
     int maxfd;   /* highest file descriptor currently registered */
     int setsize; /* max number of file descriptors tracked */
     long long timeEventNextId;
