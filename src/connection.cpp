@@ -145,7 +145,7 @@ void TcpConnection ::closeInLoop()
     {
         return;
     }
-    log_info("[conn] closeInLoop thread: %s", CurrentThread::name());
+    // log_info("[conn] closeInLoop thread: %s", CurrentThread::name());
     m_state = State::Disconnected;
     // Todo linger
     m_evtListener->deleteAllFileEvent();

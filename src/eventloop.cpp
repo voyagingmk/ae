@@ -351,7 +351,6 @@ void EventLoop::queueInLoop(const TaskFunction &cb)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_taskFuncQueue.push_back(cb);
-    log_info("queueInLoop");
 }
 
 size_t EventLoop::queueSize() const
@@ -368,10 +367,6 @@ void EventLoop::processTaskQueue()
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
         taskFuncQueue.swap(m_taskFuncQueue);
-    }
-    if (taskFuncQueue.size() > 0)
-    {
-        log_info("taskFuncQueue.size() %d", taskFuncQueue.size());
     }
     for (size_t i = 0; i < taskFuncQueue.size(); ++i)
     {
