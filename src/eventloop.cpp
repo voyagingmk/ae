@@ -330,19 +330,19 @@ void EventLoop ::deleteTimer(TimerRef tr)
     });
 }
 
-bool EventLoop ::deleteTimerInLoop(AeTimerId aeTimerId)
+void EventLoop ::deleteTimerInLoop(AeTimerId aeTimerId)
 {
     assertInLoopThread("deleteTimerInLoop");
     auto it = m_aeTimerId2ref.find(aeTimerId);
     if (it == m_aeTimerId2ref.end())
     {
-        return false;
+        return;
     }
     TimerRef tr = it->second;
-    return deleteTimerInLoop(tr);
+    deleteTimerInLoop(tr);
 }
 
-bool EventLoop ::deleteTimerInLoop(TimerRef tr)
+void EventLoop ::deleteTimerInLoop(TimerRef tr)
 {
     assertInLoopThread("deleteTimerInLoop");
     if (m_timerData.find(tr) != m_timerData.end())
@@ -352,10 +352,7 @@ bool EventLoop ::deleteTimerInLoop(TimerRef tr)
         m_timerData.erase(tr);
         m_aeTimerId2ref.erase(aeTimerId);
         int ret = aeDeleteTimeEvent(m_aeloop, aeTimerId);
-        assert(AE_ERR != ret);
-        return AE_ERR != ret;
     }
-    return false;
 }
 
 AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, int ms, OnTimerEvent onTimerEvent, void *data)

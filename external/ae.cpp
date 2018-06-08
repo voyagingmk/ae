@@ -75,6 +75,8 @@ bool aeTimeEvent::operator<(const aeTimeEvent &rhs) const
     {
         b = when_sec < rhs.when_sec;
     }
+    //fprintf(stderr, "op < %d, %d, %d, %d, %d\n", (int)when_sec, (int)when_ms,
+    //         (int)rhs.when_sec, (int)rhs.when_ms, (int)b);
     return b;
 }
 
@@ -323,12 +325,17 @@ static int processTimeEvents(aeEventLoop *eventLoop)
     maxId = eventLoop->timeEventNextId - 1;
     std::vector<aeTimeEventPtr> teListDeleted;
     std::vector<aeTimeEventPtr> teListTimeout;
+    int s1 = eventLoop->pq.size();
     for (auto it = eventLoop->pq.begin(); it != eventLoop->pq.end(); it++)
     {
         const aeTimeEventPtr &_te = *it;
+        auto it3 = eventLoop->pq.find(*it);
+        assert(it3 != eventLoop->pq.end());
         if (_te->id == AE_DELETED_EVENT_ID)
         {
             teListDeleted.push_back(_te);
+            auto it3 = eventLoop->pq.find(_te);
+            assert(it3 != eventLoop->pq.end());
         }
     }
     if (teListDeleted.size() > 0)
@@ -339,6 +346,8 @@ static int processTimeEvents(aeEventLoop *eventLoop)
             auto it3 = eventLoop->pq.find(_te);
             if (it3 == eventLoop->pq.end())
             {
+                int s2 = eventLoop->pq.size();
+                assert(s1 == s2);
                 fprintf(stderr, "pq.size= %d\n", eventLoop->pq.size());
                 for (auto it4 = teListDeleted.begin(); it4 != teListDeleted.end(); it4++)
                 {
@@ -358,7 +367,7 @@ static int processTimeEvents(aeEventLoop *eventLoop)
     }
     long now_sec, now_ms;
     aeGetTime(&now_sec, &now_ms);
-    std::vector<aeTimeEventPtr> teListReinsert;
+    std::vector<std::tuple<int, aeTimeEventPtr>> teListReinsert;
     for (auto it = eventLoop->pq.begin(); it != eventLoop->pq.end(); it++)
     {
         te = *it;
@@ -381,23 +390,27 @@ static int processTimeEvents(aeEventLoop *eventLoop)
         /*
         fprintf(stderr, "remove te %d\n", int(te->id));
         fprintf(stderr, "size: %d\n", int(eventLoop->pq.size()));
-        auto it2 = eventLoop->pq.find(te);
-        assert(it2 != eventLoop->pq.end());
-        eventLoop->pq.erase(it2);
         */
+        auto it2 = eventLoop->pq.find(te);
+        if (it2 != eventLoop->pq.end())
+        {
+            eventLoop->pq.erase(it2);
+        }
+
         int retval;
         auto id = te->id;
         retval = te->timeProc(eventLoop, id, te->clientData);
         processed++;
         if (retval != AE_NOMORE)
         {
-            aeAddMillisecondsToNow(now_sec, now_ms, retval, &te->when_sec, &te->when_ms);
-            teListReinsert.push_back(te);
+            teListReinsert.push_back({retval, te});
         }
     }
     for (auto itte = teListReinsert.begin(); itte != teListReinsert.end(); itte++)
     {
-        aeTimeEventPtr te = *itte;
+        int retval = std ::get<0>(*itte);
+        aeTimeEventPtr te = std ::get<1>(*itte);
+        aeAddMillisecondsToNow(now_sec, now_ms, retval, &te->when_sec, &te->when_ms);
         // fprintf(stderr, "insert te %d\n", int(te->id));
         eventLoop->pq.insert(te);
     }

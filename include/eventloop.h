@@ -113,9 +113,9 @@ class EventLoop : Noncopyable
 
     AeTimerId createTimerInLoop(PtrEvtListener listener, TimerRef tr, int delay, OnTimerEvent onTimerEvent, void *data);
 
-    bool deleteTimerInLoop(TimerRef tr);
+    void deleteTimerInLoop(TimerRef tr);
 
-    bool deleteTimerInLoop(AeTimerId aeTimerId);
+    void deleteTimerInLoop(AeTimerId aeTimerId);
 
     friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
 

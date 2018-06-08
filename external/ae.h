@@ -73,7 +73,7 @@ typedef struct aeFileEvent
 } aeFileEvent;
 
 /* Time event structure */
-typedef struct aeTimeEvent
+struct aeTimeEvent
 {
     long long id;  /* time event identifier. */
     long when_sec; /* seconds */
@@ -82,7 +82,7 @@ typedef struct aeTimeEvent
     aeEventFinalizerProc *finalizerProc;
     void *clientData;
     bool operator<(const aeTimeEvent &rhs) const;
-} aeTimeEvent;
+};
 
 typedef std::shared_ptr<aeTimeEvent> aeTimeEventPtr;
 
