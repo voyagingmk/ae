@@ -351,6 +351,7 @@ void EventLoop::queueInLoop(const TaskFunction &cb)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_taskFuncQueue.push_back(cb);
+    log_info("queueInLoop");
 }
 
 size_t EventLoop::queueSize() const
