@@ -169,7 +169,8 @@ WyNet *g_net;
 void Stop(int signo)
 {
     log_info("Stop()");
-    g_net->stopLoop();
+    // g_net->stopLoop();
+    g_net->stopAllLoop();
 }
 
 int main(int argc, char **argv)

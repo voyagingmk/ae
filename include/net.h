@@ -48,6 +48,8 @@ public:
 
   void stopLoop();
 
+  void stopAllLoop();
+
   EventLoop &getLoop()
   {
     return m_loop;

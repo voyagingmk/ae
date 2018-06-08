@@ -53,6 +53,12 @@ void WyNet::stopLoop()
     m_loop.stop();
 }
 
+void WyNet::stopAllLoop()
+{
+    m_loop.stop();
+    m_threadPool.stopAndJoinAll();
+}
+
 void WyNet::startLoop()
 {
     m_loop.loop();
