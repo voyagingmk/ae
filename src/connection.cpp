@@ -85,8 +85,9 @@ void TcpConnection ::shutdownInLoop()
     {
         getLoop()->assertInLoopThread("shutdownInLoop");
         // shutdown WR only if not writing, in order to send out pendingBuf
-        if (!m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE))
+        if (!m_shutdownWrite && !m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE))
         {
+            assert(m_pendingSendBuf.readableSize() == 0);
             if (::shutdown(sockfd(), SHUT_WR) < 0)
             {
                 log_fatal("shutdown SHUT_WR failed %d %s", errno, strerror(errno));
@@ -95,9 +96,13 @@ void TcpConnection ::shutdownInLoop()
             {
                 log_debug("shutdown SHUT_WR");
             }
-            m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
             m_shutdownWrite = true;
         }
+    }
+    else
+    {
+        State tmp = m_state;
+        log_fatal("shutdownInLoop: m_state: %d", static_cast<int>(tmp));
     }
 }
 
