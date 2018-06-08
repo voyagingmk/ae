@@ -175,7 +175,8 @@ void TcpClient::connectInLoop(const char *host, int port)
                 }
                 else
                 {
-                    log_warn("tcpclient.connect, error for %s, %s, %d, %s", host || "", serv, ret, strerror(errno));
+                    log_warn("tcpclient.connect, error for %s, %s, %d, %s",
+                             m_sockAddr.getHost(), serv, errno, strerror(errno));
                 }
             }
             if (ret == 0)
