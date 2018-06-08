@@ -323,31 +323,34 @@ static int processTimeEvents(aeEventLoop *eventLoop)
     maxId = eventLoop->timeEventNextId - 1;
 
     aeEventLoop::PriorityQueue::iterator it;
+    std::vector<aeTimeEventPtr> teListDeleted;
     std::vector<aeTimeEventPtr> teListTimeout;
     it = eventLoop->pq.begin();
     while (it != eventLoop->pq.end())
     {
-        te = *it;
-        if (te->id == AE_DELETED_EVENT_ID)
+        const aeTimeEventPtr &_te = *it;
+        if (_te->id == AE_DELETED_EVENT_ID)
         {
-            teListTimeout.push_back(te);
+            teListDeleted.push_back(_te);
         }
         it++;
     }
-    for (auto it2 = teListTimeout.begin(); it2 != teListTimeout.end(); it2++)
+    if (teListDeleted.size() > 0)
     {
-        te = *it2;
-        auto it3 = eventLoop->pq.find(te);
-        assert(it3 != eventLoop->pq.end());
-        eventLoop->pq.erase(it3);
+        for (auto it2 = teListDeleted.begin(); it2 != teListDeleted.end(); it2++)
+        {
+            aeTimeEventPtr &_te = *it2;
+            auto it3 = eventLoop->pq.find(_te);
+            assert(it3 != eventLoop->pq.end());
+            eventLoop->pq.erase(it3);
+        }
     }
-    for (auto it2 = teListTimeout.begin(); it2 != teListTimeout.end(); it2++)
+    for (auto it2 = teListDeleted.begin(); it2 != teListDeleted.end(); it2++)
     {
         te = *it2;
         if (te->finalizerProc)
             te->finalizerProc(eventLoop, te->clientData);
     }
-    teListTimeout.clear();
     long now_sec, now_ms;
     aeGetTime(&now_sec, &now_ms);
     std::vector<aeTimeEventPtr> teListReinsert;
