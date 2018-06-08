@@ -164,6 +164,7 @@ void EventLoop::loop()
 
 void EventLoop::stop()
 {
+    log_info("EventLoop::stop");
     runInLoop([&]() {
         stopInLoop();
     });
@@ -171,7 +172,7 @@ void EventLoop::stop()
 
 void EventLoop::stopInLoop()
 {
-    log_info("EventLoop stop1");
+    log_info("EventLoop::stopInLoop");
     assertInLoopThread("stop");
     if (!m_aeloop->stop)
     {
@@ -366,6 +367,10 @@ void EventLoop::processTaskQueue()
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
         taskFuncQueue.swap(m_taskFuncQueue);
+    }
+    if (taskFuncQueue.size() > 0)
+    {
+        log_info("taskFuncQueue.size() %d", taskFuncQueue.size());
     }
     for (size_t i = 0; i < taskFuncQueue.size(); ++i)
     {
