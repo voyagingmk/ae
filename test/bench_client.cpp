@@ -51,6 +51,7 @@ class TestClient
 
     void shutdownAll()
     {
+        MutexLockGuard<MutexLock> lock(m_mutex);
         for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
         {
             (*it)->getConn()->shutdown();
@@ -79,20 +80,24 @@ class TestClient
         int numConnected = 0;
         int numDisconnected = 0;
         int numDisconnecting = 0;
-        for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
+
         {
-            PtrConn conn = (*it)->getConn();
-            switch (conn->getState())
+            MutexLockGuard<MutexLock> lock(m_mutex);
+            for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
             {
-            case TcpConnection::State::Connected:
-                numConnected++;
-                break;
-            case TcpConnection::State::Disconnected:
-                numDisconnected++;
-                break;
-            case TcpConnection::State::Disconnecting:
-                numDisconnecting++;
-                break;
+                PtrConn conn = (*it)->getConn();
+                switch (conn->getState())
+                {
+                case TcpConnection::State::Connected:
+                    numConnected++;
+                    break;
+                case TcpConnection::State::Disconnected:
+                    numDisconnected++;
+                    break;
+                case TcpConnection::State::Disconnecting:
+                    numDisconnecting++;
+                    break;
+                }
             }
         }
         log_info("took %d ms", ms);
@@ -110,7 +115,7 @@ class TestClient
 
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
-        // log_info("[test.onTimeout]");
+        log_info("[test.onTimeout]");
         PtrConnEvtListener l = std::dynamic_pointer_cast<TcpConnectionEventListener>(listener);
         auto conn = l->getTcpConnection();
         conn->shutdown();
@@ -136,6 +141,7 @@ class TestClient
         if (!tcpClient->needReconnect())
         {
             log_info("fail too many.");
+            MutexLockGuard<MutexLock> lock(m_mutex);
             auto it = m_tcpClients.find(tcpClient);
             assert(it != m_tcpClients.end());
             m_tcpClients.erase(it);
@@ -163,6 +169,8 @@ class TestClient
         int num = --m_numConnected;
         auto tcpClient = conn->getCtrlAsClient();
         tcpClient->setReconnectTimes(0);
+
+        MutexLockGuard<MutexLock> lock(m_mutex);
         auto it = m_tcpClients.find(tcpClient);
         assert(it != m_tcpClients.end());
         m_tcpClients.erase(it);
@@ -197,6 +205,7 @@ class TestClient
     std::string m_message;
     std::chrono::system_clock::time_point m_timeStart;
     PtrEvtListener m_evtListener;
+    MutexLock m_mutex; // guard m_tcpClients
 };
 
 typedef std::shared_ptr<TestClient> PtrTestClient;
