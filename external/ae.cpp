@@ -340,6 +340,10 @@ static int processTimeEvents(aeEventLoop *eventLoop)
         auto it3 = eventLoop->pq.find(te);
         assert(it3 != eventLoop->pq.end());
         eventLoop->pq.erase(it3);
+    }
+    for (auto it2 = teListTimeout.begin(); it2 != teListTimeout.end(); it2++)
+    {
+        te = *it2;
         if (te->finalizerProc)
             te->finalizerProc(eventLoop, te->clientData);
     }
