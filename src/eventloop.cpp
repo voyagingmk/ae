@@ -7,13 +7,18 @@ namespace wynet
 // thread local
 __thread EventLoop *t_threadLoop = nullptr;
 
-int OnlyForWakeup(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
+int OnlyForWakeup(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
     const int *ms = (const int *)(data);
     // log_debug("OnlyForWakeup %d", *ms);
     return *ms;
 }
 
+int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
+{
+    log_info("loop, queueSize = %d", loop->queueSize());
+    return 3000;
+}
 void aeOnFileEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
     log_debug("file evt %d %s %s", sockfd,
@@ -144,6 +149,7 @@ void EventLoop::loop()
     assertInLoopThread("loop");
     m_aeloop->stop = 0;
     AeTimerId aeTimerId = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
+    AeTimerId aeTimerIdStat = createTimerInLoop(m_ownEvtListener, 3000, StatEventLoop, nullptr);
     while (!m_aeloop->stop)
     {
         log_timemeasure("loop");
@@ -160,6 +166,7 @@ void EventLoop::loop()
     }
     processTaskQueue();
     deleteTimerInLoop(aeTimerId);
+    deleteTimerInLoop(aeTimerIdStat);
 }
 
 void EventLoop::stop()

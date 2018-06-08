@@ -68,8 +68,32 @@ class TestClient
         }
         auto timeEnd = std::chrono::system_clock::now();
         size_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - m_timeStart).count();
+
+        int numConnected = 0;
+        int numDisconnected = 0;
+        int numDisconnecting = 0;
+        for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
+        {
+            PtrConn conn = (*it)->getConn();
+            switch (conn->getState())
+            {
+            case TcpConnection::State::Connected:
+                numConnected++;
+                break;
+            case TcpConnection::State::Disconnected:
+                numDisconnected++;
+                break;
+            case TcpConnection::State::Disconnecting:
+                numDisconnecting++;
+                break;
+            }
+        }
         log_info("took %d ms", ms);
-        log_info("connected: %d", (int)m_numConnected);
+        log_info("[atomic] connected: %d", (int)m_numConnected);
+        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d",
+                 numConnected,
+                 numDisconnected,
+                 numDisconnecting);
         log_info("total bytes read: %lld", bytesRead);
         log_info("total messages read: %lld", messagesRead);
         log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));
@@ -130,7 +154,11 @@ class TestClient
     {
         // log_info("[test.OnTcpDisconnected] %d", conn->connectId());
         int num = --m_numConnected;
-        conn->getCtrlAsClient()->setReconnectTimes(0);
+        auto tcpClient = conn->getCtrlAsClient();
+        tcpClient->setReconnectTimes(0);
+        auto it = m_tcpClients.find(tcpClient);
+        assert(it != m_tcpClients.end());
+        m_tcpClients.erase(it);
         log_info("numConnected %d", num);
         if (m_numConnected == 0)
         {

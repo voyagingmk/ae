@@ -80,7 +80,7 @@ void TcpConnection ::shutdown()
 
 void TcpConnection ::shutdownInLoop()
 {
-    log_debug("[conn] shutdownInLoop");
+    log_info("[conn] shutdownInLoop %d", sockfd());
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
         getLoop()->assertInLoopThread("shutdownInLoop");
@@ -145,7 +145,7 @@ void TcpConnection ::closeInLoop()
     {
         return;
     }
-    // log_info("[conn] closeInLoop thread: %s", CurrentThread::name());
+    log_info("[conn] closeInLoop %d, thread: %s", sockfd(), CurrentThread::name());
     m_state = State::Disconnected;
     // Todo linger
     m_evtListener->deleteAllFileEvent();
@@ -288,7 +288,7 @@ void TcpConnection::onWritable()
     }
     if (m_shutdownWrite)
     {
-        log_error("TcpConnection::onWritable after shutdownWrite");
+        log_fatal("TcpConnection::onWritable after shutdownWrite");
         return;
     }
     int nwrote = ::write(sockfd(), m_pendingSendBuf.readBegin(), remain);
