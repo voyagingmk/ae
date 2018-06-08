@@ -401,7 +401,7 @@ static int processTimeEvents(aeEventLoop *eventLoop)
         processed++;
         if (retval != AE_NOMORE)
         {
-            teListReinsert.push_back({retval, te});
+            teListReinsert.push_back(std::tuple<int, aeTimeEventPtr>{retval, te});
         }
     }
     for (auto itte = teListReinsert.begin(); itte != teListReinsert.end(); itte++)
