@@ -149,7 +149,7 @@ void EventLoop::loop()
     assertInLoopThread("loop");
     m_aeloop->stop = 0;
     AeTimerId aeTimerId = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
-    AeTimerId aeTimerIdStat = createTimerInLoop(m_ownEvtListener, 3000, StatEventLoop, nullptr);
+    // AeTimerId aeTimerIdStat = createTimerInLoop(m_ownEvtListener, 3000, StatEventLoop, nullptr);
     while (!m_aeloop->stop)
     {
         log_timemeasure("loop");
@@ -166,7 +166,7 @@ void EventLoop::loop()
     }
     processTaskQueue();
     deleteTimerInLoop(aeTimerId);
-    deleteTimerInLoop(aeTimerIdStat);
+    // deleteTimerInLoop(aeTimerIdStat);
 }
 
 void EventLoop::stop()

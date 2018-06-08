@@ -108,7 +108,7 @@ class TestClient
         auto conn = l->getTcpConnection();
         conn->shutdown();
         int num = ++m_numTimeout;
-        log_info("numTimeout %d", num);
+        // log_info("numTimeout %d", num);
         // m_tcpClient = nullptr;
         return -1;
     }
@@ -140,10 +140,10 @@ class TestClient
         // log_info("[test.OnTcpConnected]");
         // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
         conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
-        log_info("conn ok %d", conn->sockfd());
         socketUtils::setTcpNoDelay(conn->sockfd(), true);
-        int i = m_numConnected;
-        conn->setUserData(i);
+        int num = m_numConnected;
+        // log_info("[connected] numConnected %d, sockfd: %d", num, conn->sockfd());
+        conn->setUserData(num);
         m_numConnected++;
         m_timeStart = std::chrono::system_clock::now();
         conn->send(m_message);
@@ -159,7 +159,7 @@ class TestClient
         auto it = m_tcpClients.find(tcpClient);
         assert(it != m_tcpClients.end());
         m_tcpClients.erase(it);
-        log_info("numConnected %d", num);
+        // log_info("[disconnected] numConnected %d, sockfd: %d", num, conn->sockfd());
         if (m_numConnected == 0)
         {
             logStat();
