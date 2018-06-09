@@ -16,15 +16,6 @@ EventListener::~EventListener()
 bool EventListener::hasFileEvent(int mask)
 {
     return (m_mask & mask) > 0;
-    /*
-    if (m_loop && m_sockfd)
-    {
-        m_loop->hasFileEvent(shared_from_this(), mask);
-    }
-    else
-    {
-        log_error("EventListener::isWaitingFileEvent no m_loop or no m_sockfd");
-    }*/
 }
 
 void EventListener::deleteAllFileEvent()

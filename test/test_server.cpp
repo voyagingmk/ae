@@ -45,7 +45,6 @@ int main(int argc, char **argv)
 
     //  UdpServer server(9999);
     //  KCPObject kcpObject(9999, &server, &SocketOutput);
-    log_info("aeGetApiName: %s", aeGetApiName());
     PtrServer server = Server::create(&net);
     PtrTcpServer tcpServer = server->initTcpServer(NULL, 9998);
     server->initUdpServer(9999);

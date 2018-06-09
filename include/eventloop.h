@@ -7,6 +7,7 @@
 #include "sockbase.h"
 #include "timer_ref.h"
 #include "event_listener.h"
+#include "multiplexing.h"
 
 namespace wynet
 {
@@ -99,7 +100,9 @@ class EventLoop : Noncopyable
 
     void processTaskQueue();
 
-    bool hasFileEvent(PtrEvtListener, int mask);
+    int getFileEvent(SockFd sockfd);
+
+    bool hasFileEvent(SockFd sockfd, int mask);
 
     void createFileEventInLoop(const PtrEvtListener &, int mask);
 
@@ -117,15 +120,20 @@ class EventLoop : Noncopyable
 
     void deleteTimerInLoop(AeTimerId aeTimerId);
 
-    friend void aeOnFileEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
+    // friend void OnSockEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
 
-    friend int aeOnTimerEvent(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
+    friend void OnSockEvent(struct MpEventLoop *eventLoop, int fd, void *clientData, int mask);
+
+    //friend int OnTimerEventTimeout(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
+
+    friend int OnTimerEventTimeout(struct MpEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
 
     friend class EventListener;
 
   private:
     const pid_t m_threadId;
     aeEventLoop *m_aeloop;
+    MpEventLoop m_mploop;
     PtrEvtListener m_ownEvtListener;
     std::map<SockFd, WeakPtrEvtListener> m_fd2listener;
     std::map<TimerRef, TimerData> m_timerData;

@@ -10,6 +10,15 @@ namespace wynet
 
 #include "select.cpp"
 
+bool MpTimeEvent::operator<(const MpTimeEvent &rhs) const
+{
+    if (when_sec == rhs.when_sec)
+    {
+        return when_ms < rhs.when_ms;
+    }
+    return when_sec < rhs.when_sec;
+}
+
 static MpTimeEventPtr searchNearestTimer(MpEventLoop *eventLoop);
 
 MpEventLoop::MpEventLoop(int setsize)
@@ -75,7 +84,7 @@ int MpEventLoop::createFileEvent(int fd, int mask,
         return MP_ERR;
     }
     MpFileEvent *fe = &m_events[fd];
-
+    assert(mask > 0);
     if (MpApiAddEvent(this, fd, mask) == -1)
         return MP_ERR;
     fe->mask |= mask;

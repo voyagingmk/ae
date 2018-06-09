@@ -96,7 +96,6 @@ int main(int argc, char **argv)
     WyNet net(1);
     g_net = &net;
 
-    log_info("aeGetApiName: %s", aeGetApiName());
     EventLoop *loop = net.getThreadPool().getNextLoop();
     PtrTcpClient tcpClient = std::make_shared<TcpClient>(loop);
     tcpClient->onTcpConnected = &OnTcpConnected;
