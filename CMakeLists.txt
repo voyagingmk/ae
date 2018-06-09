@@ -66,6 +66,7 @@ FILE(GLOB MY_SOURCERS
     src/thread.cpp
     src/exception.cpp
     src/count_down_latch.cpp
+    src/multiplexing/multiplexing.cpp
     src/logger/logger.cpp
     src/logger/append_file.cpp
     src/logger/log_file.cpp
@@ -103,6 +104,7 @@ FILE(GLOB MY_HEADERS
     include/thread.h
     include/exception.h
     include/count_down_latch.h
+    include/multiplexing.h
     include/logger/logging_buffer.h
     include/logger/logger.h
     include/logger/append_file.h

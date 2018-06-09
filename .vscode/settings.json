@@ -70,7 +70,8 @@
         "ae_select.c": "cpp",
         "strstream": "cpp",
         "cstdarg": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "__tuple": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
