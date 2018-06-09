@@ -190,6 +190,10 @@ void EventLoop::loop()
                 log_info("stopSafely ok");
                 stopInLoop();
             }
+            else
+            {
+                // log_info("m_stopping size: %d", (int)m_fd2listener.size());
+            }
         }
     }
     log_info("loop exited");
@@ -296,6 +300,7 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
     {
         log_warn("already has AE_WRITABLE");
     }
+    // log_info("createFileEventInLoop %d %d", sockfd, mask);
     // int ret = aeCreateFileEvent(m_aeloop, sockfd, mask, OnSockEvent, (void *)this);
     int ret = m_mploop.createFileEvent(sockfd, mask, OnSockEvent, (void *)this);
     assert(AE_ERR != ret);
@@ -318,7 +323,9 @@ void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
     {
         log_warn("deleteFileEventInLoop sockfd >= setsize  %d %d\n", sockfd, setsize);
     }
-    aeDeleteFileEvent(m_aeloop, sockfd, mask);
+    // log_info("deleteFileEventInLoop %d %d", sockfd, mask);
+    // aeDeleteFileEvent(m_aeloop, sockfd, mask);
+    m_mploop.deleteFileEvent(sockfd, mask);
     if (!getFileEvent(sockfd) && m_fd2listener.find(sockfd) != m_fd2listener.end())
     {
         m_fd2listener.erase(sockfd);
