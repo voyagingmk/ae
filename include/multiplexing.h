@@ -97,7 +97,7 @@ class MpEventLoop
 
     void main();
 
-    char *getApiName(void);
+    const char *getApiName(void);
 
     void setBeforeSleepProc(MpBeforeSleepProc beforesleep);
 
@@ -106,6 +106,9 @@ class MpEventLoop
     int getSetSize();
 
     int resizeSetSize(int setsize);
+
+  private:
+    int processTimeEvents();
 
   public:
     typedef std::multiset<MpTimeEventPtr, Compare> PriorityQueue;

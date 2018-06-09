@@ -8,15 +8,7 @@
 namespace wynet
 {
 
-#ifdef HAVE_EPOLL
-#include "multiplexing/epoll.cpp"
-#else
-#ifdef HAVE_KQUEUE
-#include "multiplexing/kqueue.cpp"
-#else
-#include "multiplexing/select.cpp"
-#endif
-#endif
+#include "select.cpp"
 
 static MpTimeEventPtr searchNearestTimer(MpEventLoop *eventLoop);
 
@@ -31,30 +23,19 @@ MpEventLoop::MpEventLoop(int setsize)
     m_maxfd = -1;
     m_beforesleep = NULL;
     m_aftersleep = NULL;
-    /*
     if (MpApiCreate(this) == -1)
     {
         log_fatal("MpApiCreate failed.");
-    }*/
-    /* Events with mask == MP_NONE are not set. So let's initialize the
-     * vector with it. */
+    }
     for (int i = 0; i < setsize; i++)
         m_events[i].mask = MP_NONE;
 }
 
-/* Return the current set size. */
 int MpEventLoop::getSetSize()
 {
     return m_setsize;
 }
 
-/* Resize the maximum set size of the event loop.
- * If the requested set size is smaller than the current set size, but
- * there is already a file descriptor in use that is >= the requested
- * set size minus one, MP_ERR is returned and the operation is not
- * performed at all.
- *
- * Otherwise MP_OK is returned and the operation is successful. */
 int MpEventLoop::resizeSetSize(int setsize)
 {
     int i;
@@ -63,15 +44,13 @@ int MpEventLoop::resizeSetSize(int setsize)
         return MP_OK;
     if (m_maxfd >= setsize)
         return MP_ERR;
-    // if (MpApiResize(setsize) == -1)
-    //     return MP_ERR;
+    if (MpApiResize(this, setsize) == -1)
+        return MP_ERR;
 
     m_events.resize(setsize);
     m_fired.resize(setsize);
     m_setsize = setsize;
 
-    /* Make sure that if we created new slots, they are initialized with
-     * an MP_NONE mask. */
     for (i = m_maxfd + 1; i < setsize; i++)
         m_events[i].mask = MP_NONE;
     return MP_OK;
@@ -79,7 +58,7 @@ int MpEventLoop::resizeSetSize(int setsize)
 
 MpEventLoop::~MpEventLoop()
 {
-    //  MpApiFree(this);
+    MpApiFree(this);
 }
 
 void MpEventLoop::stop()
@@ -97,8 +76,8 @@ int MpEventLoop::createFileEvent(int fd, int mask,
     }
     MpFileEvent *fe = &m_events[fd];
 
-    //if (MpApiAddEvent(this, fd, mask) == -1)
-    //     return MP_ERR;
+    if (MpApiAddEvent(this, fd, mask) == -1)
+        return MP_ERR;
     fe->mask |= mask;
     if (mask & MP_READABLE)
         fe->rfileProc = proc;
@@ -118,7 +97,7 @@ void MpEventLoop::deleteFileEvent(int fd, int mask)
     if (fe->mask == MP_NONE)
         return;
 
-    //   MpApiDelEvent(this, fd, mask);
+    MpApiDelEvent(this, fd, mask);
     fe->mask = fe->mask & (~mask);
     if (fd == m_maxfd && fe->mask == MP_NONE)
     {
@@ -214,7 +193,7 @@ static MpTimeEventPtr searchNearestTimer(MpEventLoop *eventLoop)
     return nearest;
 }
 
-int MpEventLoop::processEvents(int flags)
+int MpEventLoop::processTimeEvents()
 {
     int processed = 0;
     MpTimeEventPtr te;
@@ -305,6 +284,110 @@ int MpEventLoop::processEvents(int flags)
     return processed;
 }
 
+int MpEventLoop::processEvents(int flags)
+{
+    int processed = 0, numevents;
+
+    /* Nothing to do? return ASAP */
+    if (!(flags & AE_TIME_EVENTS) && !(flags & AE_FILE_EVENTS))
+        return 0;
+
+    /* Note that we want call select() even if there are no
+     * file events to process as long as we want to process time
+     * events, in order to sleep until the next time event is ready
+     * to fire. */
+    if (m_maxfd != -1 ||
+        ((flags & AE_TIME_EVENTS) && !(flags & AE_DONT_WAIT)))
+    {
+        int j;
+        MpTimeEventPtr shortest = nullptr;
+        struct timeval tv, *tvp;
+
+        if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT))
+            shortest = m_timeEventNearest;
+        if (shortest)
+        {
+            long now_sec, now_ms;
+
+            MpGetTime(&now_sec, &now_ms);
+            tvp = &tv;
+
+            /* How many milliseconds we need to wait for the next
+             * time event to fire? */
+            long long ms =
+                (shortest->when_sec - now_sec) * 1000 +
+                shortest->when_ms - now_ms;
+
+            if (ms > 0)
+            {
+                tvp->tv_sec = ms / 1000;
+                tvp->tv_usec = (ms % 1000) * 1000;
+            }
+            else
+            {
+                tvp->tv_sec = 0;
+                tvp->tv_usec = 0;
+            }
+        }
+        else
+        {
+            /* If we have to check for events but need to return
+             * ASAP because of AE_DONT_WAIT we need to set the timeout
+             * to zero */
+            if (flags & AE_DONT_WAIT)
+            {
+                tv.tv_sec = tv.tv_usec = 0;
+                tvp = &tv;
+            }
+            else
+            {
+                /* Otherwise we can block */
+                tvp = NULL; /* wait forever */
+            }
+        }
+
+        /* Call the multiplexing API, will return only on timeout or when
+         * some event fires. */
+        numevents = MpApiPoll(this, tvp);
+
+        /* After sleep callback. */
+        if (m_aftersleep != NULL && flags & AE_CALL_AFTER_SLEEP)
+            m_aftersleep(this);
+
+        for (j = 0; j < numevents; j++)
+        {
+            int fd = m_fired[j].fd;
+            int mask = m_fired[j].mask;
+            MpFileEvent *fe = &m_events[fd];
+            int fe_mask = fe->mask;
+            const MpFileProc &rfileProc = fe->rfileProc;
+            const MpFileProc &wfileProc = fe->wfileProc;
+            void *clientData = fe->clientData;
+            int rfired = 0;
+
+            /* note the fe->mask & mask & ... code: maybe an already processed
+             * event removed an element that fired and we still didn't
+             * processed, so we check if the event is still valid. */
+            if (fe_mask & mask & AE_READABLE)
+            {
+                rfired = 1;
+                rfileProc(this, fd, clientData, mask);
+            }
+            if (fe_mask & mask & AE_WRITABLE)
+            {
+                if (!rfired /*|| wfileProc != rfileProc*/)
+                    wfileProc(this, fd, clientData, mask);
+            }
+            processed++;
+        }
+    }
+    /* Check time events */
+    if (flags & AE_TIME_EVENTS)
+        processed += processTimeEvents();
+
+    return processed; /* return the number of processed file/time events */
+}
+
 /* Wait for milliseconds until the given file descriptor becomes
  * writable/readable/exception */
 int MpEventLoop::wait(int fd, int mask, long long milliseconds)
@@ -348,10 +431,9 @@ void MpEventLoop::main()
     }
 }
 
-char *MpEventLoop::getApiName(void)
+const char *MpEventLoop::getApiName(void)
 {
-    // return MpApiName();
-    return "";
+    return MpApiName();
 }
 
 void MpEventLoop::setBeforeSleepProc(MpBeforeSleepProc beforesleep)
