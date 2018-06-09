@@ -23,6 +23,11 @@ class TestServer
         net->getPeerManager().addServer(server);
     }
 
+    void terminate()
+    {
+        m_tcpServer->terminate();
+    }
+
     int onTimeout(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
         log_debug("[test.onTimeout]");
@@ -75,10 +80,12 @@ class TestServer
 };
 
 WyNet *g_net;
+TestServer *g_testServer;
 
 void Stop(int signo)
 {
     log_info("Stop()");
+    g_testServer->terminate();
     g_net->stopAllLoop();
 }
 
@@ -108,6 +115,7 @@ int main(int argc, char **argv)
     }
     WyNet net(threadsNum);
     TestServer server(&net, ip, port);
+    g_testServer = &server;
     log_info("TestServer start listen %s %d", ip, port);
     g_net = &net;
     net.startLoop();

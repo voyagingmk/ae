@@ -57,6 +57,8 @@ public:
 
   void startListen(const char *host, int port);
 
+  void terminate();
+
   PtrConnMgr initConnMgr();
 
   PtrConnMgr getConnMgr() const { return m_connMgr; }
@@ -89,6 +91,7 @@ public:
 private:
   PtrServer m_parent;
   int m_tcpPort;
+  bool m_terminated;
   PtrConnMgr m_connMgr;
   PtrTcpServerEvtListener m_evtListener;
 };
