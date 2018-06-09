@@ -24,6 +24,8 @@ public:
 
   bool removeConnection(UniqID connectId);
 
+  void removeAllConnection();
+
   PtrConn getConncetion(UniqID connectId);
 
 protected:

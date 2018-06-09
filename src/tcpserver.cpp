@@ -23,6 +23,7 @@ void TcpServer::OnNewTcpConnection(EventLoop *eventLoop, const PtrEvtListener &l
 
 TcpServer::TcpServer(PtrServer parent) : m_parent(parent),
 										 m_tcpPort(0),
+										 m_terminated(false),
 										 m_connMgr(nullptr),
 										 m_sockFdCtrl(0),
 										 onTcpConnected(nullptr),
@@ -34,6 +35,11 @@ TcpServer::TcpServer(PtrServer parent) : m_parent(parent),
 	m_evtListener->setEventLoop(&getLoop());
 	// optional
 	initConnMgr();
+}
+
+TcpServer::~TcpServer()
+{
+	log_dtor("~TcpServer()");
 }
 
 PtrConnMgr TcpServer::initConnMgr()
@@ -120,10 +126,15 @@ void TcpServer::startListen(const char *host, int port)
 	freeaddrinfo(ressave);
 }
 
-TcpServer::~TcpServer()
+void TcpServer::terminate()
 {
+	if (m_terminated)
+	{
+		return;
+	}
+	m_terminated = true;
 	m_evtListener->deleteAllFileEvent();
-	log_trace("~TcpServer()");
+	m_connMgr->removeAllConnection();
 }
 
 WyNet *TcpServer::getNet() const

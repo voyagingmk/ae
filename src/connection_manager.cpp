@@ -12,12 +12,7 @@ ConnectionManager::ConnectionManager()
 ConnectionManager::~ConnectionManager()
 {
     log_dtor("~ConnectionManager() %d", m_connDict.size());
-    for (auto it : m_connDict)
-    {
-        const PtrConn &conn = it.second;
-        conn->forceClose();
-    }
-    m_connDict.clear();
+    removeAllConnection();
 }
 
 bool ConnectionManager::addConnection(const PtrConn &conn)
@@ -34,6 +29,16 @@ bool ConnectionManager::removeConnection(const PtrConn &conn)
 bool ConnectionManager::removeConnection(UniqID connectId)
 {
     return unrefConnection(connectId);
+}
+
+void ConnectionManager::removeAllConnection()
+{
+    for (auto it : m_connDict)
+    {
+        const PtrConn &conn = it.second;
+        conn->forceClose();
+    }
+    m_connDict.clear();
 }
 
 PtrConn ConnectionManager::getConncetion(UniqID connectId)
