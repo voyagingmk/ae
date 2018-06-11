@@ -84,6 +84,8 @@ class MpEventLoop
 
     void stop();
 
+    int resizeSetSize(int setsize);
+
     int createFileEvent(int fd, int mask,
                         MpFileProc proc, void *clientData);
 
@@ -105,11 +107,11 @@ class MpEventLoop
 
     void main();
 
-    const char *getApiName(void);
-
     void setBeforeSleepProc(MpBeforeSleepProc beforesleep);
 
     void setAfterSleepProc(MpBeforeSleepProc aftersleep);
+
+    inline const char *getApiName(void);
 
     inline int getSetSize() { return m_setsize; }
 
@@ -119,11 +121,9 @@ class MpEventLoop
 
     inline int getMaxFd() { return m_maxfd; }
 
-    std::vector<MpFileEvent> &getEvents() { return m_events; }
+    inline std::vector<MpFileEvent> &getEvents() { return m_events; }
 
-    std::vector<MpFiredEvent> &getFiredEvents() { return m_fired; }
-
-    int resizeSetSize(int setsize);
+    inline std::vector<MpFiredEvent> &getFiredEvents() { return m_fired; }
 
   private:
     int processTimeEvents();
