@@ -39,21 +39,15 @@ MpEventLoop::MpEventLoop(int setsize)
 
 int MpEventLoop::resizeSetSize(int setsize)
 {
-    int i;
-
     if (setsize == m_setsize)
         return MP_OK;
     if (m_maxfd >= setsize)
         return MP_ERR;
     if (MpApiResize(this, setsize) == -1)
         return MP_ERR;
-
     m_events.resize(setsize);
     m_fired.resize(setsize);
     m_setsize = setsize;
-
-    for (i = m_maxfd + 1; i < setsize; i++)
-        m_events[i].mask = MP_NONE;
     return MP_OK;
 }
 
@@ -102,9 +96,7 @@ void MpEventLoop::deleteFileEvent(int fd, int mask)
     fe->mask = fe->mask & (~mask);
     if (fd == m_maxfd && fe->mask == MP_NONE)
     {
-        /* Update the max fd */
         int j;
-
         for (j = m_maxfd - 1; j >= 0; j--)
             if (m_events[j].mask != MP_NONE)
                 break;
@@ -117,7 +109,6 @@ int MpEventLoop::getFileEvents(int fd)
     if (fd >= m_setsize)
         return 0;
     MpFileEvent *fe = &m_events[fd];
-
     return fe->mask;
 }
 

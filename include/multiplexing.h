@@ -75,6 +75,7 @@ struct MpFiredEvent
     int mask;
 };
 
+// not thread-safe
 class MpEventLoop
 {
   public:
