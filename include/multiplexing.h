@@ -36,6 +36,12 @@ using MpBeforeSleepProc = std::function<void(MpEventLoop *eventLoop)>;
 
 struct MpFileEvent
 {
+    MpFileEvent() : mask(MP_NONE),
+                    rfileProc(nullptr),
+                    wfileProc(nullptr),
+                    clientData(nullptr)
+    {
+    }
     int mask;
     MpFileProc rfileProc;
     MpFileProc wfileProc;
@@ -93,6 +99,8 @@ class MpEventLoop
 
     int processEvents(int flags);
 
+    MpTimeEventPtr searchNearestTimer();
+
     int wait(int fd, int mask, long long milliseconds);
 
     void main();
@@ -103,14 +111,24 @@ class MpEventLoop
 
     void setAfterSleepProc(MpBeforeSleepProc aftersleep);
 
-    int getSetSize();
+    inline int getSetSize() { return m_setsize; }
+
+    inline void *getApiData() { return m_apidata; }
+
+    inline void setApiData(void *apidata) { m_apidata = apidata; }
+
+    inline int getMaxFd() { return m_maxfd; }
+
+    std::vector<MpFileEvent> &getEvents() { return m_events; }
+
+    std::vector<MpFiredEvent> &getFiredEvents() { return m_fired; }
 
     int resizeSetSize(int setsize);
 
   private:
     int processTimeEvents();
 
-  public:
+  private:
     int m_maxfd;
     int m_setsize;
     long long m_timeEventNextId;

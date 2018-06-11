@@ -19,30 +19,22 @@ bool MpTimeEvent::operator<(const MpTimeEvent &rhs) const
     return when_sec < rhs.when_sec;
 }
 
-static MpTimeEventPtr searchNearestTimer(MpEventLoop *eventLoop);
-
 MpEventLoop::MpEventLoop(int setsize)
 {
     m_events.resize(setsize);
     m_fired.resize(setsize);
     m_setsize = setsize;
-    m_lastTime = time(NULL);
+    m_lastTime = time(nullptr);
     m_timeEventNextId = 0;
+    m_timeEventNearest = nullptr;
     m_stop = 0;
     m_maxfd = -1;
-    m_beforesleep = NULL;
-    m_aftersleep = NULL;
+    m_beforesleep = nullptr;
+    m_aftersleep = nullptr;
     if (MpApiCreate(this) == -1)
     {
         log_fatal("MpApiCreate failed.");
     }
-    for (int i = 0; i < setsize; i++)
-        m_events[i].mask = MP_NONE;
-}
-
-int MpEventLoop::getSetSize()
-{
-    return m_setsize;
 }
 
 int MpEventLoop::resizeSetSize(int setsize)
@@ -167,7 +159,7 @@ long long MpEventLoop::createTimeEvent(long long milliseconds,
     te->finalizerProc = finalizerProc;
     te->clientData = clientData;
     m_teSet.insert(te);
-    m_timeEventNearest = searchNearestTimer(this);
+    m_timeEventNearest = searchNearestTimer();
     return id;
 }
 
@@ -179,18 +171,18 @@ int MpEventLoop::deleteTimeEvent(long long id)
     if (it != m_teSet.end())
     {
         (*it)->id = AE_DELETED_EVENT_ID;
-        m_timeEventNearest = searchNearestTimer(this);
+        m_timeEventNearest = searchNearestTimer();
         return AE_OK;
     }
     return AE_ERR; /* NO event with the specified ID found */
 }
 
-static MpTimeEventPtr searchNearestTimer(MpEventLoop *eventLoop)
+MpTimeEventPtr MpEventLoop::searchNearestTimer()
 {
     MpTimeEventPtr nearest = nullptr;
-    if (eventLoop->m_teSet.size() > 0)
+    if (m_teSet.size() > 0)
     {
-        for (auto it = eventLoop->m_teSet.begin(); it != eventLoop->m_teSet.end(); it++)
+        for (auto it = m_teSet.begin(); it != m_teSet.end(); it++)
         {
             nearest = *it;
             if (nearest->id != AE_DELETED_EVENT_ID)
@@ -288,7 +280,7 @@ int MpEventLoop::processTimeEvents()
 
     if (processed > 0)
     {
-        m_timeEventNearest = searchNearestTimer(this);
+        m_timeEventNearest = searchNearestTimer();
     }
     return processed;
 }
