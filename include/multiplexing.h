@@ -111,7 +111,6 @@ class MpEventLoop
     int processTimeEvents();
 
   public:
-    typedef std::multiset<MpTimeEventPtr, Compare> PriorityQueue;
     int m_maxfd;
     int m_setsize;
     long long m_timeEventNextId;
@@ -121,7 +120,7 @@ class MpEventLoop
     MpTimeEventPtr m_timeEventNearest;
     int m_stop;
     void *m_apidata;
-    PriorityQueue m_pq;
+    std::multiset<MpTimeEventPtr, Compare> m_teSet;
     MpBeforeSleepProc m_beforesleep;
     MpBeforeSleepProc m_aftersleep;
 };
