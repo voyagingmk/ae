@@ -165,24 +165,23 @@ int MpEventLoop::deleteTimeEvent(long long id)
         m_timeEventNearest = searchNearestTimer();
         return AE_OK;
     }
-    return AE_ERR; /* NO event with the specified ID found */
+    return AE_ERR;
 }
 
-MpTimeEventPtr MpEventLoop::searchNearestTimer()
+const MpTimeEventPtr &MpEventLoop::searchNearestTimer()
 {
-    MpTimeEventPtr nearest = nullptr;
     if (m_teSet.size() > 0)
     {
         for (auto it = m_teSet.begin(); it != m_teSet.end(); it++)
         {
-            nearest = *it;
+            const MpTimeEventPtr &nearest = *it;
             if (nearest->id != AE_DELETED_EVENT_ID)
             {
-                break;
+                return nearest;
             }
         }
     }
-    return nearest;
+    return nullptr;
 }
 
 int MpEventLoop::processTimeEvents()
@@ -190,7 +189,7 @@ int MpEventLoop::processTimeEvents()
     int processed = 0;
     MpTimeEventPtr te;
     long long maxId;
-    time_t now = time(NULL);
+    time_t now = time(nullptr);
 
     m_lastTime = now;
 

@@ -102,7 +102,7 @@ class MpEventLoop
 
     int processEvents(int flags);
 
-    MpTimeEventPtr searchNearestTimer();
+    const MpTimeEventPtr &searchNearestTimer();
 
     int wait(int fd, int mask, long long milliseconds);
 
