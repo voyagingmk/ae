@@ -129,6 +129,8 @@ class MpEventLoop
   private:
     int processTimeEvents();
 
+    void processDeletedEvents();
+
   private:
     int m_maxfd;
     int m_setsize;
@@ -140,6 +142,7 @@ class MpEventLoop
     int m_stop;
     void *m_apidata;
     std::multiset<MpTimeEventPtr, Compare> m_teSet;
+    std::vector<MpTimeEventPtr> m_teListDeleted;
     MpBeforeSleepProc m_beforesleep;
     MpBeforeSleepProc m_aftersleep;
 };

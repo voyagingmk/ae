@@ -161,7 +161,9 @@ int MpEventLoop::deleteTimeEvent(long long id)
         [&id](const MpTimeEventPtr &x) { return (x->id) == id; });
     if (it != m_teSet.end())
     {
-        (*it)->id = AE_DELETED_EVENT_ID;
+        const MpTimeEventPtr &te = *it;
+        te->id = AE_DELETED_EVENT_ID;
+        m_teListDeleted.push_back(te);
         m_timeEventNearest = searchNearestTimer();
         return AE_OK;
     }
@@ -193,33 +195,11 @@ int MpEventLoop::processTimeEvents()
 
     m_lastTime = now;
 
+    processDeletedEvents();
+
     maxId = m_timeEventNextId - 1;
-    std::vector<MpTimeEventPtr> teListDeleted;
     std::vector<MpTimeEventPtr> teListTimeout;
-    for (auto it = m_teSet.begin(); it != m_teSet.end(); it++)
-    {
-        const MpTimeEventPtr &_te = *it;
-        if (_te->id == AE_DELETED_EVENT_ID)
-        {
-            teListDeleted.push_back(_te);
-        }
-    }
-    if (teListDeleted.size() > 0)
-    {
-        for (auto it2 = teListDeleted.begin(); it2 != teListDeleted.end(); it2++)
-        {
-            MpTimeEventPtr &_te = *it2;
-            auto it3 = m_teSet.find(_te);
-            assert(it3 != m_teSet.end());
-            m_teSet.erase(it3);
-        }
-    }
-    for (auto it2 = teListDeleted.begin(); it2 != teListDeleted.end(); it2++)
-    {
-        te = *it2;
-        if (te->finalizerProc)
-            te->finalizerProc(this, te->clientData);
-    }
+
     long now_sec, now_ms;
     MpGetTime(&now_sec, &now_ms);
     std::vector<std::tuple<int, MpTimeEventPtr>> teListReinsert;
@@ -273,6 +253,28 @@ int MpEventLoop::processTimeEvents()
         m_timeEventNearest = searchNearestTimer();
     }
     return processed;
+}
+
+void MpEventLoop::processDeletedEvents()
+{
+
+    if (m_teListDeleted.size() > 0)
+    {
+        for (auto it = m_teListDeleted.begin(); it != m_teListDeleted.end(); it++)
+        {
+            MpTimeEventPtr &_te = *it;
+            auto _it = m_teSet.find(_te);
+            assert(_it != m_teSet.end());
+            m_teSet.erase(_it);
+        }
+        for (auto it = m_teListDeleted.begin(); it != m_teListDeleted.end(); it++)
+        {
+            MpTimeEventPtr &_te = *it;
+            if (_te->finalizerProc)
+                _te->finalizerProc(this, _te->clientData);
+        }
+        m_teListDeleted.clear();
+    }
 }
 
 int MpEventLoop::processEvents(int flags)
