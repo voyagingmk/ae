@@ -45,13 +45,11 @@ static void MpApiFree(MpEventLoop *eventLoop)
 static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
 {
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
-    struct epoll_event ee = {0}; /* avoid valgrind warning */
-    /* If the fd was already monitored for some event, we need a MOD
-     * operation. Otherwise we need an ADD operation. */
+    struct epoll_event ee = {0};
     int op = eventLoop->getEvents()[fd].mask == MP_NO_MASK ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
     ee.events = 0;
-    mask |= eventLoop->getEvents()[fd].mask; /* Merge old events */
+    mask |= eventLoop->getEvents()[fd].mask;
     if (mask & MP_READABLE)
         ee.events |= EPOLLIN;
     if (mask & MP_WRITABLE)
@@ -65,7 +63,7 @@ static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
 static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int delmask)
 {
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
-    struct epoll_event ee = {0}; /* avoid valgrind warning */
+    struct epoll_event ee = {0};
     int mask = eventLoop->getEvents()[fd].mask & (~delmask);
 
     ee.events = 0;
@@ -99,17 +97,17 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
         for (j = 0; j < numevents; j++)
         {
             int mask = 0;
-            struct epoll_event *e = &state->events[j];
+            struct epoll_event *ee = &state->events[j];
 
-            if (e->events & EPOLLIN)
+            if (ee->events & EPOLLIN)
                 mask |= MP_READABLE;
-            if (e->events & EPOLLOUT)
+            if (ee->events & EPOLLOUT)
                 mask |= MP_WRITABLE;
-            if (e->events & EPOLLERR)
+            if (ee->events & EPOLLERR)
                 mask |= MP_WRITABLE;
-            if (e->events & EPOLLHUP)
+            if (ee->events & EPOLLHUP)
                 mask |= MP_WRITABLE;
-            eventLoop->getFiredEvents()[j].fd = e->data.fd;
+            eventLoop->getFiredEvents()[j].fd = ee->data.fd;
             eventLoop->getFiredEvents()[j].mask = mask;
         }
     }
