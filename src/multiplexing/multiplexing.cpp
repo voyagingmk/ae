@@ -25,8 +25,8 @@ MpEventLoop::MpEventLoop(int setsize)
     m_fired.resize(setsize);
     m_setsize = setsize;
     m_lastTime = time(nullptr);
-    m_timeEventNextId = 0;
-    m_timeEventNearest = nullptr;
+    m_teNextId = 0;
+    m_teNearest = nullptr;
     m_stop = 0;
     m_maxfd = -1;
     m_beforesleep = nullptr;
@@ -140,7 +140,7 @@ long long MpEventLoop::createTimeEvent(long long milliseconds,
                                        MpTimeProc proc, void *clientData,
                                        MpEventFinalizerProc finalizerProc)
 {
-    long long id = m_timeEventNextId++;
+    long long id = m_teNextId++;
     MpTimeEventPtr te = std::make_shared<MpTimeEvent>();
     te->id = id;
     long now_sec, now_ms;
@@ -150,7 +150,7 @@ long long MpEventLoop::createTimeEvent(long long milliseconds,
     te->finalizerProc = finalizerProc;
     te->clientData = clientData;
     m_teSet.insert(te);
-    m_timeEventNearest = searchNearestTimer();
+    m_teNearest = searchNearestTimer();
     return id;
 }
 
@@ -164,7 +164,7 @@ int MpEventLoop::deleteTimeEvent(long long id)
         const MpTimeEventPtr &te = *it;
         te->id = AE_DELETED_EVENT_ID;
         m_teListDeleted.push_back(te);
-        m_timeEventNearest = searchNearestTimer();
+        m_teNearest = searchNearestTimer();
         return AE_OK;
     }
     return AE_ERR;
@@ -195,9 +195,9 @@ int MpEventLoop::processTimeEvents()
 
     m_lastTime = now;
 
-    processDeletedEvents();
+    cleanDeletedTimeEvents();
 
-    maxId = m_timeEventNextId - 1;
+    maxId = m_teNextId - 1;
     std::vector<MpTimeEventPtr> teListTimeout;
 
     long now_sec, now_ms;
@@ -210,22 +210,15 @@ int MpEventLoop::processTimeEvents()
         {
             continue;
         }
-        // fprintf(stderr, " te->when_sec - now_sec %d\n", int(te->when_sec - now_sec));
-        // fprintf(stderr, " te->when_ms - now_ms %d\n", int(te->when_ms - now_ms));
         if (now_sec > te->when_sec ||
             (now_sec == te->when_sec && now_ms >= te->when_ms))
         {
-            // fprintf(stderr, "to remove te id %d\n", int(te->id));
             teListTimeout.push_back(te);
         }
     }
-    for (auto itte = teListTimeout.begin(); itte != teListTimeout.end(); itte++)
+    for (auto it = teListTimeout.begin(); it != teListTimeout.end(); it++)
     {
-        MpTimeEventPtr te = *itte;
-        /*
-        fprintf(stderr, "remove te %d\n", int(te->id));
-        fprintf(stderr, "size: %d\n", int(m_teSet.size()));
-        */
+        MpTimeEventPtr te = *it;
         auto it2 = m_teSet.find(te);
         if (it2 != m_teSet.end())
         {
@@ -239,10 +232,10 @@ int MpEventLoop::processTimeEvents()
             teListReinsert.push_back(std::tuple<int, MpTimeEventPtr>{retval, te});
         }
     }
-    for (auto itte = teListReinsert.begin(); itte != teListReinsert.end(); itte++)
+    for (auto it = teListReinsert.begin(); it != teListReinsert.end(); it++)
     {
-        int retval = std ::get<0>(*itte);
-        MpTimeEventPtr te = std ::get<1>(*itte);
+        int retval = std ::get<0>(*it);
+        MpTimeEventPtr te = std ::get<1>(*it);
         addMillisecondsToNow(now_sec, now_ms, retval, &te->when_sec, &te->when_ms);
         // fprintf(stderr, "insert te %d\n", int(te->id));
         m_teSet.insert(te);
@@ -250,12 +243,12 @@ int MpEventLoop::processTimeEvents()
 
     if (processed > 0)
     {
-        m_timeEventNearest = searchNearestTimer();
+        m_teNearest = searchNearestTimer();
     }
     return processed;
 }
 
-void MpEventLoop::processDeletedEvents()
+void MpEventLoop::cleanDeletedTimeEvents()
 {
 
     if (m_teListDeleted.size() > 0)
@@ -297,7 +290,7 @@ int MpEventLoop::processEvents(int flags)
         struct timeval tv, *tvp;
 
         if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT))
-            shortest = m_timeEventNearest;
+            shortest = m_teNearest;
         if (shortest)
         {
             long now_sec, now_ms;

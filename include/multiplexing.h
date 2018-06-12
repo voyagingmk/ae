@@ -129,16 +129,16 @@ class MpEventLoop
   private:
     int processTimeEvents();
 
-    void processDeletedEvents();
+    void cleanDeletedTimeEvents();
 
   private:
     int m_maxfd;
     int m_setsize;
-    long long m_timeEventNextId;
+    long long m_teNextId;
     time_t m_lastTime;
     std::vector<MpFileEvent> m_events;
     std::vector<MpFiredEvent> m_fired;
-    MpTimeEventPtr m_timeEventNearest;
+    MpTimeEventPtr m_teNearest;
     int m_stop;
     void *m_apidata;
     std::multiset<MpTimeEventPtr, Compare> m_teSet;
