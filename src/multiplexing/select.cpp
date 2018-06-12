@@ -55,7 +55,7 @@ static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int mask)
 static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
 {
     MpApiState *state = (MpApiState *)eventLoop->getApiData();
-    int retval, j, numevents = 0;
+    int retval, fd, numevents = 0;
 
     memcpy(&state->_rfds, &state->rfds, sizeof(fd_set));
     memcpy(&state->_wfds, &state->wfds, sizeof(fd_set));
@@ -64,18 +64,18 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
                     &state->_rfds, &state->_wfds, NULL, tvp);
     if (retval > 0)
     {
-        for (j = 0; j <= eventLoop->getMaxFd(); j++)
+        for (fd = 0; fd <= eventLoop->getMaxFd(); fd++)
         {
             int mask = 0;
-            MpFileEvent *fe = &eventLoop->getEvents()[j];
+            MpFileEvent *fe = &eventLoop->getEvents()[fd];
 
             if (fe->mask == MP_NO_MASK)
                 continue;
-            if (fe->mask & MP_READABLE && FD_ISSET(j, &state->_rfds))
+            if (fe->mask & MP_READABLE && FD_ISSET(fd, &state->_rfds))
                 mask |= MP_READABLE;
-            if (fe->mask & MP_WRITABLE && FD_ISSET(j, &state->_wfds))
+            if (fe->mask & MP_WRITABLE && FD_ISSET(fd, &state->_wfds))
                 mask |= MP_WRITABLE;
-            eventLoop->getFiredEvents()[numevents].fd = j;
+            eventLoop->getFiredEvents()[numevents].fd = fd;
             eventLoop->getFiredEvents()[numevents].mask = mask;
             numevents++;
         }
