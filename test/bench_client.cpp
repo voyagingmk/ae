@@ -18,6 +18,7 @@ class TestClient
     {
         m_bytesRead.resize(sessions);
         m_messagesRead.resize(sessions);
+        MutexLockGuard<MutexLock> lock(m_mutex);
         for (int i = 0; i < sessions; i++)
         {
             m_bytesRead[i] = 0;
@@ -52,8 +53,7 @@ class TestClient
     void shutdownAll()
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
-        std::set<PtrTcpClient> tcpClients = m_tcpClients;
-        for (auto it = tcpClients.begin(); it != tcpClients.end(); it++)
+        for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
         {
             (*it)->getConn()->shutdown();
         }
