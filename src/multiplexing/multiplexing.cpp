@@ -7,8 +7,11 @@
 
 namespace wynet
 {
-
+#ifdef HAVE_EPOLL
+#include "epoll.cpp"
+#else
 #include "select.cpp"
+#endif
 
 bool MpTimeEvent::operator<(const MpTimeEvent &rhs) const
 {
