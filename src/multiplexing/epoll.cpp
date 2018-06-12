@@ -26,7 +26,7 @@ static int MpApiCreate(MpEventLoop *eventLoop)
 static int MpApiResize(MpEventLoop *eventLoop, int setsize)
 {
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
-    if (state->events.size() > setsize)
+    if ((int)(state->events.size()) > setsize)
     {
         return -1;
     }
@@ -48,10 +48,10 @@ static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
     struct epoll_event ee = {0}; /* avoid valgrind warning */
     /* If the fd was already monitored for some event, we need a MOD
      * operation. Otherwise we need an ADD operation. */
-    int op = eventLoop->m_events[fd].mask == MP_NO_MASK ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+    int op = eventLoop->getEvents()[fd].mask == MP_NO_MASK ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
     ee.events = 0;
-    mask |= eventLoop->m_events[fd].mask; /* Merge old events */
+    mask |= eventLoop->getEvents()[fd].mask; /* Merge old events */
     if (mask & MP_READABLE)
         ee.events |= EPOLLIN;
     if (mask & MP_WRITABLE)
@@ -66,7 +66,7 @@ static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int delmask)
 {
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
     struct epoll_event ee = {0}; /* avoid valgrind warning */
-    int mask = eventLoop->m_events[fd].mask & (~delmask);
+    int mask = eventLoop->getEvents()[fd].mask & (~delmask);
 
     ee.events = 0;
     if (mask & MP_READABLE)
