@@ -170,8 +170,8 @@ void EventLoop::loop()
     {
         // log_info("loop---1");
         log_timemeasure("loop");
-        if (m_aeloop->beforesleep != NULL)
-            m_aeloop->beforesleep(m_aeloop);
+        // if (m_aeloop->beforesleep != NULL)
+        //     m_aeloop->beforesleep(m_aeloop);
         {
             log_timemeasure("processEvents");
             // log_info("loop---2");

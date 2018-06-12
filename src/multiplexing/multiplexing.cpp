@@ -276,6 +276,9 @@ void MpEventLoop::cleanDeletedTimeEvents()
 
 int MpEventLoop::processEvents(int flags)
 {
+    if (m_beforesleep != nullptr)
+        m_beforesleep(this);
+
     int processed = 0, numevents;
 
     /* Nothing to do? return ASAP */
