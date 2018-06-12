@@ -105,7 +105,9 @@ TcpClient::~TcpClient()
     else if (m_asyncConnect)
     {
         log_debug("~TcpClient() endAsyncConnect");
-        endAsyncConnect();
+        m_loop->runInLoop([&]() {
+            endAsyncConnect();
+        });
     }
 }
 
