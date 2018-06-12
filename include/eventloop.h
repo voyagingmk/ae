@@ -120,13 +120,13 @@ class EventLoop : Noncopyable
 
     void deleteTimerInLoop(AeTimerId aeTimerId);
 
-    // friend void OnSockEvent(struct aeEventLoop *eventLoop, int fd, void *clientData, int mask);
+    // friend void OnSockEvent(aeEventLoop *eventLoop, int fd, void *clientData, int mask);
 
-    friend void OnSockEvent(struct MpEventLoop *eventLoop, int fd, void *clientData, int mask);
+    friend void OnSockEvent(MpEventLoop *eventLoop, int fd, void *clientData, int mask);
 
-    //friend int OnTimerEventTimeout(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
+    //friend int OnTimerEventTimeout(aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
 
-    friend int OnTimerEventTimeout(struct MpEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
+    friend int OnTimerEventTimeout(MpEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
 
     friend class EventListener;
 
