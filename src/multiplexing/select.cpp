@@ -4,9 +4,7 @@
 struct MpApiState
 {
     fd_set rfds, wfds;
-    /* We need to have a copy of the fd sets as it's not safe to reuse
-     * FD sets after select(). */
-    fd_set _rfds, _wfds;
+    fd_set _rfds, _wfds; // select之后fd_set会被修改，所以要有一个备份
 };
 
 static int MpApiCreate(MpEventLoop *eventLoop)
@@ -22,7 +20,6 @@ static int MpApiCreate(MpEventLoop *eventLoop)
 
 static int MpApiResize(MpEventLoop *eventLoop, int setsize)
 {
-    /* Just ensure we have enough room in the fd_set type. */
     if (setsize >= FD_SETSIZE)
         return -1;
     return 0;
