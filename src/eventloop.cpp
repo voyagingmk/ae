@@ -144,21 +144,23 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
 EventLoop::~EventLoop()
 {
     log_dtor("~EventLoop()");
-    assert(m_taskFuncQueue.size() == 0);
-    assert(m_fd2listener.size() == 0);
-
-    /*
-    if (m_fd2listener.size() > 0)
+    if (m_taskFuncQueue.size() != 0)
     {
-        log_error("m_fd2listener.size(): %d", m_fd2listener.size());
+        log_error("~EventLoop() m_taskFuncQueue.size() = %d", m_taskFuncQueue.size());
+    }
+    if (m_fd2listener.size() != 0)
+    {
+        log_error("~EventLoop() m_fd2listener.size() = %d", m_fd2listener.size());
         for (auto it : m_fd2listener)
         {
-            log_error("%s", it.second.lock()->getName().c_str());
+            log_error("name: %s", it.second.lock()->getName().c_str());
         }
-    }*/
+    }
     aeDeleteEventLoop(m_aeloop);
     m_aeloop = nullptr;
     t_threadLoop = nullptr;
+    assert(m_taskFuncQueue.size() == 0);
+    assert(m_fd2listener.size() == 0);
 }
 
 void EventLoop::loop()
