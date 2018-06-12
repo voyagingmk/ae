@@ -198,10 +198,11 @@ int MpEventLoop::processTimeEvents()
 
     maxId = m_teNextId - 1;
     std::vector<MpTimeEventPtr> teListTimeout;
+    std::vector<std::tuple<int, MpTimeEventPtr>> teListReinsert;
 
     long now_sec, now_ms;
     MpGetTime(&now_sec, &now_ms);
-    std::vector<std::tuple<int, MpTimeEventPtr>> teListReinsert;
+
     for (auto it = m_teSet.begin(); it != m_teSet.end(); it++)
     {
         const MpTimeEventPtr &te = *it;
@@ -234,12 +235,13 @@ int MpEventLoop::processTimeEvents()
             teListReinsert.push_back(std::tuple<int, MpTimeEventPtr>{retval, te});
         }
     }
+
+    MpGetTime(&now_sec, &now_ms); // maybe timeProc cost too much time
     for (auto it = teListReinsert.begin(); it != teListReinsert.end(); it++)
     {
         int retval = std ::get<0>(*it);
         const MpTimeEventPtr &te = std ::get<1>(*it);
         addMillisecondsToNow(now_sec, now_ms, retval, &te->when_sec, &te->when_ms);
-        // fprintf(stderr, "insert te %d\n", int(te->id));
         m_teSet.insert(te);
     }
 
