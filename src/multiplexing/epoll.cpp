@@ -13,7 +13,7 @@ static int MpApiCreate(MpEventLoop *eventLoop)
     if (!state)
         return -1;
     state->events.resize(eventLoop->getSetSize());
-    state->epfd = epoll_create(1024); // just a hint
+    state->epfd = epoll_create1(0);
     if (state->epfd == -1)
     {
         delete state;
@@ -80,8 +80,6 @@ static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int delmask)
     }
     else
     {
-        /* Note, Kernel < 2.6.9 requires a non null event pointer even for
-         * EPOLL_CTL_DEL. */
         epoll_ctl(state->epfd, EPOLL_CTL_DEL, fd, &ee);
     }
 }
