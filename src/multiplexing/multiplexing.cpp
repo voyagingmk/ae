@@ -89,16 +89,16 @@ void MpEventLoop::deleteFileEvent(int fd, int mask)
     if (fd >= m_setsize)
         return;
     MpFileEvent *fe = &m_events[fd];
-    if (fe->mask == MP_NONE)
+    if (fe->mask == MP_NO_MASK)
         return;
 
     MpApiDelEvent(this, fd, mask);
     fe->mask = fe->mask & (~mask);
-    if (fd == m_maxfd && fe->mask == MP_NONE)
+    if (fd == m_maxfd && fe->mask == MP_NO_MASK)
     {
         int j;
         for (j = m_maxfd - 1; j >= 0; j--)
-            if (m_events[j].mask != MP_NONE)
+            if (m_events[j].mask != MP_NO_MASK)
                 break;
         m_maxfd = j;
     }
@@ -162,12 +162,12 @@ int MpEventLoop::deleteTimeEvent(long long id)
     if (it != m_teSet.end())
     {
         const MpTimeEventPtr &te = *it;
-        te->id = AE_DELETED_EVENT_ID;
+        te->id = DELETED_TIME_EVENT;
         m_teListDeleted.push_back(te);
         m_teNearest = searchNearestTimer();
-        return AE_OK;
+        return MP_OK;
     }
-    return AE_ERR;
+    return MP_ERR;
 }
 
 const MpTimeEventPtr &MpEventLoop::searchNearestTimer()
@@ -177,7 +177,7 @@ const MpTimeEventPtr &MpEventLoop::searchNearestTimer()
         for (auto it = m_teSet.begin(); it != m_teSet.end(); it++)
         {
             const MpTimeEventPtr &nearest = *it;
-            if (nearest->id != AE_DELETED_EVENT_ID)
+            if (nearest->id != DELETED_TIME_EVENT)
             {
                 return nearest;
             }
@@ -206,7 +206,7 @@ int MpEventLoop::processTimeEvents()
     for (auto it = m_teSet.begin(); it != m_teSet.end(); it++)
     {
         const MpTimeEventPtr &te = *it;
-        if (te->id == AE_DELETED_EVENT_ID)
+        if (te->id == DELETED_TIME_EVENT)
         {
             log_fatal("deleted time event?");
         }
@@ -230,7 +230,7 @@ int MpEventLoop::processTimeEvents()
         }
         int retval = te->timeProc(this, te->id, te->clientData);
         processed++;
-        if (retval != AE_NOMORE)
+        if (retval != MP_HALT)
         {
             teListReinsert.push_back(std::tuple<int, MpTimeEventPtr>{retval, te});
         }
@@ -281,22 +281,17 @@ int MpEventLoop::processEvents(int flags)
 
     int processed = 0, numevents;
 
-    /* Nothing to do? return ASAP */
-    if (!(flags & AE_TIME_EVENTS) && !(flags & AE_FILE_EVENTS))
+    if (!(flags & MP_TIME_EVENTS) && !(flags & MP_FILE_EVENTS))
         return 0;
 
-    /* Note that we want call select() even if there are no
-     * file events to process as long as we want to process time
-     * events, in order to sleep until the next time event is ready
-     * to fire. */
     if (m_maxfd != -1 ||
-        ((flags & AE_TIME_EVENTS) && !(flags & AE_DONT_WAIT)))
+        ((flags & MP_TIME_EVENTS) && !(flags & MP_DONT_WAIT)))
     {
         int j;
         MpTimeEventPtr shortest = nullptr;
         struct timeval tv, *tvp;
 
-        if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT))
+        if (flags & MP_TIME_EVENTS && !(flags & MP_DONT_WAIT))
             shortest = m_teNearest;
         if (shortest)
         {
@@ -325,9 +320,9 @@ int MpEventLoop::processEvents(int flags)
         else
         {
             /* If we have to check for events but need to return
-             * ASAP because of AE_DONT_WAIT we need to set the timeout
+             * ASAP because of MP_DONT_WAIT we need to set the timeout
              * to zero */
-            if (flags & AE_DONT_WAIT)
+            if (flags & MP_DONT_WAIT)
             {
                 tv.tv_sec = tv.tv_usec = 0;
                 tvp = &tv;
@@ -344,7 +339,7 @@ int MpEventLoop::processEvents(int flags)
         numevents = MpApiPoll(this, tvp);
 
         /* After sleep callback. */
-        if (m_aftersleep != NULL && flags & AE_CALL_AFTER_SLEEP)
+        if (m_aftersleep != NULL && flags & MP_CALL_AFTER_SLEEP)
             m_aftersleep(this);
 
         for (j = 0; j < numevents; j++)
@@ -361,12 +356,12 @@ int MpEventLoop::processEvents(int flags)
             /* note the fe->mask & mask & ... code: maybe an already processed
              * event removed an element that fired and we still didn't
              * processed, so we check if the event is still valid. */
-            if (fe_mask & mask & AE_READABLE)
+            if (fe_mask & mask & MP_READABLE)
             {
                 rfired = 1;
                 rfileProc(this, fd, clientData, mask);
             }
-            if (fe_mask & mask & AE_WRITABLE)
+            if (fe_mask & mask & MP_WRITABLE)
             {
                 if (!rfired /*|| wfileProc != rfileProc*/)
                     wfileProc(this, fd, clientData, mask);
@@ -375,7 +370,7 @@ int MpEventLoop::processEvents(int flags)
         }
     }
     /* Check time events */
-    if (flags & AE_TIME_EVENTS)
+    if (flags & MP_TIME_EVENTS)
         processed += processTimeEvents();
 
     return processed; /* return the number of processed file/time events */

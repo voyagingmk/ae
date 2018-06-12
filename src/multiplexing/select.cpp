@@ -72,7 +72,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             int mask = 0;
             MpFileEvent *fe = &eventLoop->getEvents()[j];
 
-            if (fe->mask == MP_NONE)
+            if (fe->mask == MP_NO_MASK)
                 continue;
             if (fe->mask & MP_READABLE && FD_ISSET(j, &state->_rfds))
                 mask |= MP_READABLE;

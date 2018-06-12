@@ -6,23 +6,18 @@
 namespace wynet
 {
 
-#define MP_OK 0
-#define MP_ERR -1
-
-#define MP_NONE 0
-#define MP_READABLE 1
-#define MP_WRITABLE 2
-
-#define MP_FILE_EVENTS 1
-#define MP_TIME_EVENTS 2
-#define MP_ALL_EVENTS (MP_FILE_EVENTS | MP_TIME_EVENTS)
-#define MP_DONT_WAIT 4
-#define MP_CALL_AFTER_SLEEP 8
-
-#define MP_NOMORE -1
-#define MP_DELETED_EVENT_ID -1
-
-#define MP_NOTUSED(V) ((void)V)
+constexpr int MP_READABLE = 1;
+constexpr int MP_WRITABLE = 2;
+constexpr int MP_FILE_EVENTS = 1;
+constexpr int MP_TIME_EVENTS = 2;
+constexpr int MP_ALL_EVENTS = MP_FILE_EVENTS | MP_TIME_EVENTS;
+constexpr int MP_DONT_WAIT = 4;
+constexpr int MP_CALL_AFTER_SLEEP = 8;
+constexpr int MP_HALT = -1;
+constexpr int MP_NO_MASK = 0;
+constexpr int MP_OK = 0;
+constexpr int MP_ERR = -1;
+constexpr int DELETED_TIME_EVENT = -1;
 
 class MpEventLoop;
 
@@ -36,7 +31,7 @@ using MpBeforeSleepProc = std::function<void(MpEventLoop *eventLoop)>;
 
 struct MpFileEvent
 {
-    MpFileEvent() : mask(MP_NONE),
+    MpFileEvent() : mask(MP_NO_MASK),
                     rfileProc(nullptr),
                     wfileProc(nullptr),
                     clientData(nullptr)
