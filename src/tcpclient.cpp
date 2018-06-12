@@ -241,6 +241,7 @@ PtrConn TcpClient::getConn()
 void TcpClient::disconnect()
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
+    setReconnectTimes(0);
     if (m_conn)
     {
         m_conn->shutdown();

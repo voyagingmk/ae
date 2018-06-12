@@ -55,7 +55,8 @@ class TestClient
         MutexLockGuard<MutexLock> lock(m_mutex);
         for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
         {
-            (*it)->getConn()->shutdown();
+            const PtrTcpClient &tcpClient = *it;
+            tcpClient->disconnect();
         }
     }
 
