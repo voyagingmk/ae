@@ -349,7 +349,8 @@ int MpEventLoop::processEvents(int flags)
             }
             if (fe_mask & mask & MP_WRITABLE)
             {
-                if (!fired || wfileProc != rfileProc)
+                // if (!fired || wfileProc != rfileProc)
+                if (!fired)
                     wfileProc(this, fd, clientData, mask);
             }
             processed++;
