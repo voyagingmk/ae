@@ -26,13 +26,13 @@ void checkOpenFileNum(int expectedNum)
 {
 #if defined(__APPLE__)
     struct rlimit rlp;
-    fprintf(stderr, "checkOpenFileNum:");
+    // fprintf(stderr, "checkOpenFileNum:\n");
     getrlimit(RLIMIT_NOFILE, &rlp);
-    fprintf(stderr, "before %d %d\n", rlp.rlim_cur, rlp.rlim_max);
+    // fprintf(stderr, "before %d %d\n", rlp.rlim_cur, rlp.rlim_max);
     rlp.rlim_cur = 10000;
     setrlimit(RLIMIT_NOFILE, &rlp);
     getrlimit(RLIMIT_NOFILE, &rlp);
-    fprintf(stderr, "after %d %d\n", rlp.rlim_cur, rlp.rlim_max);
+    // fprintf(stderr, "after %d %d\n", rlp.rlim_cur, rlp.rlim_max);
 #endif
 }
 
