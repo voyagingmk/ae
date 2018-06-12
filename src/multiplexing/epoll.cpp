@@ -48,10 +48,10 @@ static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
     struct epoll_event ee = {0}; /* avoid valgrind warning */
     /* If the fd was already monitored for some event, we need a MOD
      * operation. Otherwise we need an ADD operation. */
-    int op = eventLoop->events[fd].mask == MP_NO_MASK ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+    int op = eventLoop->m_events[fd].mask == MP_NO_MASK ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
     ee.events = 0;
-    mask |= eventLoop->events[fd].mask; /* Merge old events */
+    mask |= eventLoop->m_events[fd].mask; /* Merge old events */
     if (mask & MP_READABLE)
         ee.events |= EPOLLIN;
     if (mask & MP_WRITABLE)
@@ -66,7 +66,7 @@ static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int delmask)
 {
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
     struct epoll_event ee = {0}; /* avoid valgrind warning */
-    int mask = eventLoop->events[fd].mask & (~delmask);
+    int mask = eventLoop->m_events[fd].mask & (~delmask);
 
     ee.events = 0;
     if (mask & MP_READABLE)
@@ -91,7 +91,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
     int retval, numevents = 0;
 
-    retval = epoll_wait(state->epfd, state->events, eventLoop->setsize,
+    retval = epoll_wait(state->epfd, &state->events[0], eventLoop->setsize,
                         tvp ? (tvp->tv_sec * 1000 + tvp->tv_usec / 1000) : -1);
     if (retval > 0)
     {
@@ -101,7 +101,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
         for (j = 0; j < numevents; j++)
         {
             int mask = 0;
-            struct epoll_event *e = state->events + j;
+            struct epoll_event *e = state->events[j];
 
             if (e->events & EPOLLIN)
                 mask |= MP_READABLE;
