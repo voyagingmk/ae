@@ -225,6 +225,10 @@ WyNet *g_net;
 void Stop(int signo)
 {
     log_info("Stop()");
+    if (!ptrTestClient)
+    {
+        return;
+    }
     ptrTestClient->shutdownAll();
     g_net->stopAllLoop();
 }
