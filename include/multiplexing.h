@@ -101,8 +101,6 @@ class MpEventLoop
 
     int wait(int fd, int mask, long long milliseconds);
 
-    void main();
-
     void setBeforeSleepProc(MpBeforeSleepProc beforesleep);
 
     void setAfterSleepProc(MpBeforeSleepProc aftersleep);

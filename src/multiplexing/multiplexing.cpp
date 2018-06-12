@@ -361,6 +361,8 @@ int MpEventLoop::processEvents(int flags)
     return processed;
 }
 
+/* Wait for milliseconds until the given file descriptor becomes
+ * writable/readable/exception */
 int MpEventLoop::wait(int fd, int mask, long long milliseconds)
 {
     struct pollfd pfd;
@@ -388,17 +390,6 @@ int MpEventLoop::wait(int fd, int mask, long long milliseconds)
     else
     {
         return retval;
-    }
-}
-
-void MpEventLoop::main()
-{
-    m_stop = 0;
-    while (!m_stop)
-    {
-        if (m_beforesleep != nullptr)
-            m_beforesleep(this);
-        processEvents(MP_ALL_EVENTS | MP_CALL_AFTER_SLEEP);
     }
 }
 
