@@ -116,7 +116,7 @@ static void MpGetTime(long *seconds, long *milliseconds)
 {
     struct timeval tv;
 
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, nullptr);
     *seconds = tv.tv_sec;
     *milliseconds = tv.tv_usec / 1000;
 }
@@ -287,29 +287,25 @@ int MpEventLoop::processEvents(int flags)
     if (m_maxfd != -1 ||
         ((flags & MP_TIME_EVENTS) && !(flags & MP_DONT_WAIT)))
     {
-        int j;
-        MpTimeEventPtr shortest = nullptr;
+        MpTimeEventPtr nearest = nullptr;
         struct timeval tv, *tvp;
 
         if (flags & MP_TIME_EVENTS && !(flags & MP_DONT_WAIT))
-            shortest = m_teNearest;
-        if (shortest)
+            nearest = m_teNearest;
+        if (nearest)
         {
             long now_sec, now_ms;
 
             MpGetTime(&now_sec, &now_ms);
             tvp = &tv;
 
-            /* How many milliseconds we need to wait for the next
-             * time event to fire? */
-            long long ms =
-                (shortest->when_sec - now_sec) * 1000 +
-                shortest->when_ms - now_ms;
+            long long wait_ms = (nearest->when_sec - now_sec) * 1000 +
+                                nearest->when_ms - now_ms;
 
-            if (ms > 0)
+            if (wait_ms > 0)
             {
-                tvp->tv_sec = ms / 1000;
-                tvp->tv_usec = (ms % 1000) * 1000;
+                tvp->tv_sec = wait_ms / 1000;
+                tvp->tv_usec = (wait_ms % 1000) * 1000;
             }
             else
             {
@@ -319,9 +315,6 @@ int MpEventLoop::processEvents(int flags)
         }
         else
         {
-            /* If we have to check for events but need to return
-             * ASAP because of MP_DONT_WAIT we need to set the timeout
-             * to zero */
             if (flags & MP_DONT_WAIT)
             {
                 tv.tv_sec = tv.tv_usec = 0;
@@ -329,20 +322,16 @@ int MpEventLoop::processEvents(int flags)
             }
             else
             {
-                /* Otherwise we can block */
-                tvp = NULL; /* wait forever */
+                tvp = nullptr; // block, wait forever
             }
         }
 
-        /* Call the multiplexing API, will return only on timeout or when
-         * some event fires. */
         numevents = MpApiPoll(this, tvp);
 
-        /* After sleep callback. */
-        if (m_aftersleep != NULL && flags & MP_CALL_AFTER_SLEEP)
+        if (m_aftersleep != nullptr && flags & MP_CALL_AFTER_SLEEP)
             m_aftersleep(this);
 
-        for (j = 0; j < numevents; j++)
+        for (int j = 0; j < numevents; j++)
         {
             int fd = m_fired[j].fd;
             int mask = m_fired[j].mask;
@@ -413,7 +402,7 @@ void MpEventLoop::main()
     m_stop = 0;
     while (!m_stop)
     {
-        if (m_beforesleep != NULL)
+        if (m_beforesleep != nullptr)
             m_beforesleep(this);
         processEvents(MP_ALL_EVENTS | MP_CALL_AFTER_SLEEP);
     }
