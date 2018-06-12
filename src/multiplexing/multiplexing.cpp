@@ -340,33 +340,27 @@ int MpEventLoop::processEvents(int flags)
             const MpFileProc &rfileProc = fe->rfileProc;
             const MpFileProc &wfileProc = fe->wfileProc;
             void *clientData = fe->clientData;
-            int rfired = 0;
+            bool fired = false;
 
-            /* note the fe->mask & mask & ... code: maybe an already processed
-             * event removed an element that fired and we still didn't
-             * processed, so we check if the event is still valid. */
             if (fe_mask & mask & MP_READABLE)
             {
-                rfired = 1;
+                fired = true;
                 rfileProc(this, fd, clientData, mask);
             }
             if (fe_mask & mask & MP_WRITABLE)
             {
-                if (!rfired /*|| wfileProc != rfileProc*/)
+                if (!fired || wfileProc != rfileProc)
                     wfileProc(this, fd, clientData, mask);
             }
             processed++;
         }
     }
-    /* Check time events */
     if (flags & MP_TIME_EVENTS)
         processed += processTimeEvents();
 
-    return processed; /* return the number of processed file/time events */
+    return processed;
 }
 
-/* Wait for milliseconds until the given file descriptor becomes
- * writable/readable/exception */
 int MpEventLoop::wait(int fd, int mask, long long milliseconds)
 {
     struct pollfd pfd;
