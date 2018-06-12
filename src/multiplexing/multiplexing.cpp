@@ -189,7 +189,6 @@ const MpTimeEventPtr &MpEventLoop::searchNearestTimer()
 int MpEventLoop::processTimeEvents()
 {
     int processed = 0;
-    MpTimeEventPtr te;
     long long maxId;
     time_t now = time(nullptr);
 
@@ -205,7 +204,11 @@ int MpEventLoop::processTimeEvents()
     std::vector<std::tuple<int, MpTimeEventPtr>> teListReinsert;
     for (auto it = m_teSet.begin(); it != m_teSet.end(); it++)
     {
-        te = *it;
+        const MpTimeEventPtr &te = *it;
+        if (te->id == AE_DELETED_EVENT_ID)
+        {
+            log_fatal("deleted time event?");
+        }
         if (te->id > maxId)
         {
             continue;
@@ -218,14 +221,13 @@ int MpEventLoop::processTimeEvents()
     }
     for (auto it = teListTimeout.begin(); it != teListTimeout.end(); it++)
     {
-        MpTimeEventPtr te = *it;
-        auto it2 = m_teSet.find(te);
-        if (it2 != m_teSet.end())
+        const MpTimeEventPtr &te = *it;
+        auto _it = m_teSet.find(te);
+        if (_it != m_teSet.end())
         {
-            m_teSet.erase(it2);
+            m_teSet.erase(_it);
         }
-        auto id = te->id;
-        int retval = te->timeProc(this, id, te->clientData);
+        int retval = te->timeProc(this, te->id, te->clientData);
         processed++;
         if (retval != AE_NOMORE)
         {
@@ -235,7 +237,7 @@ int MpEventLoop::processTimeEvents()
     for (auto it = teListReinsert.begin(); it != teListReinsert.end(); it++)
     {
         int retval = std ::get<0>(*it);
-        MpTimeEventPtr te = std ::get<1>(*it);
+        const MpTimeEventPtr &te = std ::get<1>(*it);
         addMillisecondsToNow(now_sec, now_ms, retval, &te->when_sec, &te->when_ms);
         // fprintf(stderr, "insert te %d\n", int(te->id));
         m_teSet.insert(te);
