@@ -52,7 +52,8 @@ class TestClient
     void shutdownAll()
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
-        for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
+        std::set<PtrTcpClient> tcpClients = m_tcpClients;
+        for (auto it = tcpClients.begin(); it != tcpClients.end(); it++)
         {
             (*it)->getConn()->shutdown();
         }
