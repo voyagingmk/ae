@@ -105,7 +105,7 @@ class MpEventLoop
 
     void setAfterSleepProc(MpBeforeSleepProc aftersleep);
 
-    inline const char *getApiName(void);
+    const char *getApiName();
 
     inline int getSetSize() { return m_setsize; }
 

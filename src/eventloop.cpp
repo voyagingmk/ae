@@ -129,6 +129,7 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
                                                                m_stopping(false)
 {
     log_ctor("EventLoop()");
+    log_info("multiplexing:%s", m_mploop.getApiName());
     if (t_threadLoop)
     {
         log_fatal("Create 2 EventLoop For 1 thread?");

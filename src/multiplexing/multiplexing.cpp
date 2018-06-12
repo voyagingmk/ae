@@ -395,7 +395,7 @@ int MpEventLoop::wait(int fd, int mask, long long milliseconds)
     }
 }
 
-const char *MpEventLoop::getApiName(void)
+const char *MpEventLoop::getApiName()
 {
     return MpApiName();
 }
