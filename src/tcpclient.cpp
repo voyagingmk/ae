@@ -116,7 +116,10 @@ void TcpClient::connect(const char *host, int port)
 void TcpClient::connectInLoop(const char *host, int port)
 {
     m_loop->assertInLoopThread("connectInLoop");
-    assert(!m_disconnected);
+    if (!m_disconnected)
+    {
+        return;
+    }
     m_sockAddr = SockAddr(host, port);
     int err;
     struct addrinfo hints, *res, *ressave;
