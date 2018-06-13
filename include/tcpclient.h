@@ -113,6 +113,7 @@ private:
   PtrTcpClientEvtListener m_evtListener;
   MutexLock m_mutex;
   std::atomic<bool> m_asyncConnect;
+  std::atomic<bool> m_disconnected;
   int m_reconnectTimes;    // -1: infinitely   0: no reconnect
   int m_reconnectInterval; // ms
   SockAddr m_sockAddr;

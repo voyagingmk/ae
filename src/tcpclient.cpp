@@ -69,6 +69,7 @@ TcpClient::TcpClient(EventLoop *loop) : onTcpConnectFailed(nullptr),
                                         onTcpDisconnected(nullptr),
                                         onTcpRecvMessage(nullptr),
                                         m_asyncConnect(false),
+                                        m_disconnected(false),
                                         m_reconnectTimes(0),
                                         m_reconnectInterval(200)
 {
@@ -113,6 +114,7 @@ void TcpClient::connect(const char *host, int port)
 void TcpClient::connectInLoop(const char *host, int port)
 {
     m_loop->assertInLoopThread("connectInLoop");
+    assert(!m_disconnected);
     m_sockAddr = SockAddr(host, port);
     int err;
     struct addrinfo hints, *res, *ressave;
@@ -243,6 +245,7 @@ void TcpClient::disconnect()
     {
         m_conn->shutdown();
     }
+    m_disconnected = true;
 }
 
 void TcpClient::asyncConnect(int sockfd)
