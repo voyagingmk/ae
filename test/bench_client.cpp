@@ -14,11 +14,13 @@ class TestClient
                                             m_numConnected(0),
                                             m_numTimeout(0),
                                             m_timeout(timeout),
+                                            m_shutdown(false),
                                             m_evtListener(EventListener::create())
     {
         m_bytesRead.resize(sessions);
         m_messagesRead.resize(sessions);
         MutexLockGuard<MutexLock> lock(m_mutex);
+        m_timeStart = std::chrono::system_clock::now();
         for (int i = 0; i < sessions; i++)
         {
             m_bytesRead[i] = 0;
@@ -53,6 +55,7 @@ class TestClient
     void shutdownAll()
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
+        m_shutdown = true;
         for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
         {
             const PtrTcpClient &tcpClient = *it;
@@ -169,7 +172,12 @@ class TestClient
         // log_info("[connected] numConnected %d, sockfd: %d", num, conn->sockfd());
         conn->setUserData(num);
         m_numConnected++;
-        m_timeStart = std::chrono::system_clock::now();
+        if (m_shutdown)
+        {
+            auto tcpClient = conn->getCtrlAsClient();
+            tcpClient->disconnect();
+            return;
+        }
         conn->send(m_message);
         conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
     }
@@ -213,6 +221,7 @@ class TestClient
     std::atomic_int m_numConnected;
     std::atomic_int m_numTimeout;
     int m_timeout;
+    bool m_shutdown;
     std::string m_message;
     std::chrono::system_clock::time_point m_timeStart;
     PtrEvtListener m_evtListener;
