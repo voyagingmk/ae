@@ -362,6 +362,7 @@ void TcpClient::cleanEvtListenerWithLock()
     {
         m_evtListener->deleteAllFileEvent();
         m_evtListener->setSockfd(0);
+        m_evtListener = nullptr;
     }
 }
 
