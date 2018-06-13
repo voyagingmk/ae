@@ -41,14 +41,14 @@ void checkOpenFileNum(int expectedNum);
 #define ctor_dtor_forlogging(classname)
 #endif
 
-#define assert_with_abort(e)                                                   \
-    if (!(e))                                                                  \
-    {                                                                          \
-        std::cout << " assertion " << #e << " fails" << std::endl              \
-                  << "File:" << __FILE__ << " line: " << __LINE__ << std::endl \
-                  << " aborting " << std::endl;                                \
-        getchar();                                                             \
-        raise(SIGABRT);                                                        \
+#define assert_with_abort(e)                                              \
+    if (!(e))                                                             \
+    {                                                                     \
+        std::cout << " assertion " << #e << " fails" << endl              \
+                  << "File:" << __FILE__ << " line: " << __LINE__ << endl \
+                  << " aborting " << endl;                                \
+        getchar();                                                        \
+        abort();                                                          \
     }
 
 }; // namespace wynet
