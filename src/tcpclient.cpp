@@ -105,9 +105,7 @@ TcpClient::~TcpClient()
     else if (m_asyncConnect)
     {
         log_debug("~TcpClient() endAsyncConnect");
-        m_loop->runInLoop([&]() {
-            endAsyncConnect();
-        });
+        endAsyncConnect();
     }
 }
 
@@ -244,6 +242,7 @@ void TcpClient::disconnect()
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     setReconnectTimes(0);
+    endAsyncConnect();
     if (m_conn)
     {
         m_conn->shutdown();
@@ -271,9 +270,17 @@ bool TcpClient::isAsyncConnecting()
 
 void TcpClient::endAsyncConnect()
 {
-    m_loop->assertInLoopThread("endAsyncConnect");
+    if (!m_asyncConnect)
+    {
+        return;
+    }
     log_debug("endAsyncConnect");
-    resetEvtListener();
+    if (m_evtListener && m_evtListener->getSockFd())
+    {
+        m_evtListener->deleteAllFileEvent();
+        m_evtListener->setSockfd(0);
+        m_evtListener = nullptr;
+    }
     m_asyncConnect = false;
 }
 

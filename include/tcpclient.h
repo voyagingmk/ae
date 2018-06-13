@@ -108,7 +108,7 @@ private:
   EventLoop *m_loop;
   PtrTcpClientEvtListener m_evtListener;
   MutexLock m_mutex;
-  bool m_asyncConnect;
+  std::atomic<bool> m_asyncConnect;
   int m_reconnectTimes;    // -1: infinitely   0: no reconnect
   int m_reconnectInterval; // ms
   SockAddr m_sockAddr;
