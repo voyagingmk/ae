@@ -211,7 +211,7 @@ void EventLoop::loop()
 void EventLoop::stopSafely()
 {
     log_info("EventLoop::stopSafely");
-    runInLoop([]() {
+    runInLoop([=]() {
         m_stopping = true;
         createTimerInLoop(m_ownEvtListener, m_forceStopTime, ForceStop, nullptr);
     });
@@ -220,7 +220,7 @@ void EventLoop::stopSafely()
 void EventLoop::stop()
 {
     log_info("EventLoop::stop");
-    runInLoop([]() {
+    runInLoop([=]() {
         stopInLoop();
     });
 }
