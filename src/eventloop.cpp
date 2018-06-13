@@ -30,6 +30,7 @@ int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *d
 void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 // void OnSockEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
+    assert(sockfd > 0);
     log_debug("file evt %d %s %s", sockfd,
               (mask & LOOP_EVT_READABLE) ? "rd" : "",
               (mask & LOOP_EVT_WRITABLE) ? "wr" : "");
