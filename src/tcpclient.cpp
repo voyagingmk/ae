@@ -79,6 +79,7 @@ TcpClient::TcpClient(EventLoop *loop) : onTcpConnectFailed(nullptr),
 TcpClient::~TcpClient()
 {
     log_dtor("~TcpClient()");
+    PtrConn conn;
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
         resetEvtListenerWithLock();
