@@ -33,6 +33,7 @@ bool ConnectionManager::removeConnection(UniqID connectId)
 
 void ConnectionManager::removeAllConnection()
 {
+    MutexLockGuard<MutexLock> lock(m_mutex);
     for (auto it : m_connDict)
     {
         const PtrConn &conn = it.second;
@@ -74,12 +75,13 @@ bool ConnectionManager::unrefConnection(const PtrConn &conn)
 bool ConnectionManager::unrefConnection(UniqID connectId)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
-    if (m_connDict.find(connectId) == m_connDict.end())
+    auto it = m_connDict.find(connectId);
+    if (it == m_connDict.end())
     {
         return false;
     }
     log_debug("<connMgr> unref %d", connectId);
-    m_connDict.erase(connectId);
+    m_connDict.erase(it);
     return true;
 }
 
