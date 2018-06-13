@@ -82,7 +82,7 @@ TcpClient::~TcpClient()
     PtrConn conn;
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
-        resetEvtListenerWithLock();
+        cleanEvtListenerWithLock();
         PtrConn conn;
         bool unique = false;
         {
@@ -350,13 +350,18 @@ void TcpClient::reconnect()
     connect(m_sockAddr.getHost(), m_sockAddr.getPort());
 }
 
-void TcpClient::resetEvtListenerWithLock()
+void TcpClient::cleanEvtListenerWithLock()
 {
     if (m_evtListener && m_evtListener->getSockFd())
     {
         m_evtListener->deleteAllFileEvent();
         m_evtListener->setSockfd(0);
     }
+}
+
+void TcpClient::resetEvtListenerWithLock()
+{
+    cleanEvtListenerWithLock();
     if (!m_evtListener)
     {
         m_evtListener = TcpClientEventListener::create();

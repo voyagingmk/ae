@@ -89,6 +89,8 @@ private:
 
   void onDisconnected(const PtrConn &);
 
+  void cleanEvtListenerWithLock();
+
   void resetEvtListenerWithLock();
 
   // in order to access private members
