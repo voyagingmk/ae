@@ -211,7 +211,7 @@ void EventLoop::loop()
 void EventLoop::stopSafely()
 {
     log_info("EventLoop::stopSafely");
-    runInLoop([&]() {
+    runInLoop([]() {
         m_stopping = true;
         createTimerInLoop(m_ownEvtListener, m_forceStopTime, ForceStop, nullptr);
     });
@@ -220,7 +220,7 @@ void EventLoop::stopSafely()
 void EventLoop::stop()
 {
     log_info("EventLoop::stop");
-    runInLoop([&]() {
+    runInLoop([]() {
         stopInLoop();
     });
 }
@@ -255,7 +255,7 @@ bool EventLoop::hasFileEvent(SockFd sockfd, int mask)
 
 void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
 {
-    runInLoop([&]() {
+    runInLoop([=]() {
         createFileEventInLoop(listener, mask);
     });
 }
@@ -264,23 +264,21 @@ void EventLoop::deleteFileEvent(PtrEvtListener listener, int mask)
 {
     SockFd sockfd = listener->getSockFd();
     assert(sockfd > 0);
-    runInLoop([&]() {
+    runInLoop([=]() {
         deleteFileEventInLoop(sockfd, mask);
     });
 }
 
 void EventLoop::deleteFileEvent(SockFd sockfd, int mask)
 {
-    assert(sockfd > 0);
-    runInLoop([&]() {
+    runInLoop([=]() {
         deleteFileEventInLoop(sockfd, mask);
     });
 }
 
 void EventLoop::deleteAllFileEvent(SockFd sockfd)
 {
-    assert(sockfd > 0);
-    runInLoop([&]() {
+    runInLoop([=]() {
         deleteAllFileEventInLoop(sockfd);
     });
 }
@@ -352,7 +350,7 @@ TimerRef EventLoop ::createTimer(PtrEvtListener listener, int ms, OnTimerEvent o
 {
     // 分配新的timer标识
     TimerRef tr = TimerRef::newTimerRef();
-    runInLoop([&]() {
+    runInLoop([=]() {
         createTimerInLoop(listener, tr, ms, onTimerEvent, data);
     });
     return tr;
@@ -360,7 +358,7 @@ TimerRef EventLoop ::createTimer(PtrEvtListener listener, int ms, OnTimerEvent o
 
 void EventLoop ::deleteTimer(TimerRef tr)
 {
-    runInLoop([&]() {
+    runInLoop([=]() {
         deleteTimerInLoop(tr);
     });
 }
