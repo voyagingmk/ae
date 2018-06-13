@@ -19,7 +19,6 @@ class TestClient
     {
         m_bytesRead.resize(sessions);
         m_messagesRead.resize(sessions);
-        MutexLockGuard<MutexLock> lock(m_mutex);
         m_timeStart = std::chrono::system_clock::now();
         for (int i = 0; i < sessions; i++)
         {
