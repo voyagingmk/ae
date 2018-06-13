@@ -328,7 +328,7 @@ void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
     {
         log_warn("deleteFileEventInLoop sockfd >= setsize  %d %d\n", sockfd, setsize);
     }
-    // log_info("deleteFileEventInLoop %d %d", sockfd, mask);
+    log_info("deleteFileEventInLoop %d %d", sockfd, mask);
     // aeDeleteFileEvent(m_aeloop, sockfd, mask);
     m_mploop.deleteFileEvent(sockfd, mask);
     if (!getFileEvent(sockfd) && m_fd2listener.find(sockfd) != m_fd2listener.end())
