@@ -36,7 +36,8 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     EventLoop *loop = (EventLoop *)(clientData);
     if (loop->m_fd2listener.find(sockfd) == loop->m_fd2listener.end())
     {
-        log_error("OnSockEvent no wkListener %d", sockfd);
+        log_error("OnSockEvent no wkListener sockfd:%d, m_fd2listener.size(): %d",
+                  sockfd, loop->m_fd2listener.size());
         return;
     }
     WeakPtrEvtListener wkListener = loop->m_fd2listener[sockfd];
