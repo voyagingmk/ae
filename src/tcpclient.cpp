@@ -227,6 +227,7 @@ void TcpClient::onConnected(int sockfd)
     m_loop->assertInLoopThread("onConnected");
     MutexLockGuard<MutexLock> lock(m_mutex);
     resetEvtListenerWithLock();
+    assert(!m_conn);
     m_conn = std::make_shared<TcpConnection>(sockfd);
     m_conn->setEventLoop(m_loop);
     m_conn->setCtrl(shared_from_this());
