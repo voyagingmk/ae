@@ -81,6 +81,8 @@ private:
 
   void endAsyncConnect();
 
+  void endAsyncConnectWithLock();
+
   void afterAsyncConnect(int sockfd);
 
   void onConnected(int sockfd);

@@ -80,21 +80,17 @@ TcpClient::~TcpClient()
 {
     log_dtor("~TcpClient()");
     PtrConn conn;
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    cleanEvtListenerWithLock();
+    PtrConn conn;
+    bool unique = false;
     {
-        MutexLockGuard<MutexLock> lock(m_mutex);
-        cleanEvtListenerWithLock();
-        PtrConn conn;
-        bool unique = false;
-        {
-            unique = m_conn.unique();
-            conn = m_conn;
-            m_conn = nullptr;
-            log_debug("conn->use_count() %d", conn.use_count());
-        }
+        unique = m_conn.unique();
+        conn = m_conn;
+        m_conn = nullptr;
     }
     if (conn)
     {
-        log_debug("~TcpClient() has conn unique %d", unique);
         assert(m_loop == conn->getLoop());
         TcpConnection::OnTcpClose cb = std::bind(&removeConnection, m_loop, std::placeholders::_1);
         m_loop->runInLoop(
@@ -102,13 +98,11 @@ TcpClient::~TcpClient()
                 &TcpConnection::setCloseCallback,
                 conn,
                 cb));
-        log_debug("~TcpClient() conn->close()");
         conn->close("~TcpClient");
     }
     else if (m_asyncConnect)
     {
-        log_debug("~TcpClient() endAsyncConnect");
-        endAsyncConnect();
+        endAsyncConnectWithLock();
     }
 }
 
@@ -245,7 +239,7 @@ void TcpClient::disconnect()
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     setReconnectTimes(0);
-    endAsyncConnect();
+    endAsyncConnectWithLock();
     if (m_conn)
     {
         m_conn->shutdown();
@@ -258,7 +252,7 @@ void TcpClient::asyncConnect(int sockfd)
     MutexLockGuard<MutexLock> lock(m_mutex);
     if (isAsyncConnecting())
     {
-        endAsyncConnect();
+        endAsyncConnectWithLock();
     }
     log_debug("asyncConnect %d", sockfd);
     m_asyncConnect = true;
@@ -271,14 +265,19 @@ bool TcpClient::isAsyncConnecting()
 {
     return m_asyncConnect;
 }
-
 void TcpClient::endAsyncConnect()
+{
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    endAsyncConnectWithLock();
+}
+
+void TcpClient::endAsyncConnectWithLock()
 {
     if (!m_asyncConnect)
     {
         return;
     }
-    log_debug("endAsyncConnect");
+    log_debug("endAsyncConnectWithLock");
     if (m_evtListener && m_evtListener->getSockFd())
     {
         m_evtListener->deleteAllFileEvent();
