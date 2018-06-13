@@ -270,6 +270,7 @@ void EventLoop::deleteFileEvent(PtrEvtListener listener, int mask)
 
 void EventLoop::deleteFileEvent(SockFd sockfd, int mask)
 {
+    assert(sockfd > 0);
     runInLoop([&]() {
         deleteFileEventInLoop(sockfd, mask);
     });
