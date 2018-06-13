@@ -116,7 +116,7 @@ void TcpClient::connect(const char *host, int port)
 void TcpClient::connectInLoop(const char *host, int port)
 {
     m_loop->assertInLoopThread("connectInLoop");
-    if (!m_disconnected)
+    if (m_disconnected)
     {
         return;
     }
