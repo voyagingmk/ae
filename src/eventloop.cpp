@@ -32,8 +32,8 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
 {
     assert(sockfd > 0);
     log_debug("file evt %d %s %s", sockfd,
-              (mask & LOOP_EVT_READABLE) ? "rd" : "",
-              (mask & LOOP_EVT_WRITABLE) ? "wr" : "");
+              (mask & MP_READABLE) ? "rd" : "",
+              (mask & MP_WRITABLE) ? "wr" : "");
     EventLoop *loop = (EventLoop *)(clientData);
     if (loop->m_fd2listener.find(sockfd) == loop->m_fd2listener.end())
     {
@@ -47,7 +47,7 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     {
         // log_error("OnSockEvent no listener %d", sockfd);
         // maybe deleteFileEvent job is in queue (async)
-        loop->deleteFileEventInLoop(sockfd, LOOP_EVT_READABLE | LOOP_EVT_WRITABLE);
+        loop->deleteFileEventInLoop(sockfd, MP_READABLE | MP_WRITABLE);
         return;
     }
     if (listener->m_onFileEvent)
@@ -61,8 +61,8 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
         else
         {
             log_error("sockfd %d not listening this evt: %s", sockfd,
-                      (mask & LOOP_EVT_READABLE) ? "rd" : "",
-                      (mask & LOOP_EVT_WRITABLE) ? "wr" : "");
+                      (mask & MP_READABLE) ? "rd" : "",
+                      (mask & MP_WRITABLE) ? "wr" : "");
             loop->deleteFileEvent(listener, mask);
         }
     }

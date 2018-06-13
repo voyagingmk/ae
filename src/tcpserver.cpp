@@ -121,7 +121,7 @@ void TcpServer::startListen(const char *host, int port)
 		m_sockFdCtrl.setSockfd(listenfd);
 		m_evtListener->setSockfd(listenfd);
 		socketUtils::log_debug_addr(res->ai_addr, res->ai_addrlen, "<TcpServer.startListen>");
-		m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpServer::OnNewTcpConnection);
+		m_evtListener->createFileEvent(MP_READABLE, TcpServer::OnNewTcpConnection);
 	}
 	freeaddrinfo(ressave);
 }

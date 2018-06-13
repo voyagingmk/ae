@@ -13,7 +13,7 @@ using namespace wynet;
 int testOnTimerEvent(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
     log_debug("[conn] testOnTimerEvent %lld", tr.Id());
-    return LOOP_EVT_NOMORE;
+    return MP_HALT;
 }
 
 TcpConnection::TcpConnection(SockFd sockfd) : m_loop(nullptr),
@@ -55,13 +55,13 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
         return;
     }
     assert(conn->m_evtListener == listener);
-    if ((mask & LOOP_EVT_WRITABLE) && conn->m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE))
+    if ((mask & MP_WRITABLE) && conn->m_evtListener->hasFileEvent(MP_WRITABLE))
     {
         log_debug("[conn] onWritable sockfd=%d", conn->sockfd());
         conn->onWritable();
     }
     // 可读事件可能会把连接关了，要后处理
-    if ((mask & LOOP_EVT_READABLE) && conn->m_evtListener->hasFileEvent(LOOP_EVT_READABLE))
+    if ((mask & MP_READABLE) && conn->m_evtListener->hasFileEvent(MP_READABLE))
     {
         log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
         conn->onReadable();
@@ -90,7 +90,7 @@ void TcpConnection ::shutdownInLoop()
     {
         getLoop()->assertInLoopThread("shutdownInLoop");
         // shutdown WR only if not writing, in order to send out pendingBuf
-        if (!m_shutdownWrite && !m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE))
+        if (!m_shutdownWrite && !m_evtListener->hasFileEvent(MP_WRITABLE))
         {
             assert(m_pendingSendBuf.readableSize() == 0);
             if (::shutdown(sockfd(), SHUT_WR) < 0)
@@ -217,7 +217,7 @@ void TcpConnection::onEstablished()
     log_debug("[conn] establish in thread: %s", CurrentThread::name());
     m_state = State::Connected;
     m_evtListener->setTcpConnection(shared_from_this());
-    m_evtListener->createFileEvent(LOOP_EVT_READABLE, TcpConnection::OnConnectionEvent);
+    m_evtListener->createFileEvent(MP_READABLE, TcpConnection::OnConnectionEvent);
     if (onTcpConnected)
         onTcpConnected(shared_from_this());
 }
@@ -281,7 +281,7 @@ void TcpConnection::onWritable()
     getLoop()->assertInLoopThread("onWritable");
     if (m_evtListener)
     {
-        assert(m_evtListener->hasFileEvent(LOOP_EVT_WRITABLE));
+        assert(m_evtListener->hasFileEvent(MP_WRITABLE));
     }
     if (m_state != State::Connected && m_state != State::Disconnecting)
     {
@@ -292,7 +292,7 @@ void TcpConnection::onWritable()
     {
         if (m_evtListener)
         {
-            m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
+            m_evtListener->deleteFileEvent(MP_WRITABLE);
         }
         log_error("TcpConnection::onWritable remain <= 0 %d", remain);
     }
@@ -308,7 +308,7 @@ void TcpConnection::onWritable()
         m_pendingSendBuf.readOut(nwrote);
         if (m_pendingSendBuf.readableSize() == 0)
         {
-            m_evtListener->deleteFileEvent(LOOP_EVT_WRITABLE);
+            m_evtListener->deleteFileEvent(MP_WRITABLE);
             if (onTcpSendComplete)
             {
                 getLoop()->runInLoop(std::bind(onTcpSendComplete, shared_from_this()));
@@ -382,7 +382,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
                 log_debug("[conn] remain > 0 sockfd %d", sockfd());
-                m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, TcpConnection::OnConnectionEvent);
+                m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
             {

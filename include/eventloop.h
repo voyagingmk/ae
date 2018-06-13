@@ -12,11 +12,6 @@
 namespace wynet
 {
 
-#define LOOP_EVT_NONE 0
-#define LOOP_EVT_READABLE 1
-#define LOOP_EVT_WRITABLE 2
-#define LOOP_EVT_NOMORE -1
-
 using AeTimerId = long long;
 
 class EventLoop : Noncopyable

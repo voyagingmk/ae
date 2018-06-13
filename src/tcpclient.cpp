@@ -226,7 +226,7 @@ void TcpClient::onConnected(int sockfd)
 {
     m_loop->assertInLoopThread("onConnected");
     MutexLockGuard<MutexLock> lock(m_mutex);
-    resetEvtListenerWithLock();
+    cleanEvtListenerWithLock();
     assert(!m_conn);
     m_conn = std::make_shared<TcpConnection>(sockfd);
     m_conn->setEventLoop(m_loop);
@@ -266,7 +266,7 @@ void TcpClient::asyncConnect(int sockfd)
     m_asyncConnect = true;
     resetEvtListenerWithLock();
     m_evtListener->setSockfd(sockfd);
-    m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
+    m_evtListener->createFileEvent(MP_WRITABLE, OnTcpWritable);
 }
 
 bool TcpClient::isAsyncConnecting()
