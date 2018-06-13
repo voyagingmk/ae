@@ -156,7 +156,8 @@ EventLoop::~EventLoop()
         log_error("~EventLoop() m_fd2listener.size() = %d", m_fd2listener.size());
         for (auto it : m_fd2listener)
         {
-            log_error("name: %s", it.second.lock()->getName().c_str());
+            PtrEvtListener l = it.second.lock();
+            log_error("name:%s mask:%d", l->getName().c_str(), l->getFileEventMask());
         }
     }
     aeDeleteEventLoop(m_aeloop);
