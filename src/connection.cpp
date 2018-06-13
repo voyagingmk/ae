@@ -76,6 +76,11 @@ void TcpConnection ::shutdown()
         m_state = State::Disconnecting;
         getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
     }
+    else
+    {
+        State tmp = m_state;
+        log_fatal("TcpConnection shutdown m_state: %d", static_cast<int>(tmp));
+    }
 }
 
 void TcpConnection ::shutdownInLoop()
@@ -102,7 +107,7 @@ void TcpConnection ::shutdownInLoop()
     else
     {
         State tmp = m_state;
-        log_fatal("shutdownInLoop: m_state: %d", static_cast<int>(tmp));
+        log_fatal("TcpConnection shutdownInLoop m_state: %d", static_cast<int>(tmp));
     }
 }
 
