@@ -134,8 +134,7 @@ class TestClient
         auto conn = l->getTcpConnection();
         conn->shutdown();
         int num = ++m_numTimeout;
-        // log_info("numTimeout %d", num);
-        // m_tcpClient = nullptr;
+        log_info("numTimeout %d", num);
         return -1;
     }
 
@@ -240,9 +239,8 @@ void Stop(int signo)
     log_info("Stop()");
     if (!ptrTestClient)
     {
-        return;
+        ptrTestClient->shutdownAll();
     }
-    ptrTestClient->shutdownAll();
     g_net->stopAllLoop();
 }
 
