@@ -325,6 +325,7 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
 
 void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
 {
+    log_info("deleteFileEventInLoop %d %d", sockfd, mask);
     assert(sockfd > 0);
     assertInLoopThread("deleteFileEventInLoop");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
@@ -333,7 +334,6 @@ void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
     {
         log_warn("deleteFileEventInLoop sockfd >= setsize  %d %d\n", sockfd, setsize);
     }
-    log_info("deleteFileEventInLoop %d %d", sockfd, mask);
     // aeDeleteFileEvent(m_aeloop, sockfd, mask);
     m_mploop.deleteFileEvent(sockfd, mask);
     if (!getFileEvent(sockfd) && m_fd2listener.find(sockfd) != m_fd2listener.end())
@@ -344,6 +344,7 @@ void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
 
 void EventLoop ::deleteAllFileEventInLoop(SockFd sockfd)
 {
+    assert(sockfd > 0);
     deleteFileEventInLoop(sockfd, AE_READABLE | AE_WRITABLE);
 }
 
