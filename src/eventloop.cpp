@@ -308,7 +308,7 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
     {
         log_warn("already has AE_WRITABLE");
     }
-    log_info("createFileEventInLoop %d %d", sockfd, mask);
+    // log_info("createFileEventInLoop %d %d", sockfd, mask);
     // int ret = aeCreateFileEvent(m_aeloop, sockfd, mask, OnSockEvent, (void *)this);
     int ret = m_mploop.createFileEvent(sockfd, mask, OnSockEvent, (void *)this);
     assert(AE_ERR != ret);
@@ -323,7 +323,7 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
 
 void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
 {
-    log_info("deleteFileEventInLoop %d %d", sockfd, mask);
+    // log_info("deleteFileEventInLoop %d %d", sockfd, mask);
     assert(sockfd > 0);
     assertInLoopThread("deleteFileEventInLoop");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
