@@ -305,10 +305,16 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
     {
         log_warn("already has AE_WRITABLE");
     }
-    // log_info("createFileEventInLoop %d %d", sockfd, mask);
+    log_info("createFileEventInLoop %d %d", sockfd, mask);
     // int ret = aeCreateFileEvent(m_aeloop, sockfd, mask, OnSockEvent, (void *)this);
     int ret = m_mploop.createFileEvent(sockfd, mask, OnSockEvent, (void *)this);
     assert(AE_ERR != ret);
+    auto it = m_fd2listener.find(sockfd);
+    if (it != m_fd2listener.end())
+    {
+        PtrEvtListener l = it->second.lock();
+        assert(l == listener);
+    }
     m_fd2listener[sockfd] = listener;
 }
 
