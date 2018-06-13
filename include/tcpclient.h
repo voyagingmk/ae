@@ -89,7 +89,7 @@ private:
 
   void onDisconnected(const PtrConn &);
 
-  void resetEvtListener();
+  void resetEvtListenerWithLock();
 
   // in order to access private members
   static void OnTcpWritable(EventLoop *eventLoop, const PtrEvtListener &listener, int mask);

@@ -79,15 +79,17 @@ TcpClient::TcpClient(EventLoop *loop) : onTcpConnectFailed(nullptr),
 TcpClient::~TcpClient()
 {
     log_dtor("~TcpClient()");
-    resetEvtListener();
-    PtrConn conn;
-    bool unique = false;
     {
         MutexLockGuard<MutexLock> lock(m_mutex);
-        unique = m_conn.unique();
-        conn = m_conn;
-        m_conn = nullptr;
-        log_debug("conn->use_count() %d", conn.use_count());
+        resetEvtListenerWithLock();
+        PtrConn conn;
+        bool unique = false;
+        {
+            unique = m_conn.unique();
+            conn = m_conn;
+            m_conn = nullptr;
+            log_debug("conn->use_count() %d", conn.use_count());
+        }
     }
     if (conn)
     {
@@ -221,9 +223,9 @@ EventLoop &TcpClient::getLoop()
 
 void TcpClient::onConnected(int sockfd)
 {
-    resetEvtListener();
     m_loop->assertInLoopThread("onConnected");
     MutexLockGuard<MutexLock> lock(m_mutex);
+    resetEvtListenerWithLock();
     m_conn = std::make_shared<TcpConnection>(sockfd);
     m_conn->setEventLoop(m_loop);
     m_conn->setCtrl(shared_from_this());
@@ -252,13 +254,14 @@ void TcpClient::disconnect()
 void TcpClient::asyncConnect(int sockfd)
 {
     m_loop->assertInLoopThread("asyncConnect");
+    MutexLockGuard<MutexLock> lock(m_mutex);
     if (isAsyncConnecting())
     {
         endAsyncConnect();
     }
     log_debug("asyncConnect %d", sockfd);
     m_asyncConnect = true;
-    resetEvtListener();
+    resetEvtListenerWithLock();
     m_evtListener->setSockfd(sockfd);
     m_evtListener->createFileEvent(LOOP_EVT_WRITABLE, OnTcpWritable);
 }
@@ -328,14 +331,16 @@ void TcpClient::reconnectWithDelay(int ms)
 {
     log_info("reconnectWithDelay %d ms", ms);
     m_loop->assertInLoopThread("reconnectWithDelay");
-    resetEvtListener();
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    resetEvtListenerWithLock();
     m_evtListener->createTimer(ms, onReconnectTimeout, nullptr);
 }
 
 void TcpClient::reconnect()
 {
     m_loop->assertInLoopThread("reconnect");
-    resetEvtListener();
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    resetEvtListenerWithLock();
     if (m_reconnectTimes > 0)
     {
         m_reconnectTimes--;
@@ -344,7 +349,7 @@ void TcpClient::reconnect()
     connect(m_sockAddr.getHost(), m_sockAddr.getPort());
 }
 
-void TcpClient::resetEvtListener()
+void TcpClient::resetEvtListenerWithLock()
 {
     if (m_evtListener && m_evtListener->getSockFd())
     {
