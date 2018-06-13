@@ -48,7 +48,7 @@ void checkOpenFileNum(int expectedNum);
                   << "File:" << __FILE__ << " line: " << __LINE__ << std::endl \
                   << " aborting " << std::endl;                                \
         getchar();                                                             \
-        ::abort();                                                             \
+        raise(SIGABRT);                                                        \
     }
 
 }; // namespace wynet
