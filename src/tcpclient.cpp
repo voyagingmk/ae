@@ -108,6 +108,8 @@ TcpClient::~TcpClient()
 
 void TcpClient::connect(const char *host, int port)
 {
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    m_disconnected = true;
     m_loop->runInLoop(std::bind(&TcpClient::connectInLoop, shared_from_this(), host, port));
 }
 
