@@ -106,8 +106,6 @@ class EventLoop : Noncopyable
 
     void createFileEventInLoop(const PtrEvtListener &, int mask);
 
-    void deleteFileEventInLoop(const PtrEvtListener &, int mask);
-
     void deleteFileEventInLoop(SockFd fd, int mask);
 
     void deleteAllFileEventInLoop(SockFd fd);

@@ -261,22 +261,23 @@ void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
 
 void EventLoop::deleteFileEvent(PtrEvtListener listener, int mask)
 {
+    SockFd sockfd = listener->getSockFd();
     runInLoop([&]() {
-        deleteFileEventInLoop(listener, mask);
+        deleteFileEventInLoop(sockfd, mask);
     });
 }
 
-void EventLoop::deleteFileEvent(SockFd fd, int mask)
+void EventLoop::deleteFileEvent(SockFd sockfd, int mask)
 {
     runInLoop([&]() {
-        deleteFileEventInLoop(fd, mask);
+        deleteFileEventInLoop(sockfd, mask);
     });
 }
 
-void EventLoop::deleteAllFileEvent(SockFd fd)
+void EventLoop::deleteAllFileEvent(SockFd sockfd)
 {
     runInLoop([&]() {
-        deleteAllFileEventInLoop(fd);
+        deleteAllFileEventInLoop(sockfd);
     });
 }
 
@@ -316,13 +317,6 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
         assert(l == listener);
     }
     m_fd2listener[sockfd] = listener;
-}
-
-void EventLoop ::deleteFileEventInLoop(const PtrEvtListener &listener, int mask)
-{
-    SockFd sockfd = listener->getSockFd();
-    // deleteFileEvent(sockfd, mask);
-    m_mploop.deleteFileEvent(sockfd, mask);
 }
 
 void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
