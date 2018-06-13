@@ -44,7 +44,7 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     PtrEvtListener listener = wkListener.lock();
     if (!listener)
     {
-        log_error("aeOnFileEventt no listener %d", sockfd);
+        log_error("OnSockEvent no listener %d", sockfd);
         loop->m_fd2listener.erase(loop->m_fd2listener.find(sockfd));
         return;
     }

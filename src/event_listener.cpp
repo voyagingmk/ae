@@ -11,6 +11,7 @@ EventListener::EventListener() : m_loop(nullptr),
 
 EventListener::~EventListener()
 {
+    assert(m_mask == 0);
 }
 
 bool EventListener::hasFileEvent(int mask)
