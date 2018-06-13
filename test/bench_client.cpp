@@ -172,11 +172,14 @@ class TestClient
         // log_info("[connected] numConnected %d, sockfd: %d", num, conn->sockfd());
         conn->setUserData(num);
         m_numConnected++;
-        if (m_shutdown)
         {
-            auto tcpClient = conn->getCtrlAsClient();
-            tcpClient->disconnect();
-            return;
+            MutexLockGuard<MutexLock> lock(m_mutex);
+            if (m_shutdown)
+            {
+                auto tcpClient = conn->getCtrlAsClient();
+                tcpClient->disconnect();
+                return;
+            }
         }
         conn->send(m_message);
         conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
