@@ -80,7 +80,7 @@ void TcpConnection ::shutdown()
 
 void TcpConnection ::shutdownInLoop()
 {
-    log_info("[conn] shutdownInLoop %d", sockfd());
+    // log_info("[conn] shutdownInLoop %d", sockfd());
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
         getLoop()->assertInLoopThread("shutdownInLoop");

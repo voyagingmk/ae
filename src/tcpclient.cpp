@@ -244,13 +244,11 @@ PtrConn TcpClient::getConn()
 
 void TcpClient::disconnect()
 {
-    log_info("TcpClient::disconnect");
     MutexLockGuard<MutexLock> lock(m_mutex);
     setReconnectTimes(0);
     endAsyncConnectWithLock();
     if (m_conn)
     {
-        log_info(" m_conn->shutdown()");
         m_conn->shutdown();
     }
     m_disconnected = true;
