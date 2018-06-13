@@ -278,6 +278,7 @@ void EventLoop::deleteFileEvent(SockFd sockfd, int mask)
 
 void EventLoop::deleteAllFileEvent(SockFd sockfd)
 {
+    assert(sockfd > 0);
     runInLoop([&]() {
         deleteAllFileEventInLoop(sockfd);
     });
