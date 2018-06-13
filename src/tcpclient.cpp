@@ -82,7 +82,6 @@ TcpClient::~TcpClient()
     PtrConn conn;
     MutexLockGuard<MutexLock> lock(m_mutex);
     cleanEvtListenerWithLock();
-    PtrConn conn;
     bool unique = false;
     {
         unique = m_conn.unique();
