@@ -325,7 +325,7 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
 
 void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
 {
-    assert(sockfd > 0);
+    assert_with_abort(sockfd > 0);
     assertInLoopThread("deleteFileEventInLoop");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
     int setsize = m_mploop.getSetSize();
