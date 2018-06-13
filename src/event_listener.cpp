@@ -21,11 +21,13 @@ bool EventListener::hasFileEvent(int mask)
 
 void EventListener::deleteAllFileEvent()
 {
-    if (m_loop && m_sockfd)
+    int sockfd = m_sockfd;
+    if (m_loop && sockfd)
     {
         m_mask = 0;
+        assert(sockfd > 0);
         // log_info("deleteAllFileEvent %d", m_sockfd);
-        m_loop->deleteAllFileEvent(m_sockfd);
+        m_loop->deleteAllFileEvent(sockfd);
     }
     else
     {
