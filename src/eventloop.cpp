@@ -262,6 +262,7 @@ void EventLoop::createFileEvent(PtrEvtListener listener, int mask)
 void EventLoop::deleteFileEvent(PtrEvtListener listener, int mask)
 {
     SockFd sockfd = listener->getSockFd();
+    assert(sockfd > 0);
     runInLoop([&]() {
         deleteFileEventInLoop(sockfd, mask);
     });
