@@ -71,11 +71,8 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
 
 void TcpConnection ::shutdown()
 {
-    static std::atomic<int> num;
-    int n = ++num;
     if (m_state == State::Connected)
     {
-        log_info("shutdown %d", n);
         m_state = State::Disconnecting;
         getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
     }
@@ -95,9 +92,6 @@ void TcpConnection ::shutdownInLoop()
         // shutdown WR only if not writing, in order to send out pendingBuf
         if (!m_shutdownWrite && !m_evtListener->hasFileEvent(MP_WRITABLE))
         {
-            static std::atomic<int> num;
-            int n = ++num;
-            log_info("shutdownInLoop %d", n);
             assert(m_pendingSendBuf.readableSize() == 0);
             if (::shutdown(sockfd(), SHUT_WR) < 0)
             {
@@ -108,6 +102,7 @@ void TcpConnection ::shutdownInLoop()
                 log_debug("shutdown SHUT_WR");
             }
             m_shutdownWrite = true;
+            assert(m_evtListener->hasFileEvent(MP_READABLE));
         }
     }
     else
