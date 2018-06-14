@@ -75,7 +75,7 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
 
 void TcpConnection ::shutdown()
 {
-    if (m_state == State::Connected)
+    if (m_state == State::Connected || m_state == State::Disconnecting)
     {
         m_state = State::Disconnecting;
         getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
