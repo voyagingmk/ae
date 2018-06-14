@@ -71,8 +71,11 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
 
 void TcpConnection ::shutdown()
 {
+    static std::atomic<int> num;
+    int n = ++num;
     if (m_state == State::Connected)
     {
+        log_info("shutdown %d", n);
         m_state = State::Disconnecting;
         getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
     }
@@ -88,6 +91,9 @@ void TcpConnection ::shutdownInLoop()
     // log_info("[conn] shutdownInLoop %d", sockfd());
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
+        static std::atomic<int> num;
+        int n = ++num;
+        log_info("shutdownInLoop %d", n);
         getLoop()->assertInLoopThread("shutdownInLoop");
         // shutdown WR only if not writing, in order to send out pendingBuf
         if (!m_shutdownWrite && !m_evtListener->hasFileEvent(MP_WRITABLE))
@@ -159,12 +165,9 @@ void TcpConnection::setCloseCallback(const OnTcpClose &cb)
     onTcpClose = cb;
 }
 
-static std::atomic<int> numDestroyed;
-
 void TcpConnection::onDestroy()
 {
-    int num = ++numDestroyed;
-    log_info("[conn] onDestroy %d", num);
+    // log_info("[conn] onDestroy");
     getLoop()->assertInLoopThread("onDestroy");
     if (m_state == State::Disconnected)
     {
