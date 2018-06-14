@@ -164,7 +164,7 @@ static std::atomic<int> numDestroyed;
 void TcpConnection::onDestroy()
 {
     int num = ++numDestroyed;
-    log_info("[conn] onDestroy", num);
+    log_info("[conn] onDestroy %d", num);
     getLoop()->assertInLoopThread("onDestroy");
     if (m_state == State::Disconnected)
     {
