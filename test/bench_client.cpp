@@ -85,6 +85,7 @@ class TestClient
         int numDisconnected = 0;
         int numDisconnecting = 0;
         int numNoConn = 0;
+        int sdw = 0;
 
         {
             MutexLockGuard<MutexLock> lock(m_mutex);
@@ -105,6 +106,10 @@ class TestClient
                         numDisconnecting++;
                         break;
                     }
+                    if (conn->hasShutdownWrite())
+                    {
+                        sdw++;
+                    }
                 }
                 else
                 {
@@ -114,11 +119,12 @@ class TestClient
         }
         log_info("took %d ms", ms);
         log_info("[atomic] connected: %d", (int)m_numConnected);
-        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d",
+        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d",
                  numConnected,
                  numDisconnected,
                  numDisconnecting,
-                 numNoConn);
+                 numNoConn,
+                 sdw);
         log_info("total bytes read: %lld", bytesRead);
         log_info("total messages read: %lld", messagesRead);
         log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));

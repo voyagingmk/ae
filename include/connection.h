@@ -202,6 +202,8 @@ class TcpConnection final : public Noncopyable, public std::enable_shared_from_t
 
     void shutdown();
 
+    bool hasShutdownWrite() { return m_shutdownWrite; }
+
     void forceClose();
 
     void send(const uint8_t *data, const size_t len);
