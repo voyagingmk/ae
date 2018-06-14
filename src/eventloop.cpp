@@ -127,7 +127,7 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
                                                                m_mploop(defaultSetsize),
                                                                m_ownEvtListener(new EventListener()),
                                                                m_wakeupInterval(wakeupInterval),
-                                                               m_forceStopTime(10000),
+                                                               m_forceStopTime(60 * 1000),
                                                                m_doingTask(false),
                                                                m_stopping(false)
 {
