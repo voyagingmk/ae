@@ -213,9 +213,12 @@ void TcpConnection::onDestroy()
 void TcpConnection::onEstablished()
 {
     getLoop()->assertInLoopThread("onEstablished");
-    assert(m_state == State::Connecting);
+    // assert(m_state == State::Connecting);
     log_debug("[conn] establish in thread: %s", CurrentThread::name());
-    m_state = State::Connected;
+    if (!m_state.compare_exchange_strong(State::Connecting, State::Connected))
+    {
+        log_fatal("onEstablished");
+    }
     m_evtListener->setTcpConnection(shared_from_this());
     m_evtListener->createFileEvent(MP_READABLE, TcpConnection::OnConnectionEvent);
     if (onTcpConnected)
