@@ -91,13 +91,13 @@ void TcpConnection ::shutdownInLoop()
     // log_info("[conn] shutdownInLoop %d", sockfd());
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
-        static std::atomic<int> num;
-        int n = ++num;
-        log_info("shutdownInLoop %d", n);
         getLoop()->assertInLoopThread("shutdownInLoop");
         // shutdown WR only if not writing, in order to send out pendingBuf
         if (!m_shutdownWrite && !m_evtListener->hasFileEvent(MP_WRITABLE))
         {
+            static std::atomic<int> num;
+            int n = ++num;
+            log_info("shutdownInLoop %d", n);
             assert(m_pendingSendBuf.readableSize() == 0);
             if (::shutdown(sockfd(), SHUT_WR) < 0)
             {
@@ -376,6 +376,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
                 }
                 if (m_state == State::Disconnecting)
                 {
+                    m_evtListener->deleteFileEvent(MP_WRITABLE);
                     shutdownInLoop();
                 }
             }
