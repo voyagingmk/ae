@@ -151,34 +151,7 @@ void TcpConnection ::close(const char *reason)
 void TcpConnection ::closeInLoop()
 {
     getLoop()->assertInLoopThread("closeInLoop");
-    if (m_state == State::Disconnected)
-    {
-        return;
-    }
-    // log_info("[conn] closeInLoop %d, thread: %s", sockfd(), CurrentThread::name());
-    m_state = State::Disconnected;
-    // Todo linger
-    m_evtListener->deleteAllFileEvent();
-    m_evtListener = nullptr;
-    PtrConn self(shared_from_this());
-    if (m_ctrlType == 1)
-    {
-        PtrTcpServer tcpServer = getCtrlAsServer();
-        if (tcpServer)
-        {
-            tcpServer->onDisconnected(self);
-        }
-    }
-    else if (m_ctrlType == 2)
-    {
-        PtrTcpClient tcpClient = getCtrlAsClient();
-        if (tcpClient)
-        {
-            tcpClient->onDisconnected(self);
-        }
-    }
-    if (onTcpClose)
-        onTcpClose(self);
+    onDestroy();
 }
 
 void TcpConnection::setCloseCallback(const OnTcpClose &cb)
@@ -186,28 +159,32 @@ void TcpConnection::setCloseCallback(const OnTcpClose &cb)
     onTcpClose = cb;
 }
 
+static std::atomic<int> numDestroyed;
+
 void TcpConnection::onDestroy()
 {
-    log_debug("[conn] onDestroy");
+    int num = ++numDestroyed;
+    log_info("[conn] onDestroy", num);
     getLoop()->assertInLoopThread("onDestroy");
-    if (m_state == State::Connected)
+    if (m_state == State::Disconnected)
     {
-        m_state = State::Disconnected;
-        m_evtListener->deleteAllFileEvent();
-        m_evtListener = nullptr;
-        log_debug("[conn] m_state = State::Disconnected");
-        PtrConn self(shared_from_this());
-        if (m_ctrlType == 1)
-        {
-            getCtrlAsServer()->onDisconnected(self);
-        }
-        else if (m_ctrlType == 2)
-        {
-            getCtrlAsClient()->onDisconnected(self);
-        }
-        if (onTcpClose)
-            onTcpClose(self);
+        return;
     }
+    m_state = State::Disconnected;
+    m_evtListener->deleteAllFileEvent();
+    m_evtListener = nullptr;
+    log_debug("[conn] m_state = State::Disconnected");
+    PtrConn self(shared_from_this());
+    if (m_ctrlType == 1)
+    {
+        getCtrlAsServer()->onDisconnected(self);
+    }
+    else if (m_ctrlType == 2)
+    {
+        getCtrlAsClient()->onDisconnected(self);
+    }
+    if (onTcpClose)
+        onTcpClose(self);
 }
 
 void TcpConnection::onEstablished()
