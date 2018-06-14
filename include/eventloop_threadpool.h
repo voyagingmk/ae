@@ -22,7 +22,7 @@ class EventLoopThreadPool : Noncopyable
 
     void start(const ThreadInitCallback &cb = {});
 
-    void stopAndJoinAll();
+    bool stopAndJoinAll(int ms);
 
     // must after calling start()
     EventLoop *getNextLoop();

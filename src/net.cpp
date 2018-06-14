@@ -3,6 +3,7 @@
 
 namespace wynet
 {
+using namespace std::placeholders;
 
 PeerManager::PeerManager()
 {
@@ -55,9 +56,29 @@ void WyNet::stopLoop()
 
 void WyNet::stopAllLoop()
 {
-    log_info("stopAllLoop()");
-    m_threadPool.stopAndJoinAll();
-    m_loop.stopSafely();
+    if (!stopAllLoopWithTimeout(1000))
+    {
+        static PtrEvtListener listener = EventListener::create();
+        m_loop.createTimer(listener, 1000, std::bind(&WyNet::onStopAgain, this, _1, _2, _3, _4), nullptr);
+        return;
+    }
+    log_info("======= stopAllLoop ok =======");
+}
+
+bool WyNet::stopAllLoopWithTimeout(int ms)
+{
+    if (m_threadPool.stopAndJoinAll(ms))
+    {
+        m_loop.stopSafely();
+        return true;
+    }
+    return false;
+}
+
+int WyNet::onStopAgain(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
+{
+    stopAllLoop();
+    return MP_HALT;
 }
 
 void WyNet::startLoop()

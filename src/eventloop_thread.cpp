@@ -20,15 +20,15 @@ EventLoopThread::~EventLoopThread()
     log_dtor("~EventLoopThread()");
 }
 
-void EventLoopThread::stopAndJoin()
+void EventLoopThread::stopAndJoin(int ms)
 {
     log_info("EventLoopThread::stopAndJoin");
     m_exiting = true;
-    if (m_loop != NULL)
+    if (m_loop != nullptr)
     {
         m_loop->stopSafely();
         log_info("m_thread.join");
-        m_thread.join();
+        m_thread.join(ms);
         log_info("m_thread.join end");
     }
 }

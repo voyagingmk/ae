@@ -5,7 +5,8 @@ namespace wynet
 {
 
 EventListener::EventListener() : m_loop(nullptr),
-                                 m_sockfd(0)
+                                 m_sockfd(0),
+                                 m_mask(0)
 {
 }
 

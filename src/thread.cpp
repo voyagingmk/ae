@@ -14,6 +14,56 @@ namespace wynet
 {
 using namespace std;
 
+#if defined(__APPLE__)
+extern "C"
+{
+    struct Args
+    {
+        int joined;
+        pthread_t td;
+        pthread_mutex_t mtx;
+        pthread_cond_t cond;
+        void **res;
+    };
+
+    static void *waiter(void *ap)
+    {
+        Args *args = (Args *)ap;
+        pthread_join(args->td, args->res);
+        pthread_mutex_lock(&args->mtx);
+        args->joined = 1;
+        pthread_mutex_unlock(&args->mtx);
+        pthread_cond_signal(&args->cond);
+        return 0;
+    }
+    int pthread_timedjoin_np(pthread_t td, void **res, struct timespec *ts)
+    {
+        pthread_t tmp;
+        int ret;
+        struct Args args = {.td = td, .res = res};
+
+        pthread_mutex_init(&args.mtx, 0);
+        pthread_cond_init(&args.cond, 0);
+        pthread_mutex_lock(&args.mtx);
+
+        ret = pthread_create(&tmp, 0, waiter, &args);
+        do
+            ret = pthread_cond_timedwait(&args.cond, &args.mtx, ts);
+        while (!args.joined && ret != ETIMEDOUT);
+
+        pthread_mutex_unlock(&args.mtx);
+
+        pthread_cancel(tmp);
+        pthread_join(tmp, 0);
+
+        pthread_cond_destroy(&args.cond);
+        pthread_mutex_destroy(&args.mtx);
+
+        return args.joined ? 0 : ret;
+    }
+};
+#endif
+
 ///////////////////////////////////////////
 
 struct ThreadData
@@ -152,6 +202,16 @@ void Thread::start()
         m_latch.wait();
         assert(m_tid > 0);
     }
+}
+
+int Thread::join(int ms)
+{
+    assert(m_started);
+    m_joined = true;
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_nsec += ms * 1000 * 1000;
+    return pthread_timedjoin_np(m_pthreadId, NULL, &ts);
 }
 
 int Thread::join()

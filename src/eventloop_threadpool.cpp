@@ -20,18 +20,27 @@ EventLoopThreadPool::~EventLoopThreadPool()
     log_dtor("~EventLoopThreadPool()");
 }
 
-void EventLoopThreadPool::stopAndJoinAll()
+bool EventLoopThreadPool::stopAndJoinAll(int ms)
 {
     log_info("EventLoopThreadPool::stopAndJoinAll");
-    if (m_stopped)
-    {
-        return;
-    }
     m_stopped = true;
     for (auto it = m_threads.begin(); it != m_threads.end(); it++)
     {
-        (*it)->stopAndJoin();
+        const std::shared_ptr<EventLoopThread> &p = *it;
+        if (p->hasLoop())
+        {
+            p->stopAndJoin(ms);
+        }
     }
+    for (auto it = m_threads.begin(); it != m_threads.end(); it++)
+    {
+        const std::shared_ptr<EventLoopThread> &p = *it;
+        if (p->hasLoop())
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 void EventLoopThreadPool::setThreadNum(int threadNum)

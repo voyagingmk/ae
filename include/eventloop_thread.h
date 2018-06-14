@@ -21,7 +21,9 @@ public:
 
   ~EventLoopThread();
 
-  void stopAndJoin();
+  bool hasLoop() { return m_loop != nullptr; }
+
+  void stopAndJoin(int ms);
 
   EventLoop *startLoop();
 

@@ -67,6 +67,11 @@ public:
   }
 
 private:
+  bool stopAllLoopWithTimeout(int ms);
+
+  int onStopAgain(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data);
+
+private:
   EventLoop m_loop;
   EventLoopThreadPool m_threadPool;
   PeerManager m_peerMgr;

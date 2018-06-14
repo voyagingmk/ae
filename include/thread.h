@@ -23,6 +23,8 @@ public:
 
   int join();
 
+  int join(int ms);
+
   bool isStarted() const { return m_started; }
 
   pid_t tid() const { return m_tid; }
