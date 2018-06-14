@@ -51,7 +51,7 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
     PtrConn conn = l->getTcpConnection();
     if (!conn)
     {
-        log_debug("[conn] no conn");
+        log_fatal("[conn] no conn");
         return;
     }
     assert(conn->m_evtListener == listener);
@@ -61,10 +61,14 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
         conn->onWritable();
     }
     // 可读事件可能会把连接关了，要后处理
-    if ((mask & MP_READABLE) && conn->m_evtListener->hasFileEvent(MP_READABLE))
+    else if ((mask & MP_READABLE) && conn->m_evtListener->hasFileEvent(MP_READABLE))
     {
         log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
         conn->onReadable();
+    }
+    else
+    {
+        log_fatal("OnConnectionEvent");
     }
     // m_evtListener->createTimer(1000, testOnTimerEvent, nullptr);
 }
@@ -206,6 +210,7 @@ void TcpConnection::onReadable()
     getLoop()->assertInLoopThread("onReadable");
     if (m_state == State::Disconnected)
     {
+        log_fatal("onReadable Disconnected");
         return;
     }
     SockBuffer &sockBuf = sockBuffer();
