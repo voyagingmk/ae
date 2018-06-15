@@ -15,6 +15,12 @@ ConnectionManager::~ConnectionManager()
     removeAllConnection();
 }
 
+std::map<UniqID, PtrConn> ConnectionManager::getAllConnection()
+{
+    MutexLockGuard<MutexLock> lock(m_mutex);
+    return m_connDict;
+}
+
 bool ConnectionManager::addConnection(const PtrConn &conn)
 {
     refConnection(conn);

@@ -26,6 +26,8 @@ public:
 
   void removeAllConnection();
 
+  std::map<UniqID, PtrConn> getAllConnection();
+
   PtrConn getConncetion(UniqID connectId);
 
 protected:

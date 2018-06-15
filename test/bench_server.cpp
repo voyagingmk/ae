@@ -9,7 +9,8 @@ class TestServer
   public:
     TestServer(WyNet *net, const char *ip, int port) : m_net(net),
                                                        m_numClient(0),
-                                                       m_numConnected(0)
+                                                       m_numConnected(0),
+                                                       m_evtListener(EventListener::create())
     {
         PtrServer server = Server::create(net);
         m_server = server;
@@ -21,6 +22,61 @@ class TestServer
         m_tcpServer = tcpServer;
 
         net->getPeerManager().addServer(server);
+
+        m_evtListener->setEventLoop(&m_net->getLoop());
+        m_evtListener->createTimer(10 * 1000, std::bind(&TestClient::onStat, this, _1, _2, _3, _4), nullptr);
+    }
+
+    int onStat(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
+    {
+        log_info("======== onStat ========");
+        logStat();
+        return 10 * 1000;
+    }
+
+    void logStat()
+    {
+        auto conns = m_tcpServer->getConnMgr()->getAllConnection();
+        int numConnected = 0;
+        int numDisconnected = 0;
+        int numDisconnecting = 0;
+        int numNoConn = 0;
+        int sdw = 0;
+        {
+            for (auto it = conns.begin(); it != conns.end(); it++)
+            {
+                const PtrConn &conn = it.second;
+                if (conn)
+                {
+                    switch (conn->getState())
+                    {
+                    case TcpConnection::State::Connected:
+                        numConnected++;
+                        break;
+                    case TcpConnection::State::Disconnected:
+                        numDisconnected++;
+                        break;
+                    case TcpConnection::State::Disconnecting:
+                        numDisconnecting++;
+                        break;
+                    }
+                    if (conn->hasShutdownWrite())
+                    {
+                        sdw++;
+                    }
+                }
+                else
+                {
+                    numNoConn++;
+                }
+            }
+        }
+        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d",
+                 numConnected,
+                 numDisconnected,
+                 numDisconnecting,
+                 numNoConn,
+                 sdw);
     }
 
     void terminate()
@@ -77,6 +133,7 @@ class TestServer
     std::atomic_int m_numConnected;
     PtrTcpServer m_tcpServer;
     std::atomic_int m_numClient;
+    PtrEvtListener m_evtListener;
 };
 
 WyNet *g_net;
