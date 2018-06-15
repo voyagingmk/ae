@@ -55,18 +55,22 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
         return;
     }
     assert(conn->m_evtListener == listener);
+    bool handled = false;
     if ((mask & MP_WRITABLE) && conn->m_evtListener->hasFileEvent(MP_WRITABLE))
     {
+        handled = true;
         log_debug("[conn] onWritable sockfd=%d", conn->sockfd());
         conn->onWritable();
     }
     // 可读事件可能会把连接关了，要后处理
-    else if ((mask & MP_READABLE) && conn->m_evtListener->hasFileEvent(MP_READABLE))
+    if ((mask & MP_READABLE) && conn->m_evtListener->hasFileEvent(MP_READABLE))
     {
+        handled = true;
         log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
         conn->onReadable();
     }
-    else
+
+    if (!handled)
     {
         log_fatal("OnConnectionEvent");
     }
