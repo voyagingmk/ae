@@ -6,6 +6,7 @@
 #include "sockbase.h"
 #include "connection.h"
 #include "event_listener.h"
+#include "connection_manager.h"
 
 namespace wynet
 {

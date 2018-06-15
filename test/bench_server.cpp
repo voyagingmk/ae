@@ -8,9 +8,12 @@ class TestServer
 
   public:
     TestServer(WyNet *net, const char *ip, int port) : m_net(net),
-                                                       m_numClient(0),
+                                                       m_server(nullptr),
                                                        m_numConnected(0),
+                                                       m_tcpServer(nullptr),
+                                                       m_numClient(0),
                                                        m_evtListener(EventListener::create())
+
     {
         PtrServer server = Server::create(net);
         m_server = server;
@@ -24,7 +27,7 @@ class TestServer
         net->getPeerManager().addServer(server);
 
         m_evtListener->setEventLoop(&m_net->getLoop());
-        m_evtListener->createTimer(10 * 1000, std::bind(&TestClient::onStat, this, _1, _2, _3, _4), nullptr);
+        m_evtListener->createTimer(10 * 1000, std::bind(&TestServer::onStat, this, _1, _2, _3, _4), nullptr);
     }
 
     int onStat(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
@@ -45,7 +48,7 @@ class TestServer
         {
             for (auto it = conns.begin(); it != conns.end(); it++)
             {
-                const PtrConn &conn = it.second;
+                const PtrConn &conn = it->second;
                 if (conn)
                 {
                     switch (conn->getState())
