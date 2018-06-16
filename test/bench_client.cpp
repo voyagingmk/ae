@@ -54,7 +54,7 @@ class TestClient
     void shutdownAll()
     {
         std::default_random_engine generator;
-        std::uniform_int_distribution<int> distribution(0, 5000);
+        std::uniform_int_distribution<int> distribution(0, 20 * 1000);
         MutexLockGuard<MutexLock> lock(m_mutex);
         m_shutdown = true;
         for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
