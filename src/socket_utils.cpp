@@ -242,14 +242,14 @@ void setTcpKeepAlive(SockFd sockfd, bool enabled)
 
 void setTcpKeepInterval(SockFd sockfd, int seconds)
 {
-    sock_setsockopt(sockfd, SOL_SOCKET, TCP_KEEPINTVL,
+    sock_setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPINTVL,
                     &seconds, static_cast<socklen_t>(sizeof seconds));
 }
 
 void setTcpKeepIdle(SockFd sockfd, int seconds)
 {
 #ifdef __linux__
-    sock_setsockopt(sockfd, SOL_SOCKET, TCP_KEEPIDLE,
+    sock_setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE,
                     &seconds, static_cast<socklen_t>(sizeof seconds));
 #endif
 }
@@ -257,7 +257,7 @@ void setTcpKeepIdle(SockFd sockfd, int seconds)
 void setTcpKeepCount(SockFd sockfd, int c)
 {
 #ifdef __linux__
-    sock_setsockopt(sockfd, SOL_SOCKET, TCP_KEEPCNT,
+    sock_setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPCNT,
                     &c, static_cast<socklen_t>(sizeof c));
 #endif
 }
