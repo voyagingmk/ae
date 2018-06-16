@@ -64,7 +64,7 @@ class TestClient
             const PtrTcpClient &tcpClient = *it;
             int delay = distribution(generator);
             tcpClient->getLoop().createTimer(
-                m_evtListener, 2 * 1000 * (i % 10),
+                m_evtListener, 2 * 1000 * (i % 15),
                 [=](EventLoop *, TimerRef tr, PtrEvtListener listener, void *data) -> int {
                     tcpClient->disconnect();
                     return MP_HALT;
