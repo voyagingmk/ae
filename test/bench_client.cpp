@@ -90,8 +90,12 @@ class TestClient
         int evtW = 0;
         int evtRW = 0;
         {
-            MutexLockGuard<MutexLock> lock(m_mutex);
-            for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
+
+            {
+                MutexLockGuard<MutexLock> lock(m_mutex);
+                std::set<PtrTcpClient> tcpClients = m_tcpClients;
+            }
+            for (auto it = tcpClients.begin(); it != tcpClients.end(); it++)
             {
                 PtrConn conn = (*it)->getConn();
                 if (conn)
