@@ -410,4 +410,28 @@ void MpEventLoop::setAfterSleepProc(MpBeforeSleepProc aftersleep)
     m_aftersleep = aftersleep;
 }
 
+void MpEventLoop::debugInfo()
+{
+    int rw = 0;
+    int r = 0;
+    int w = 0;
+    for (int fd = 0; fd < m_events.size(); fd++)
+    {
+        MpFileEvent *fe = &m_events[fd];
+        if ((fe->mask & MP_READABLE) && (fe->mask & MP_WRITABLE))
+        {
+            rw++;
+        }
+        else if ((fe->mask & MP_READABLE))
+        {
+            r++;
+        }
+        else if ((fe->mask & MP_WRITABLE))
+        {
+            w++;
+        }
+    }
+    log_info("MpEventLoop rw %d r %d w %d", rw, r, w);
+}
+
 }; // namespace wynet

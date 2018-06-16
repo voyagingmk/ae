@@ -119,6 +119,8 @@ class MpEventLoop
 
     inline std::vector<MpFiredEvent> &getFiredEvents() { return m_fired; }
 
+    void debugInfo();
+
   private:
     int processTimeEvents();
 
