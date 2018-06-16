@@ -119,6 +119,10 @@ class TestServer
         int i = ++m_numClient;
         conn->setUserData(i);
         log_debug("[test.OnTcpConnected] sockfd %d", conn->sockfd());
+        socketUtils::setTcpKeepAlive(conn->sockfd(), true);
+        socketUtils::setTcpKeepInterval(conn->sockfd(), 5);
+        socketUtils::setTcpKeepIdle(conn->sockfd(), 60);
+        socketUtils::setTcpKeepCount(conn->sockfd(), 3);
         conn->setCallBack_SendComplete(std::bind(&TestServer::OnTcpSendComplete, this, _1));
         conn->getCtrlAsServer()->addConnection(conn);
         socketUtils::setTcpNoDelay(conn->sockfd(), true);

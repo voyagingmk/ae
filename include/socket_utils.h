@@ -44,6 +44,12 @@ extern int setTcpNonBlock(SockFd sockfd);
 
 extern void setTcpKeepAlive(SockFd sockfd, bool enabled);
 
+extern void setTcpKeepInterval(SockFd sockfd, int seconds);
+
+extern void setTcpKeepIdle(SockFd sockfd, int seconds);
+
+extern void setTcpKeepCount(SockFd sockfd, int c);
+
 extern int SetSockSendBufSize(SockFd sockfd, int newSndBuf, bool force = false);
 
 extern int SetSockRecvBufSize(SockFd sockfd, int newRcvBuf, bool force = false);
