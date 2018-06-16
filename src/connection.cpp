@@ -370,6 +370,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
                 log_debug("[conn] remain > 0 sockfd %d", sockfd());
+                assert(!m_shutdownWrite);
                 m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
