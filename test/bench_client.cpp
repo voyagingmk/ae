@@ -60,8 +60,10 @@ class TestClient
         for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
         {
             const PtrTcpClient &tcpClient = *it;
+            int delay = distribution(generator);
+            log_info("delay dis %d", delay);
             tcpClient->getLoop().createTimer(
-                m_evtListener, distribution(generator),
+                m_evtListener, delay,
                 [=](EventLoop *, TimerRef tr, PtrEvtListener listener, void *data) -> int {
                     tcpClient->disconnect();
                     return MP_HALT;
@@ -72,7 +74,6 @@ class TestClient
 
     int onStat(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
-        log_info("======== onStat ========");
         logStat();
         return 10 * 1000;
     }
@@ -149,7 +150,7 @@ class TestClient
                 }
             }
         }
-        log_info("took %d ms", ms);
+        log_info("======== onStat ========\ntook %d ms", ms);
         log_info("[atomic] connected: %d", (int)m_numConnected);
         log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d, <%d,%d,%d>",
                  numConnected,

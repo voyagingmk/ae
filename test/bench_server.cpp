@@ -32,7 +32,6 @@ class TestServer
 
     int onStat(EventLoop *, TimerRef tr, PtrEvtListener listener, void *data)
     {
-        log_info("======== onStat ========");
         logStat();
         return 10 * 1000;
     }
@@ -94,7 +93,7 @@ class TestServer
                 }
             }
         }
-        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d <%d,%d,%d>",
+        log_info("======== onStat ======== \n [count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d <%d,%d,%d>",
                  numConnected,
                  numDisconnected,
                  numDisconnecting,
