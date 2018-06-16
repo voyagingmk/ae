@@ -91,9 +91,10 @@ class TestClient
         int evtRW = 0;
         {
 
+            std::set<PtrTcpClient> tcpClients;
             {
                 MutexLockGuard<MutexLock> lock(m_mutex);
-                std::set<PtrTcpClient> tcpClients = m_tcpClients;
+                tcpClients = m_tcpClients;
             }
             for (auto it = tcpClients.begin(); it != tcpClients.end(); it++)
             {
