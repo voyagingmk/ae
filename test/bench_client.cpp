@@ -58,6 +58,13 @@ class TestClient
         for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
         {
             const PtrTcpClient &tcpClient = *it;
+            tcpClient->getLoop().createTimer(
+                m_evtListener, 1000,
+                [](EventLoop *, TimerRef tr, PtrEvtListener listener, void *data) -> int {
+                    log_info("delay 1000");
+                    return MP_HALT;
+                },
+                nullptr);
             tcpClient->disconnect();
         }
     }
