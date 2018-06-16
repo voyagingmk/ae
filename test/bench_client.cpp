@@ -86,7 +86,9 @@ class TestClient
         int numDisconnecting = 0;
         int numNoConn = 0;
         int sdw = 0;
-
+        int evtR = 0;
+        int evtW = 0;
+        int evtRW = 0;
         {
             MutexLockGuard<MutexLock> lock(m_mutex);
             for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
@@ -110,6 +112,20 @@ class TestClient
                     {
                         sdw++;
                     }
+                    const PtrConnEvtListener &l = conn->getListener();
+                    int mask = l->getFileEventMask();
+                    if (mask & (MP_READABLE | MP_WRITABLE))
+                    {
+                        evtRW++;
+                    }
+                    else if (mask & MP_READABLE)
+                    {
+                        evtR++;
+                    }
+                    else if (mask & MP_WRITABLE)
+                    {
+                        evtR++;
+                    }
                 }
                 else
                 {
@@ -119,12 +135,12 @@ class TestClient
         }
         log_info("took %d ms", ms);
         log_info("[atomic] connected: %d", (int)m_numConnected);
-        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d",
+        log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d, <%d,%d,%d>",
                  numConnected,
                  numDisconnected,
                  numDisconnecting,
                  numNoConn,
-                 sdw);
+                 sdw, evtRW, evtR, evtR);
         log_info("total bytes read: %lld", bytesRead);
         log_info("total messages read: %lld", messagesRead);
         log_info("average message size: %lld", static_cast<int64_t>(static_cast<double>(bytesRead) / static_cast<double>(messagesRead)));
