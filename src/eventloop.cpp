@@ -23,7 +23,7 @@ int ForceStop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 
 int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
-    log_info("loop, queueSize = %d, d2listener.size = %d", loop->queueSize(), m_fd2listener.size());
+    log_info("loop, queueSize = %d, d2listener.size = %d", loop->queueSize(), loop->m_fd2listener.size());
     return 3000;
 }
 

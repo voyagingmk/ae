@@ -121,6 +121,8 @@ class EventLoop : Noncopyable
 
     friend int OnTimerEventTimeout(MpEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
 
+    friend int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data);
+
     friend class EventListener;
 
   private:
