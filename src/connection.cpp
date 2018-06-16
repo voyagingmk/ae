@@ -289,6 +289,7 @@ void TcpConnection::onWritable()
         log_fatal("TcpConnection::onWritable after shutdownWrite");
         return;
     }
+    assert(!m_shutdownWrite);
     int nwrote = ::write(sockfd(), m_pendingSendBuf.readBegin(), remain);
     log_debug("[conn] onWritable, remain:%d, nwrote:%d", remain, nwrote);
     if (nwrote > 0)
@@ -360,6 +361,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
     else
     {
         // write directly
+        assert(!m_shutdownWrite);
         int nwrote = ::write(sockfd(), data, len);
         log_debug("[conn] sendInLoop send nwrote: %d", nwrote);
         if (nwrote > 0)
@@ -370,7 +372,6 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
                 log_debug("[conn] remain > 0 sockfd %d", sockfd());
-                assert(!m_shutdownWrite);
                 m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
