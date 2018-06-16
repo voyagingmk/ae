@@ -54,16 +54,17 @@ class TestClient
     void shutdownAll()
     {
         std::default_random_engine generator;
-        std::uniform_int_distribution<int> distribution(0, 20 * 1000);
+        std::uniform_int_distribution<int> distribution(0, 60 * 1000);
         MutexLockGuard<MutexLock> lock(m_mutex);
         m_shutdown = true;
+        int i = 0;
         for (auto it = m_tcpClients.begin(); it != m_tcpClients.end(); it++)
         {
+            i++;
             const PtrTcpClient &tcpClient = *it;
             int delay = distribution(generator);
-            log_info("delay dis %d", delay);
             tcpClient->getLoop().createTimer(
-                m_evtListener, delay,
+                m_evtListener, 2 * 1000 * (i % 10),
                 [=](EventLoop *, TimerRef tr, PtrEvtListener listener, void *data) -> int {
                     tcpClient->disconnect();
                     return MP_HALT;
