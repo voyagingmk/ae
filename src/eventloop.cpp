@@ -23,7 +23,7 @@ int ForceStop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 
 int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
-    log_info("loop, queueSize = %d", loop->queueSize());
+    log_info("loop, queueSize = %d, d2listener.size = %d", loop->queueSize(), m_fd2listener.size());
     return 3000;
 }
 
@@ -37,7 +37,7 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     EventLoop *loop = (EventLoop *)(clientData);
     if (loop->m_fd2listener.find(sockfd) == loop->m_fd2listener.end())
     {
-        log_error("OnSockEvent no wkListener sockfd:%d, m_fd2listener.size(): %d",
+        log_fatal("OnSockEvent no wkListener sockfd:%d, m_fd2listener.size(): %d",
                   sockfd, loop->m_fd2listener.size());
         return;
     }
@@ -45,7 +45,7 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     PtrEvtListener listener = wkListener.lock();
     if (!listener)
     {
-        // log_error("OnSockEvent no listener %d", sockfd);
+        log_fatal("OnSockEvent no listener %d", sockfd);
         // maybe deleteFileEvent job is in queue (async)
         loop->deleteFileEventInLoop(sockfd, MP_READABLE | MP_WRITABLE);
         return;
@@ -172,7 +172,7 @@ void EventLoop::loop()
     assertInLoopThread("loop");
     m_aeloop->stop = 0;
     AeTimerId aeTimerId = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
-    // AeTimerId aeTimerIdStat = createTimerInLoop(m_ownEvtListener, 3000, StatEventLoop, nullptr);
+    AeTimerId aeTimerIdStat = createTimerInLoop(m_ownEvtListener, 10 * 1000, StatEventLoop, nullptr);
     while (!m_aeloop->stop)
     {
         // log_info("loop---1");
@@ -206,7 +206,7 @@ void EventLoop::loop()
     log_info("loop exited");
     processTaskQueue();
     deleteTimerInLoop(aeTimerId);
-    // deleteTimerInLoop(aeTimerIdStat);
+    deleteTimerInLoop(aeTimerIdStat);
 }
 
 void EventLoop::stopSafely()
