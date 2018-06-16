@@ -126,18 +126,21 @@ class TestClient
                         sdw++;
                     }
                     const PtrConnEvtListener &l = conn->getListener();
-                    int mask = l->getFileEventMask();
-                    if (mask & (MP_READABLE | MP_WRITABLE))
+                    if (l)
                     {
-                        evtRW++;
-                    }
-                    else if (mask & MP_READABLE)
-                    {
-                        evtR++;
-                    }
-                    else if (mask & MP_WRITABLE)
-                    {
-                        evtR++;
+                        int mask = l->getFileEventMask();
+                        if (mask & (MP_READABLE | MP_WRITABLE))
+                        {
+                            evtRW++;
+                        }
+                        else if (mask & MP_READABLE)
+                        {
+                            evtR++;
+                        }
+                        else if (mask & MP_WRITABLE)
+                        {
+                            evtR++;
+                        }
                     }
                 }
                 else
