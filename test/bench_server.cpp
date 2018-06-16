@@ -127,7 +127,7 @@ class TestServer
     void OnTcpDisconnected(const PtrConn &conn)
     {
         int num = --m_numConnected;
-        log_info("numConnected %d", num);
+        // log_info("numConnected %d", num);
         conn->getCtrlAsServer()->removeConnection(conn);
     }
 
