@@ -245,12 +245,16 @@ class TestClient
 
     void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
     {
+
         size_t bytes = sockBuf.readableSize();
-        log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", bytes);
-        conn->send(sockBuf.readBegin(), bytes);
-        int i = conn->getUserData();
-        m_bytesRead[i] += bytes;
-        ++m_messagesRead[i];
+        if (!m_shutdown)
+        {
+            log_debug("[test.OnTcpRecvMessage] readableSize=%d, readOutSize=%d", bytes);
+            conn->send(sockBuf.readBegin(), bytes);
+            int i = conn->getUserData();
+            m_bytesRead[i] += bytes;
+            ++m_messagesRead[i];
+        }
         sockBuf.readOut(bytes);
     }
 
