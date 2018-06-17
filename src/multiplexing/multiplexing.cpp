@@ -222,6 +222,10 @@ int MpEventLoop::processTimeEvents()
         {
             teListTimeout.push_back(te);
         }
+        else
+        {
+            break;
+        }
     }
     for (auto it = teListTimeout.begin(); it != teListTimeout.end(); it++)
     {
