@@ -164,8 +164,8 @@ void TcpClient::connectInLoop(const char *host, int port)
         do
         {
             socketUtils::setTcpNonBlock(sockfd);
-            // socketUtils::SetSockRecvBufSize(sockfd, 32 * 1024);
-            // socketUtils::SetSockSendBufSize(sockfd, 32 * 1024);
+            socketUtils::SetSockRecvBufSize(sockfd, 64 * 1024);
+            socketUtils::SetSockSendBufSize(sockfd, 64 * 1024);
             ret = ::connect(sockfd, res->ai_addr, res->ai_addrlen);
             log_debug("tcpclient.connect, ret = %d, errno = %s", ret, strerror(errno));
             if (ret == -1)
