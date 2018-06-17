@@ -85,10 +85,9 @@ void TcpConnection ::shutdown()
         const PtrConn &conn = shared_from_this();
         getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, conn));
     }
-    else
+    else if (m_state == State::Connecting)
     {
-        State tmp = m_state;
-        log_fatal("TcpConnection shutdown m_state: %d", static_cast<int>(tmp));
+        log_fatal("TcpConnection shutdown m_state = Connecting");
     }
 }
 
