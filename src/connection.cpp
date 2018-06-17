@@ -48,6 +48,11 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
     log_debug("[conn] OnConnectionEvent");
     assert(listener->hasFileEvent(mask));
     PtrConnEvtListener l = std::static_pointer_cast<TcpConnectionEventListener>(listener);
+    if (!l)
+    {
+        log_fatal("[conn] no l");
+        return;
+    }
     PtrConn conn = l->getTcpConnection();
     if (!conn)
     {
@@ -56,14 +61,14 @@ void TcpConnection::OnConnectionEvent(EventLoop *eventLoop, const PtrEvtListener
     }
     assert(conn->m_evtListener == listener);
     bool handled = false;
-    if ((mask & MP_WRITABLE) && conn->m_evtListener->hasFileEvent(MP_WRITABLE))
+    if ((mask & MP_WRITABLE) && listener->hasFileEvent(MP_WRITABLE))
     {
         handled = true;
         log_debug("[conn] onWritable sockfd=%d", conn->sockfd());
         conn->onWritable();
     }
     // 可读事件可能会把连接关了，要后处理
-    if ((mask & MP_READABLE) && conn->m_evtListener->hasFileEvent(MP_READABLE))
+    if ((mask & MP_READABLE) && listener->hasFileEvent(MP_READABLE))
     {
         handled = true;
         log_debug("[conn] onReadable sockfd=%d", conn->sockfd());
