@@ -82,7 +82,8 @@ void TcpConnection ::shutdown()
     if (m_state == State::Connected || m_state == State::Disconnecting)
     {
         m_state = State::Disconnecting;
-        getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, shared_from_this()));
+        const PtrConn &conn = shared_from_this();
+        getLoop()->runInLoop(std::bind(&TcpConnection::shutdownInLoop, conn));
     }
     else
     {
