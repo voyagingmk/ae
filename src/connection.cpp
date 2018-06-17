@@ -103,7 +103,7 @@ void TcpConnection ::shutdownInLoop()
             assert(m_pendingSendBuf.readableSize() == 0);
             if (::shutdown(sockfd(), SHUT_WR) < 0)
             {
-                log_fatal("shutdown SHUT_WR failed %d %s", errno, strerror(errno));
+                log_error("shutdown SHUT_WR failed %d %s", errno, strerror(errno));
             }
             else
             {
