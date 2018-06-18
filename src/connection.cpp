@@ -373,6 +373,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
         // write directly
         assert(!m_shutdownWrite);
         int nwrote = ::write(sockfd(), data, len);
+        log_info("write1 %d %d", len, nwrote);
         log_debug("[conn] sendInLoop send nwrote: %d", nwrote);
         if (nwrote > 0)
         {
