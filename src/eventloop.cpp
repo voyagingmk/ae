@@ -164,8 +164,8 @@ EventLoop::~EventLoop()
     aeDeleteEventLoop(m_aeloop);
     m_aeloop = nullptr;
     t_threadLoop = nullptr;
-    assert(m_taskFuncQueue.size() == 0);
-    assert(m_fd2listener.size() == 0);
+    //  assert(m_taskFuncQueue.size() == 0);
+    // assert(m_fd2listener.size() == 0);
 }
 
 void EventLoop::loop()
