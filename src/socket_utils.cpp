@@ -279,9 +279,8 @@ int SetSockSendBufSize(int sockfd, int newSndBuf, bool force)
             return 0;
         }
     }
-    return setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (void *)&newSndBuf, sizeof(int));
     log_info("socket_utils.SetSockSendBufSize %d, %d", sockfd, newSndBuf);
-    return 0;
+    return setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (void *)&newSndBuf, sizeof(int));
 }
 
 int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force)
@@ -301,9 +300,8 @@ int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force)
             return 0;
         }
     }
-    return setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (void *)&newRcvBuf, sizeof(int));
     log_info("socket_utils.SetSockRecvBufSize %d, %d", sockfd, newRcvBuf);
-    return 0;
+    return setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (void *)&newRcvBuf, sizeof(int));
 }
 
 #ifdef DEBUG_MODE
