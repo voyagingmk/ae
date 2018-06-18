@@ -271,6 +271,7 @@ int SetSockSendBufSize(int sockfd, int newSndBuf, bool force)
         sock_getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
         if (sndbuf > newSndBuf)
         {
+            log_error("SetSockSendBufSize, sndbuf = %d, newSndBuf = %d", sndbuf, newSndBuf);
             return -1;
         }
         if (sndbuf == newSndBuf)
@@ -290,13 +291,19 @@ int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force)
         int rcvbuf = 0;
         socklen_t len = sizeof(rcvbuf);
         sock_getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &len);
-        if (rcvbuf >= newRcvBuf)
+        if (rcvbuf > newRcvBuf)
         {
+            log_error("SetSockRecvBufSize, rcvbuf = %d, newRcvBuf = %d", rcvbuf, newRcvBuf);
             return -1;
+        }
+        if (rcvbuf == newRcvBuf)
+        {
+            return 0;
         }
     }
     return setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (void *)&newRcvBuf, sizeof(int));
     log_debug("socket_utils.SetSockRecvBufSize %d, %d", sockfd, newRcvBuf);
+    return 0;
 }
 
 #ifdef DEBUG_MODE
