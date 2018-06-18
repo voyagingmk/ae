@@ -296,6 +296,7 @@ void TcpConnection::onWritable()
     }
     assert(!m_shutdownWrite);
     int nwrote = ::write(sockfd(), m_pendingSendBuf.readBegin(), remain);
+    log_info("write2 %d", len);
     log_debug("[conn] onWritable, remain:%d, nwrote:%d", remain, nwrote);
     if (nwrote > 0)
     {
@@ -372,6 +373,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
         // write directly
         assert(!m_shutdownWrite);
         int nwrote = ::write(sockfd(), data, len);
+        log_info("write1 %d", len);
         log_debug("[conn] sendInLoop send nwrote: %d", nwrote);
         if (nwrote > 0)
         {
