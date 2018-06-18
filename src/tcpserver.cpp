@@ -115,7 +115,7 @@ void TcpServer::startListen(const char *host, int port)
 	}
 	else
 	{
-		int ret = socketUtils::SetSockRecvBufSize(listenfd, 64 * 1024);
+		int ret = socketUtils::SetSockRecvBufSize(listenfd, 256 * 1024);
 		ret |= socketUtils::SetSockSendBufSize(listenfd, 64 * 1024);
 		assert(ret == 0);
 		socketUtils::sock_listen(listenfd, LISTENQUEUEMAX);
