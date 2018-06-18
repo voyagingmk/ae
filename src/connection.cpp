@@ -323,6 +323,10 @@ void TcpConnection::onWritable()
         // has unknown error or has closed
         close("writeError");
     }
+    else
+    {
+        log_fatal("write 0 bytes");
+    }
 }
 
 void TcpConnection::send(const uint8_t *data, const size_t len)
