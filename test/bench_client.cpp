@@ -220,7 +220,7 @@ class TestClient
             }
         }
         conn->send(m_message);
-        conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
+        // conn->getListener()->createTimer(m_timeout, std::bind(&TestClient::onTimeout, this, _1, _2, _3, _4), nullptr);
     }
 
     void OnTcpDisconnected(const PtrConn &conn)
