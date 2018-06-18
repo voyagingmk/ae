@@ -269,13 +269,18 @@ int SetSockSendBufSize(int sockfd, int newSndBuf, bool force)
         int sndbuf = 0;
         socklen_t len = sizeof(sndbuf);
         sock_getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
-        if (sndbuf >= newSndBuf)
+        if (sndbuf > newSndBuf)
         {
             return -1;
+        }
+        if (sndbuf == newSndBuf)
+        {
+            return 0;
         }
     }
     return setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (void *)&newSndBuf, sizeof(int));
     log_debug("socket_utils.SetSockSendBufSize %d, %d", sockfd, newSndBuf);
+    return 0;
 }
 
 int SetSockRecvBufSize(int sockfd, int newRcvBuf, bool force)
