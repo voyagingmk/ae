@@ -320,7 +320,7 @@ void TcpConnection::onWritable()
         {
             return;
         }
-        log_error("[conn] onWritable send error: %d", errno);
+        log_error("[conn] onWritable send error: %d %s", errno, strerror(errno));
         // has unknown error or has closed
         close("writeError");
     }
