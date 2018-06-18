@@ -92,8 +92,8 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
     if (retval > 0)
     {
         int j;
-
         numevents = retval;
+        log_info("numevents %d", numevents);
         for (j = 0; j < numevents; j++)
         {
             int mask = 0;
