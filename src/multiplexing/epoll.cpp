@@ -113,7 +113,10 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
     }
     else if (retval < 0)
     {
-        log_fatal("epoll_wait errno %d %s", errno, strerror(errno));
+        if (errno != EINTR)
+        {
+            log_fatal("epoll_wait errno %d %s", errno, strerror(errno));
+        }
     }
     return numevents;
 }
