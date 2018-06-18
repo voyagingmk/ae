@@ -288,6 +288,7 @@ void TcpConnection::onWritable()
             m_evtListener->deleteFileEvent(MP_WRITABLE);
         }
         log_error("TcpConnection::onWritable remain <= 0 %d", remain);
+        return;
     }
     if (m_shutdownWrite)
     {
@@ -296,7 +297,7 @@ void TcpConnection::onWritable()
     }
     assert(!m_shutdownWrite);
     int nwrote = ::write(sockfd(), m_pendingSendBuf.readBegin(), remain);
-    log_info("write2 %d %d", remain, nwrote);
+    // log_info("write2 %d %d", remain, nwrote);
     log_debug("[conn] onWritable, remain:%d, nwrote:%d", remain, nwrote);
     if (nwrote > 0)
     {
@@ -373,7 +374,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
         // write directly
         assert(!m_shutdownWrite);
         int nwrote = ::write(sockfd(), data, len);
-        log_info("write1 %d %d", len, nwrote);
+        //   log_info("write1 %d %d", len, nwrote);
         log_debug("[conn] sendInLoop send nwrote: %d", nwrote);
         if (nwrote > 0)
         {
