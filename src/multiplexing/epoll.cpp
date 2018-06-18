@@ -93,16 +93,23 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
     {
         int j;
         numevents = retval;
-        log_info("numevents %d", numevents);
+        int r = 0;
+        int w = 0;
         for (j = 0; j < numevents; j++)
         {
             int mask = 0;
             struct epoll_event *ee = &state->events[j];
 
             if (ee->events & EPOLLIN)
+            {
+                r++;
                 mask |= MP_READABLE;
+            }
             if (ee->events & EPOLLOUT)
+            {
+                w++;
                 mask |= MP_WRITABLE;
+            }
             //if (ee->events & EPOLLERR)
             //    mask |= MP_WRITABLE;
             //if (ee->events & EPOLLHUP)
@@ -110,6 +117,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             eventLoop->getFiredEvents()[j].fd = ee->data.fd;
             eventLoop->getFiredEvents()[j].mask = mask;
         }
+        log_info("numevents %d r w %d %d", numevents, r, w);
     }
     else if (retval < 0)
     {
