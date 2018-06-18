@@ -111,6 +111,10 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             eventLoop->getFiredEvents()[j].mask = mask;
         }
     }
+    else if (retvcal < 0)
+    {
+        log_fatal("epoll_wait errno %d %s", errno, strerror(errno));
+    }
     return numevents;
 }
 
