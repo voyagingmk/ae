@@ -320,6 +320,7 @@ void TcpConnection::onWritable()
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
+            m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
             return;
         }
         log_error("[conn] onWritable send error: %d %s", errno, strerror(errno));
