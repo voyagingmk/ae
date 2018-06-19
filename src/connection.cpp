@@ -286,7 +286,8 @@ void TcpConnection::onWritable()
         {
             m_evtListener->deleteFileEvent(MP_WRITABLE);
         }
-        log_error("TcpConnection::onWritable remain <= 0 %d", remain);
+        // TODO
+        // log_error("TcpConnection::onWritable remain <= 0 %d", remain);
         return;
     }
     if (m_shutdownWrite)
