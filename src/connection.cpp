@@ -105,7 +105,6 @@ void TcpConnection ::shutdownInLoop()
         // shutdown WR only if not writing, in order to send out pendingBuf
         if (!m_shutdownWrite && !m_evtListener->hasFileEvent(MP_WRITABLE))
         {
-            assert(m_pendingSendBuf.readableSize() == 0);
             if (::shutdown(sockfd(), SHUT_WR) < 0)
             {
                 log_error("shutdown SHUT_WR failed %d %s", errno, strerror(errno));
@@ -302,8 +301,9 @@ void TcpConnection::onWritable()
     if (nwrote > 0)
     {
         m_pendingSendBuf.readOut(nwrote);
-        if (m_pendingSendBuf.readableSize() == 0)
+        if (nwrote >= remain)
         {
+            assert(m_pendingSendBuf.readableSize() == 0);
             m_evtListener->deleteFileEvent(MP_WRITABLE);
             if (onTcpSendComplete)
             {
