@@ -320,7 +320,7 @@ void TcpConnection::onWritable()
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
-            m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
+            log_error("[conn] onWritable EAGAIN");
             return;
         }
         log_error("[conn] onWritable send error: %d %s", errno, strerror(errno));
@@ -386,6 +386,7 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
             {
                 m_pendingSendBuf.append(data + nwrote, remain);
                 log_debug("[conn] remain > 0 sockfd %d", sockfd());
+                m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
             }
             else
             {

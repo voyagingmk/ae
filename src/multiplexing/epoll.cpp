@@ -30,7 +30,7 @@ static int MpApiResize(MpEventLoop *eventLoop, int setsize)
     {
         return -1;
     }
-    state->events.resize(setsize);
+    state->events.resize(setsize, 0);
     return 0;
 }
 
