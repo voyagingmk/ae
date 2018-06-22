@@ -26,12 +26,12 @@ int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *d
     log_info("loop, taskqueue = %d listener = %d timer = %d",
              loop->queueSize(), loop->m_fd2listener.size(),
              loop->m_aeTimerId2ref.size());
-    loop->m_mploop.debugInfo();
+    // loop->m_mploop.debugInfo();
     return 10 * 1000;
 }
 
-void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, int mask)
-// void OnSockEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
+// void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, int mask)
+void OnSockEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
     assert(sockfd > 0);
     log_debug("file evt %d %s %s", sockfd,
@@ -76,8 +76,8 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     }
 }
 
-int OnTimerEventTimeout(struct MpEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
-// int OnTimerEventTimeout(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
+// int OnTimerEventTimeout(struct MpEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
+int OnTimerEventTimeout(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
     int err = 0;
@@ -128,7 +128,7 @@ int OnTimerEventTimeout(struct MpEventLoop *eventLoop, AeTimerId aeTimerId, void
 }
 
 EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(CurrentThread::tid()),
-                                                               m_mploop(defaultSetsize),
+                                                               // m_mploop(defaultSetsize),
                                                                m_ownEvtListener(new EventListener()),
                                                                m_wakeupInterval(wakeupInterval),
                                                                m_forceStopTime(60 * 1000),
@@ -136,7 +136,7 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
                                                                m_stopping(false)
 {
     log_ctor("EventLoop()");
-    log_info("multiplexing:%s", m_mploop.getApiName());
+    //  log_info("multiplexing:%s", m_mploop.getApiName());
     if (t_threadLoop)
     {
         log_fatal("Create 2 EventLoop For 1 thread?");
@@ -186,8 +186,8 @@ void EventLoop::loop()
         {
             log_timemeasure("processEvents");
             // log_info("loop---2");
-            // aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
-            m_mploop.processEvents(AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
+            aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
+            // m_mploop.processEvents(AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
         }
         {
             log_timemeasure("processTaskQueue");
@@ -237,7 +237,7 @@ void EventLoop::stopInLoop()
     if (!m_aeloop->stop)
     {
         aeStop(m_aeloop);
-        m_mploop.stop();
+        // m_mploop.stop();
         log_info("EventLoop stop2");
     }
 }
@@ -245,16 +245,16 @@ void EventLoop::stopInLoop()
 int EventLoop::getFileEvent(SockFd sockfd)
 {
     assertInLoopThread("hasFileEvent");
-    // return aeGetFileEvents(m_aeloop, sockfd);
-    return m_mploop.getFileEvents(sockfd);
+    return aeGetFileEvents(m_aeloop, sockfd);
+    // return m_mploop.getFileEvents(sockfd);
 }
 
 bool EventLoop::hasFileEvent(SockFd sockfd, int mask)
 {
     assertInLoopThread("hasFileEvent");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
-    // int oldMask = aeGetFileEvents(m_aeloop, sockfd);
-    int oldMask = m_mploop.getFileEvents(sockfd);
+    int oldMask = aeGetFileEvents(m_aeloop, sockfd);
+    // int oldMask = m_mploop.getFileEvents(sockfd);
     return (oldMask & mask);
 }
 
@@ -292,8 +292,8 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
 {
     assertInLoopThread("createFileEventInLoop");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
-    // int setsize = aeGetSetSize(m_aeloop);
-    int setsize = m_mploop.getSetSize();
+    int setsize = aeGetSetSize(m_aeloop);
+    // int setsize = m_mploop.getSetSize();
     SockFd sockfd = listener->getSockFd();
     if (sockfd >= setsize)
     {
@@ -301,9 +301,9 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
         {
             setsize = setsize << 1;
         }
-        // assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize));
+        assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize));
         log_info("setsize %d", setsize);
-        assert(AE_ERR != m_mploop.resizeSetSize(setsize));
+        // assert(AE_ERR != m_mploop.resizeSetSize(setsize));
     }
     int oldMask = getFileEvent(sockfd);
     if ((oldMask & AE_READABLE) && (mask & AE_READABLE))
@@ -315,8 +315,8 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
         log_warn("already has AE_WRITABLE");
     }
     // log_info("createFileEventInLoop %d %d", sockfd, mask);
-    // int ret = aeCreateFileEvent(m_aeloop, sockfd, mask, OnSockEvent, (void *)this);
-    int ret = m_mploop.createFileEvent(sockfd, mask, OnSockEvent, (void *)this);
+    int ret = aeCreateFileEvent(m_aeloop, sockfd, mask, OnSockEvent, (void *)this);
+    // int ret = m_mploop.createFileEvent(sockfd, mask, OnSockEvent, (void *)this);
     assert(AE_ERR != ret);
     auto it = m_fd2listener.find(sockfd);
     if (it != m_fd2listener.end())
@@ -333,13 +333,14 @@ void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
     assert(sockfd > 0);
     assertInLoopThread("deleteFileEventInLoop");
     assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
+    /*
     int setsize = m_mploop.getSetSize();
     if (sockfd >= setsize)
     {
         log_warn("deleteFileEventInLoop sockfd >= setsize  %d %d\n", sockfd, setsize);
-    }
-    // aeDeleteFileEvent(m_aeloop, sockfd, mask);
-    int ret = m_mploop.deleteFileEvent(sockfd, mask);
+    }*/
+    aeDeleteFileEvent(m_aeloop, sockfd, mask);
+    //  int ret = m_mploop.deleteFileEvent(sockfd, mask);
     assert(AE_ERR != ret);
     if (!getFileEvent(sockfd) && m_fd2listener.find(sockfd) != m_fd2listener.end())
     {
@@ -392,7 +393,7 @@ void EventLoop ::deleteTimerInLoop(TimerRef tr)
         m_timerData.erase(tr);
         m_aeTimerId2ref.erase(aeTimerId);
         aeDeleteTimeEvent(m_aeloop, aeTimerId);
-        m_mploop.deleteTimeEvent(aeTimerId);
+        //  m_mploop.deleteTimeEvent(aeTimerId);
     }
 }
 
@@ -406,8 +407,8 @@ AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, TimerRef tr, in
 {
     assertInLoopThread("createTimerInLoop");
     // log_debug("createTimerInLoop ms %d", ms);
-    // AeTimerId aeTimerId = aeCreateTimeEvent(m_aeloop, ms, OnTimerEventTimeout, (void *)this, NULL);
-    AeTimerId aeTimerId = m_mploop.createTimeEvent(ms, OnTimerEventTimeout, (void *)this, NULL);
+    AeTimerId aeTimerId = aeCreateTimeEvent(m_aeloop, ms, OnTimerEventTimeout, (void *)this, NULL);
+    //  AeTimerId aeTimerId = m_mploop.createTimeEvent(ms, OnTimerEventTimeout, (void *)this, NULL);
     assert(AE_ERR != aeTimerId);
     assert(m_timerData.find(tr) == m_timerData.end());
     m_timerData[tr] = {onTimerEvent, listener, data, aeTimerId};

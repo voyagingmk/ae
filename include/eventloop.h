@@ -128,7 +128,7 @@ class EventLoop : Noncopyable
   private:
     const pid_t m_threadId;
     aeEventLoop *m_aeloop;
-    MpEventLoop m_mploop;
+    // MpEventLoop m_mploop;
     PtrEvtListener m_ownEvtListener;
     std::map<SockFd, WeakPtrEvtListener> m_fd2listener;
     std::map<TimerRef, TimerData> m_timerData;
