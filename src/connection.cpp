@@ -374,41 +374,47 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
     }
     // write directly
     assert(!m_shutdownWrite);
-    int nwrote = ::write(sockfd(), data, len);
-    //   log_info("write1 %d %d", len, nwrote);
-    log_debug("[conn] sendInLoop send nwrote: %d", nwrote);
-    if (nwrote > 0)
+    int nwrote = 0;
+    int err = 0;
+    while (nwrote < len)
     {
-        int remain = len - nwrote;
-        log_debug("[conn] sendInLoop sockfd %d, len:%d, nwrote:%d, remain:%d", sockfd(), len, nwrote, remain);
-        if (remain > 0)
+        int ret = ::write(sockfd(), data, len);
+        if (ret == -1)
         {
-            m_pendingSendBuf.append(data + nwrote, remain);
-            log_debug("[conn] remain > 0 sockfd %d", sockfd());
-            // 加这行就会卡死
-            // m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
+            err = errno;
+            break;
         }
-        else
+        nwrote += ret;
+    }
+    int remain = len - nwrote;
+    log_debug("[conn] sendInLoop sockfd %d, len:%d, nwrote:%d, remain:%d", sockfd(), len, nwrote, remain);
+    if (remain > 0)
+    {
+        m_pendingSendBuf.append(data + nwrote, remain);
+        log_debug("[conn] remain > 0 sockfd %d", sockfd());
+        // 加这行就会卡死
+        // m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
+    }
+    else
+    {
+        if (onTcpSendComplete)
         {
-            if (onTcpSendComplete)
-            {
-                getLoop()->runInLoop(std::bind(onTcpSendComplete, shared_from_this()));
-            }
-            if (m_state == State::Disconnecting)
-            {
-                m_evtListener->deleteFileEvent(MP_WRITABLE);
-                shutdownInLoop();
-            }
+            getLoop()->runInLoop(std::bind(onTcpSendComplete, shared_from_this()));
+        }
+        if (m_state == State::Disconnecting)
+        {
+            m_evtListener->deleteFileEvent(MP_WRITABLE);
+            shutdownInLoop();
         }
     }
-    else if (nwrote == -1)
+    if (err)
     {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        if (err == EAGAIN || err == EWOULDBLOCK)
         {
             m_evtListener->createFileEvent(MP_WRITABLE, TcpConnection::OnConnectionEvent);
             return;
         }
-        log_error("[conn] sendInLoop send error: %d", errno);
+        log_error("[conn] sendInLoop send error: %d", err);
         // has unknown error or has closed
         close("writeError");
     }
