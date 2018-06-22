@@ -87,7 +87,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
     int retval, numevents = 0;
 
-    retval = epoll_wait(state->epfd, &state->events[0], eventLoop->getSetSize(),
+    retval = epoll_wait(state->epfd, &state->events[0], state->events.size(),
                         tvp ? (tvp->tv_sec * 1000 + tvp->tv_usec / 1000) : -1);
     if (retval > 0)
     {
