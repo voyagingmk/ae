@@ -350,16 +350,23 @@ int MpEventLoop::processEvents(int flags)
             void *clientData = fe->clientData;
             bool fired = false;
 
-            if (fe_mask & mask & MP_READABLE)
+            if ((fe_mask & mask) & MP_READABLE)
             {
                 fired = true;
-                rfileProc(this, fd, clientData, mask);
+                rfileProc(this, fd, clientData, MP_READABLE);
             }
-            if (fe_mask & mask & MP_WRITABLE)
+            if ((fe_mask & mask) & MP_WRITABLE)
             {
                 // if (!fired || wfileProc != rfileProc)
                 if (!fired)
-                    wfileProc(this, fd, clientData, mask);
+                {
+                    fired = true;
+                    wfileProc(this, fd, clientData, MP_WRITABLE);
+                }
+            }
+            if (!fired)
+            {
+                log_fatal("no fired");
             }
             processed++;
         }
