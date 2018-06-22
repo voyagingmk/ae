@@ -66,6 +66,10 @@ struct Compare
 
 struct MpFiredEvent
 {
+    MpFiredEvent() : fd(0),
+                     mask(0)
+    {
+    }
     int fd;
     int mask;
 };
