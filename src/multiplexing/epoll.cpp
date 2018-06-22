@@ -128,7 +128,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             MpFiredEvent &evt = eventLoop->getFiredEvents()[j];
             evt.fd = ee->data.fd;
             evt.mask = mask;
-            MpFileEvent &fe = eventLoop->getEvents()[fd];
+            MpFileEvent &fe = eventLoop->getEvents()[evt.fd];
             assert((fe.mask & mask) > 0);
         }
         // log_info("numevents %d r w %d %d", numevents, r, w);
