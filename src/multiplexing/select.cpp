@@ -67,7 +67,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
     {
         for (fd = 0; fd <= eventLoop->getMaxFd(); fd++)
         {
-            int mask = 0;
+            int mask = MP_NO_MASK;
             MpFileEvent *fe = &eventLoop->getEvents()[fd];
             if (fe->mask == MP_NO_MASK)
                 continue;
@@ -75,7 +75,8 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
                 mask |= MP_READABLE;
             if ((fe->mask & MP_WRITABLE) && FD_ISSET(fd, &state->_wfds))
                 mask |= MP_WRITABLE;
-            assert(mask > 0);
+            if (mask == MP_NO_MASK)
+                continue;
             eventLoop->getFiredEvents()[numevents].fd = fd;
             eventLoop->getFiredEvents()[numevents].mask = mask;
             numevents++;
