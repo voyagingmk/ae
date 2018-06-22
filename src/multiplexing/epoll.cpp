@@ -12,7 +12,7 @@ static int MpApiCreate(MpEventLoop *eventLoop)
     MpApiState *state = new MpApiState;
     if (!state)
         return -1;
-    state->events.resize(eventLoop->getSetSize());
+    state->events.resize(eventLoop->getSetSize(), {0});
     state->epfd = epoll_create1(0);
     if (state->epfd == -1)
     {
@@ -30,7 +30,7 @@ static int MpApiResize(MpEventLoop *eventLoop, int setsize)
     {
         return -1;
     }
-    state->events.resize(setsize, 0);
+    state->events.resize(setsize, {0});
     return 0;
 }
 
