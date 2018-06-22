@@ -341,7 +341,7 @@ void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
     }*/
     aeDeleteFileEvent(m_aeloop, sockfd, mask);
     //  int ret = m_mploop.deleteFileEvent(sockfd, mask);
-    assert(AE_ERR != ret);
+    //   assert(AE_ERR != ret);
     if (!getFileEvent(sockfd) && m_fd2listener.find(sockfd) != m_fd2listener.end())
     {
         m_fd2listener.erase(sockfd);
