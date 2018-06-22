@@ -378,10 +378,14 @@ void TcpConnection::sendInLoop(const uint8_t *data, const size_t len)
     int err = 0;
     while (nwrote < len)
     {
-        int ret = ::write(sockfd(), data, len);
+        int ret = ::write(sockfd(), data + nwrote, len - nwrote);
         if (ret == -1)
         {
             err = errno;
+            break;
+        }
+        if (ret == 0)
+        {
             break;
         }
         nwrote += ret;
