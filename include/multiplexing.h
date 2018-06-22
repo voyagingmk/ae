@@ -84,6 +84,8 @@ class MpEventLoop
 
     void stop();
 
+    bool isStopped();
+
     int resizeSetSize(int setsize);
 
     int createFileEvent(int fd, int mask,

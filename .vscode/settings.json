@@ -71,7 +71,9 @@
         "strstream": "cpp",
         "cstdarg": "cpp",
         "cfenv": "cpp",
-        "__tuple": "cpp"
+        "__tuple": "cpp",
+        "__hash_table": "cpp",
+        "unordered_map": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
