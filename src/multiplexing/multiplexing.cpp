@@ -366,7 +366,9 @@ int MpEventLoop::processEvents(int flags)
             }
             if (!fired)
             {
-                log_fatal("no fired, fd: %d, fe->mask: %d, fired mask:%d", fd, fe_mask, mask);
+                log_fatal("no fired, fd: %d, fe->mask: %d, fired mask:%d j:%d, numevents:%d",
+                          fd, fe_mask, mask,
+                          j, numevents);
             }
             processed++;
         }
