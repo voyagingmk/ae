@@ -40,6 +40,7 @@ void EventListener::createFileEvent(int mask, OnFileEvent onFileEvent)
 {
     if (m_loop && m_sockfd)
     {
+        m_loop->assertInLoopThread("createFileEvent");
         // log_info("createFileEvent %d", m_sockfd);
         m_mask = m_mask | mask;
         m_onFileEvent = onFileEvent;
@@ -55,6 +56,7 @@ void EventListener::deleteFileEvent(int mask)
 {
     if (m_loop && m_sockfd)
     {
+        m_loop->assertInLoopThread("deleteFileEvent");
         m_mask = m_mask & (~mask);
         m_loop->deleteFileEvent(getSockFd(), mask);
     }
