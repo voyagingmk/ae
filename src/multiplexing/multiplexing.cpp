@@ -30,7 +30,7 @@ MpEventLoop::MpEventLoop(int setsize)
     m_lastTime = time(nullptr);
     m_teNextId = 0;
     m_teNearest = nullptr;
-    m_stop = 0;
+    m_stop = false;
     m_maxfd = -1;
     m_beforesleep = nullptr;
     m_aftersleep = nullptr;
@@ -61,7 +61,7 @@ MpEventLoop::~MpEventLoop()
 
 void MpEventLoop::stop()
 {
-    m_stop = 1;
+    m_stop = true;
 }
 
 int MpEventLoop::createFileEvent(int fd, int mask,

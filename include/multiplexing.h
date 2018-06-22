@@ -84,7 +84,7 @@ class MpEventLoop
 
     void stop();
 
-    bool isStopped();
+    bool isStopped() { return m_stop; }
 
     int resizeSetSize(int setsize);
 
@@ -140,7 +140,7 @@ class MpEventLoop
     std::vector<MpFileEvent> m_events;
     std::vector<MpFiredEvent> m_fired;
     MpTimeEventPtr m_teNearest;
-    int m_stop;
+    bool m_stop;
     void *m_apidata;
     std::multiset<MpTimeEventPtr, Compare> m_teSet;
     std::vector<MpTimeEventPtr> m_teListDeleted;
