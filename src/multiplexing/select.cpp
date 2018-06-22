@@ -42,7 +42,7 @@ static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
     return 0;
 }
 
-static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int mask)
+static int MpApiDelEvent(MpEventLoop *eventLoop, int fd, int mask)
 {
     MpApiState *state = (MpApiState *)eventLoop->getApiData();
 
@@ -50,6 +50,7 @@ static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int mask)
         FD_CLR(fd, &state->rfds);
     if (mask & MP_WRITABLE)
         FD_CLR(fd, &state->wfds);
+    return 0;
 }
 
 static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)

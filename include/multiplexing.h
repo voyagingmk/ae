@@ -89,7 +89,7 @@ class MpEventLoop
     int createFileEvent(int fd, int mask,
                         MpFileProc proc, void *clientData);
 
-    void deleteFileEvent(int fd, int mask);
+    int deleteFileEvent(int fd, int mask);
 
     int getFileEvents(int fd);
 

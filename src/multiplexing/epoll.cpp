@@ -46,10 +46,11 @@ static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
 {
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
     struct epoll_event ee = {0};
-    int op = eventLoop->getEvents()[fd].mask == MP_NO_MASK ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+    MpFileEvent &fe = eventLoop->getEvents()[fd];
+    int op = fe.mask == MP_NO_MASK ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
     ee.events = 0;
-    mask |= eventLoop->getEvents()[fd].mask;
+    mask |= fe.mask;
     if (mask & MP_READABLE)
         ee.events |= EPOLLIN;
     if (mask & MP_WRITABLE)
@@ -60,11 +61,12 @@ static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
     return 0;
 }
 
-static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int delmask)
+static int MpApiDelEvent(MpEventLoop *eventLoop, int fd, int delmask)
 {
     MpApiState *state = (struct MpApiState *)eventLoop->getApiData();
     struct epoll_event ee = {0};
-    int mask = eventLoop->getEvents()[fd].mask & (~delmask);
+    MpFileEvent &fe = eventLoop->getEvents()[fd];
+    int mask = fe.mask & (~delmask);
 
     ee.events = 0;
     if (mask & MP_READABLE)
@@ -72,14 +74,16 @@ static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int delmask)
     if (mask & MP_WRITABLE)
         ee.events |= EPOLLOUT;
     ee.data.fd = fd;
+    int ret = 0;
     if (mask != MP_NO_MASK)
     {
-        epoll_ctl(state->epfd, EPOLL_CTL_MOD, fd, &ee);
+        ret = epoll_ctl(state->epfd, EPOLL_CTL_MOD, fd, &ee);
     }
     else
     {
-        epoll_ctl(state->epfd, EPOLL_CTL_DEL, fd, &ee);
+        ret = epoll_ctl(state->epfd, EPOLL_CTL_DEL, fd, &ee);
     }
+    return ret;
 }
 
 static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
@@ -114,8 +118,9 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             //    mask |= MP_WRITABLE;
             //if (ee->events & EPOLLHUP)
             //    mask |= MP_WRITABLE;
-            eventLoop->getFiredEvents()[j].fd = ee->data.fd;
-            eventLoop->getFiredEvents()[j].mask = mask;
+            MpFileEvent &evt = eventLoop->getFiredEvents()[j];
+            evt.fd = ee->data.fd;
+            evt.mask = mask;
         }
         // log_info("numevents %d r w %d %d", numevents, r, w);
     }

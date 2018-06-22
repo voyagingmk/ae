@@ -87,15 +87,15 @@ int MpEventLoop::createFileEvent(int fd, int mask,
     return MP_OK;
 }
 
-void MpEventLoop::deleteFileEvent(int fd, int mask)
+int MpEventLoop::deleteFileEvent(int fd, int mask)
 {
     if (fd >= m_setsize)
-        return;
+        return MP_ERR;
     MpFileEvent *fe = &m_events[fd];
     if (fe->mask == MP_NO_MASK)
-        return;
-
-    MpApiDelEvent(this, fd, mask);
+        return MP_ERR;
+    if (MpApiDelEvent(this, fd, mask) == -1)
+        return MP_ERR;
     fe->mask = fe->mask & (~mask);
     if (fd == m_maxfd && fe->mask == MP_NO_MASK)
     {
@@ -105,6 +105,7 @@ void MpEventLoop::deleteFileEvent(int fd, int mask)
                 break;
         m_maxfd = j;
     }
+    return MP_OK;
 }
 
 int MpEventLoop::getFileEvents(int fd)

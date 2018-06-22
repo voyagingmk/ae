@@ -47,7 +47,7 @@ static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
     return 0;
 }
 
-static void MpApiDelEvent(MpEventLoop *eventLoop, int fd, int mask)
+static int MpApiDelEvent(MpEventLoop *eventLoop, int fd, int mask)
 {
     MpApiState *state = (MpApiState *)eventLoop->getApiData();
 
