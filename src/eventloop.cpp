@@ -177,7 +177,7 @@ void EventLoop::loop()
     // m_aeloop->stop = 0;
     AeTimerId aeTimerId = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
     AeTimerId aeTimerIdStat = createTimerInLoop(m_ownEvtListener, 10 * 1000, StatEventLoop, nullptr);
-    while (!m_mploop->isStopped())
+    while (!m_mploop.isStopped())
     // while (!m_aeloop->stop)
     {
         // log_info("loop---1");
@@ -236,7 +236,7 @@ void EventLoop::stopInLoop()
     log_info("EventLoop::stopInLoop");
     assertInLoopThread("stop");
     // if (!m_aeloop->stop)
-    if (!m_mploop->isStopped())
+    if (!m_mploop.isStopped())
     {
         // aeStop(m_aeloop);
         m_mploop.stop();
