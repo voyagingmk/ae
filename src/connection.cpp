@@ -274,6 +274,7 @@ void TcpConnection::onWritable()
     if (m_evtListener)
     {
         assert(m_evtListener->hasFileEvent(MP_WRITABLE));
+        m_evtListener->deleteFileEvent(MP_WRITABLE);
     }
     if (m_state != State::Connected && m_state != State::Disconnecting)
     {
@@ -282,12 +283,6 @@ void TcpConnection::onWritable()
     int remain = m_pendingSendBuf.readableSize();
     if (remain <= 0)
     {
-        if (m_evtListener)
-        {
-            m_evtListener->deleteFileEvent(MP_WRITABLE);
-        }
-        // TODO
-        // log_error("TcpConnection::onWritable remain <= 0 %d", remain);
         return;
     }
     if (m_shutdownWrite)
