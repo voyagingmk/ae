@@ -302,6 +302,7 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
             setsize = setsize << 1;
         }
         // assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize));
+        log_info("setsize %d", setsize);
         assert(AE_ERR != m_mploop.resizeSetSize(setsize));
     }
     int oldMask = getFileEvent(sockfd);
