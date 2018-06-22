@@ -56,8 +56,13 @@ static int MpApiAddEvent(MpEventLoop *eventLoop, int fd, int mask)
     if (mask & MP_WRITABLE)
         ee.events |= EPOLLOUT;
     ee.data.fd = fd;
+    assert(fd > 0);
+    assert(ee.events > 0);
     if (epoll_ctl(state->epfd, op, fd, &ee) == -1)
+    {
+        log_fatal("epoll_ctrl err %d %s", errno, strerror(errno));
         return -1;
+    }
     return 0;
 }
 
@@ -101,7 +106,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
         int w = 0;
         for (j = 0; j < numevents; j++)
         {
-            int mask = 0;
+            int mask = MP_NO_MASK;
             struct epoll_event *ee = &state->events[j];
 
             if (ee->events & EPOLLIN)
@@ -123,6 +128,8 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             MpFiredEvent &evt = eventLoop->getFiredEvents()[j];
             evt.fd = ee->data.fd;
             evt.mask = mask;
+            MpFileEvent &fe = eventLoop->getEvents()[fd];
+            assert((fe.mask & mask) > 0);
         }
         // log_info("numevents %d r w %d %d", numevents, r, w);
     }
