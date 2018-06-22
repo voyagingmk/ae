@@ -53,6 +53,7 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
         loop->deleteFileEventInLoop(sockfd, MP_READABLE | MP_WRITABLE);
         return;
     }
+    assert(listener->getSockFd() == sockfd);
     if (listener->m_onFileEvent)
     {
         int lmask = listener->getFileEventMask();
