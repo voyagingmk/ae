@@ -114,10 +114,12 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
                 w++;
                 mask |= MP_WRITABLE;
             }
-            //if (ee->events & EPOLLERR)
-            //    mask |= MP_WRITABLE;
-            //if (ee->events & EPOLLHUP)
-            //    mask |= MP_WRITABLE;
+            if (ee->events & EPOLLERR)
+                mask |= MP_WRITABLE;
+            if (ee->events & EPOLLHUP)
+                mask |= MP_WRITABLE;
+            assert(ee->events > 0);
+            assert(mask > 0);
             MpFiredEvent &evt = eventLoop->getFiredEvents()[j];
             evt.fd = ee->data.fd;
             evt.mask = mask;
