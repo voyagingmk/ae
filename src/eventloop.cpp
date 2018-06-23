@@ -48,8 +48,9 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     PtrEvtListener listener = wkListener.lock();
     if (!listener)
     {
-        log_fatal("OnSockEvent no listener %d", sockfd);
+        log_error("OnSockEvent no listener %d", sockfd);
         // maybe deleteFileEvent job is in queue (async)
+        loop->m_fd2listener.erase(sockfd);
         loop->deleteFileEventInLoop(sockfd, MP_READABLE | MP_WRITABLE);
         return;
     }
