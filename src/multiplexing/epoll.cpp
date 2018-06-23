@@ -142,14 +142,23 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             }
             else if (val)
             {
-                // printf("fd %d is a listening socket\n", fd);
+                // printf("fd %d is a listening socket\n", evt.fd);
             }
             else
             {
-                //  printf("fd %d is a non-listening socket\n", fd);
                 int space = 0;
                 assert(0 == socketUtils::getSockSendBufSpace(evt.fd, &space));
                 assert(space > 0);
+                struct tcp_info tcp_info;
+                uint tcp_info_length = sizeof(tcp_info);
+                if (getsockopt(evt.fd, SOL_TCP, TCP_INFO, (void *)&tcp_info, &tcp_info_length) == 0)
+                {
+                    log_info("tcpi_snd_cwnd: %u, tcpi_unacked: %u",
+                             tcp_info.tcpi_snd_cwnd,
+                             tcp_info.tcpi_unacked);
+                }
+                char c = 'a';
+                assert(::write(evt.fd, &c, 1) == 1);
             }
         }
         // log_info("numevents %d r w %d %d", numevents, r, w);
