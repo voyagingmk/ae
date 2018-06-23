@@ -134,6 +134,9 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             MpFileEvent &fe = eventLoop->getEvents()[evt.fd];
             assert((fe.mask & mask) > 0);
 
+            /* 
+            检测拥塞窗口导致的EAGAIN问题
+
             int val;
             socklen_t len = sizeof(val);
             if (getsockopt(evt.fd, SOL_SOCKET, SO_ACCEPTCONN, &val, &len) == -1)
@@ -153,6 +156,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
                 char c = 'a';
                 assert(::write(evt.fd, &c, 1) == 1);
             }
+            */
         }
         // log_info("numevents %d r w %d %d", numevents, r, w);
     }

@@ -315,9 +315,6 @@ void TcpConnection::onWritable()
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
         {
-            int space = 0;
-            assert(0 == socketUtils::getSockSendBufSpace(sockfd(), &space));
-            log_error("[conn] onWritable EAGAIN space %d", space);
             return;
         }
         log_error("[conn] onWritable send error: %d %s", errno, strerror(errno));
