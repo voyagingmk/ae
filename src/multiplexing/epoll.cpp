@@ -1,4 +1,5 @@
 #include <sys/epoll.h>
+#include <sys/ioctl.h>
 #include <vector>
 
 typedef struct MpApiState
@@ -134,7 +135,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             assert((fe.mask & mask) > 0);
 
             int unsentBytes;
-            int r = ioctl(evt.fd, SIOCOUTQ, &unsentBytes);
+            int r = ioctl(evt.fd, TIOCOUTQ, &unsentBytes);
             int sndbuf = 0;
             socklen_t len = sizeof(sndbuf);
             int r2 = getsockopt(evt.fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
