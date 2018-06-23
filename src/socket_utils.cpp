@@ -1,5 +1,6 @@
 #include "socket_utils.h"
 #include "logger/log.h"
+#include <sys/ioctl.h>
 
 namespace wynet
 {
@@ -259,6 +260,21 @@ void setTcpKeepCount(SockFd sockfd, int c)
 #ifdef __linux__
     sock_setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPCNT,
                     &c, static_cast<socklen_t>(sizeof c));
+#endif
+}
+
+void printTcpInfo(SockFd sockfd)
+{
+
+#ifdef __linux__
+    struct tcp_info tcp_info;
+    uint tcp_info_length = sizeof(tcp_info);
+    if (getsockopt(sockfd, SOL_TCP, TCP_INFO, (void *)&tcp_info, &tcp_info_length) == 0)
+    {
+        log_info("tcpi_snd_cwnd: %u, tcpi_unacked: %u",
+                 tcp_info.tcpi_snd_cwnd,
+                 tcp_info.tcpi_unacked);
+    }
 #endif
 }
 

@@ -50,6 +50,8 @@ extern void setTcpKeepIdle(SockFd sockfd, int seconds);
 
 extern void setTcpKeepCount(SockFd sockfd, int c);
 
+extern void printTcpInfo(SockFd sockfd);
+
 extern int getSockSendBufSpace(int sockfd, int *space);
 
 extern int setSockSendBufSize(SockFd sockfd, int newSndBuf, bool force = false);
