@@ -1,6 +1,7 @@
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
 #include <vector>
+#include "socket_utils.h"
 
 typedef struct MpApiState
 {
@@ -148,7 +149,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             {
                 //  printf("fd %d is a non-listening socket\n", fd);
                 int space = 0;
-                assert(0 == getSockSendBufSpace(evt.fd, &space));
+                assert(0 == socketUtils::getSockSendBufSpace(evt.fd, &space));
                 assert(space > 0);
             }
         }
