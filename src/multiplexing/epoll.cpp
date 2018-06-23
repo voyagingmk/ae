@@ -132,6 +132,11 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             evt.mask = mask;
             MpFileEvent &fe = eventLoop->getEvents()[evt.fd];
             assert((fe.mask & mask) > 0);
+
+            int space;
+            int r = ioctl(evt.fd, FIONSPACE, &space);
+            assert(r == 0);
+            assert(space > 0);
         }
         // log_info("numevents %d r w %d %d", numevents, r, w);
     }
