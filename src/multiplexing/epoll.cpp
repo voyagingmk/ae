@@ -1,7 +1,6 @@
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
 #include <vector>
-#include "socket_utils.h"
 
 typedef struct MpApiState
 {
