@@ -138,7 +138,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             socklen_t len = sizeof(val);
             if (getsockopt(evt.fd, SOL_SOCKET, SO_ACCEPTCONN, &val, &len) == -1)
             {
-                //  printf("fd %d is not a socket\n", fd);
+                log_fatal("fd %d is not a socket", fd);
             }
             else if (val)
             {
