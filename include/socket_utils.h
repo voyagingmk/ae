@@ -50,9 +50,11 @@ extern void setTcpKeepIdle(SockFd sockfd, int seconds);
 
 extern void setTcpKeepCount(SockFd sockfd, int c);
 
-extern int SetSockSendBufSize(SockFd sockfd, int newSndBuf, bool force = false);
+extern int getSockSendBufSpace(int sockfd, int *space);
 
-extern int SetSockRecvBufSize(SockFd sockfd, int newRcvBuf, bool force = false);
+extern int setSockSendBufSize(SockFd sockfd, int newSndBuf, bool force = false);
+
+extern int setSockRecvBufSize(SockFd sockfd, int newRcvBuf, bool force = false);
 
 #ifdef DEBUG_MODE
 

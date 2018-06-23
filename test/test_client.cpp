@@ -38,7 +38,7 @@ void OnTcpSendComplete(const PtrConn &conn)
 void OnTcpConnected(const PtrConn &conn)
 {
     log_debug("[test.OnTcpConnected]");
-    // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
+    // socketUtils::setSockSendBufSize(conn->fd(), 3, true);
     conn->setCallBack_SendComplete(OnTcpSendComplete);
 
     input_fd = open("testdata", O_RDONLY);

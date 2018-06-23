@@ -206,7 +206,7 @@ class TestClient
     void OnTcpConnected(const PtrConn &conn)
     {
         // log_info("[test.OnTcpConnected]");
-        // socketUtils::SetSockSendBufSize(conn->fd(), 3, true);
+        // socketUtils::setSockSendBufSize(conn->fd(), 3, true);
         conn->setCallBack_SendComplete(std::bind(&TestClient::OnTcpSendComplete, this, _1));
         socketUtils::setTcpNoDelay(conn->sockfd(), true);
         int num = m_numConnected;

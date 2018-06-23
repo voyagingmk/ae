@@ -147,19 +147,9 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             else
             {
                 //  printf("fd %d is a non-listening socket\n", fd);
-                int unsentBytes = 0;
-                int r = ioctl(evt.fd, TIOCOUTQ, &unsentBytes);
-                if (r == -1)
-                {
-                    log_info("ioctl fd %d", evt.fd);
-                    log_fatal("ioctl err %d %s", errno, strerror(errno));
-                }
-                int sndbuf = 0;
-                len = sizeof(sndbuf);
-                int r2 = getsockopt(evt.fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
-
-                assert(r2 == 0);
-                assert((sndbuf - unsentBytes) > 0);
+                int space = 0;
+                assert(0 == getSockSendBufSpace(evt.fd, &space));
+                assert(space > 0);
             }
         }
         // log_info("numevents %d r w %d %d", numevents, r, w);
