@@ -134,12 +134,17 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             MpFileEvent &fe = eventLoop->getEvents()[evt.fd];
             assert((fe.mask & mask) > 0);
 
-            int unsentBytes;
+            int unsentBytes = 0;
             int r = ioctl(evt.fd, TIOCOUTQ, &unsentBytes);
+            if (r == -1)
+            {
+                log_info("ioctl fd %d", evt.fd);
+                log_fatal("ioctl err %d %s", errno, strerror(errno));
+            }
             int sndbuf = 0;
             socklen_t len = sizeof(sndbuf);
             int r2 = getsockopt(evt.fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
-            assert(r == 0);
+
             assert(r2 == 0);
             assert((sndbuf - unsentBytes) > 0);
         }
