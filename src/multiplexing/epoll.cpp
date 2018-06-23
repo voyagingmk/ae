@@ -137,7 +137,7 @@ static int MpApiPoll(MpEventLoop *eventLoop, struct timeval *tvp)
             int r = ioctl(evt.fd, SIOCOUTQ, &unsentBytes);
             int sndbuf = 0;
             socklen_t len = sizeof(sndbuf);
-            int r2 = getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
+            int r2 = getsockopt(evt.fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, &len);
             assert(r == 0);
             assert(r2 == 0);
             assert((sndbuf - unsentBytes) > 0);
