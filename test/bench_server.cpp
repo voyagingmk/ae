@@ -93,7 +93,12 @@ class TestServer
                 }
             }
         }
-        log_info("======== onStat ======== \n [count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d <%d,%d,%d>",
+
+        BufferSet *bufferSet = BufferSet::getSingleton();
+        size_t s = bufferSet->getSize();
+        log_info("bufferSet->getSize: %d", (int)s);
+        log_info("======== onStat ======== \n [count] connected: %d, \
+        disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d <%d,%d,%d>",
                  numConnected,
                  numDisconnected,
                  numDisconnecting,
