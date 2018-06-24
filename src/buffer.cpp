@@ -66,6 +66,7 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
 BufferRef::BufferRef(const char *reason)
 {
     m_uniqID = BufferSet::getSingleton()->newBuffer();
+    m_cachedPtr = nullptr;
     log_debug("BufferRef created %d, reason: %s", m_uniqID, reason);
 }
 
@@ -95,16 +96,17 @@ BufferRef &BufferRef::operator=(BufferRef &&b)
 
 std::shared_ptr<DynamicBuffer> BufferRef::get()
 {
+    if (m_cachedPtr)
+    {
+        return m_cachedPtr;
+    }
     if (!m_uniqID)
     {
         log_fatal("BufferRef get, no m_uniqID");
         return nullptr;
     }
-    if (!m_cachedPtr)
-    {
-        m_cachedPtr = BufferSet::getSingleton()->getBuffer(m_uniqID);
-        log_debug("BufferRef cache %d", m_uniqID);
-    }
+    m_cachedPtr = BufferSet::getSingleton()->getBuffer(m_uniqID);
+    log_debug("BufferRef cache %d", m_uniqID);
     if (!m_cachedPtr)
     {
         log_fatal("BufferRef get, no m_cachedPtr");
