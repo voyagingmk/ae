@@ -21,14 +21,14 @@ void TcpServer::OnNewTcpConnection(EventLoop *eventLoop, const PtrEvtListener &l
 	tcpServer->acceptConnection();
 }
 
-TcpServer::TcpServer(PtrServer parent) : m_parent(parent),
-										 m_tcpPort(0),
-										 m_terminated(false),
-										 m_connMgr(nullptr),
-										 m_sockFdCtrl(0),
+TcpServer::TcpServer(PtrServer parent) : m_sockFdCtrl(0),
 										 onTcpConnected(nullptr),
 										 onTcpDisconnected(nullptr),
-										 onTcpRecvMessage(nullptr)
+										 onTcpRecvMessage(nullptr),
+										 m_parent(parent),
+										 m_tcpPort(0),
+										 m_terminated(false),
+										 m_connMgr(nullptr)
 {
 	log_trace("TcpServer()");
 	m_evtListener = TcpServerEventListener::create();
