@@ -43,11 +43,20 @@ MpEventLoop::MpEventLoop(int setsize)
 int MpEventLoop::resizeSetSize(int setsize)
 {
     if (setsize == m_setsize)
+    {
+        log_error("setsize == m_setsize");
         return MP_OK;
+    }
     if (m_maxfd >= setsize)
+    {
+        log_error("m_maxfd >= setsize %d %d", m_maxfd, setsize);
         return MP_ERR;
+    }
     if (MpApiResize(this, setsize) == -1)
+    {
+        log_error("MpApiResize");
         return MP_ERR;
+    }
     m_events.resize(setsize);
     m_fired.resize(setsize);
     m_setsize = setsize;
