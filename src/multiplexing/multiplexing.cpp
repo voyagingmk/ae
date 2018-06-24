@@ -7,7 +7,7 @@
 
 namespace wynet
 {
-#ifdef HAVE_EPOLL
+#ifdef __linux__
 #include "epoll.cpp"
 #else
 #include "select.cpp"
