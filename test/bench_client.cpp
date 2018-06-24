@@ -155,7 +155,9 @@ class TestClient
             }
         }
         log_info("======== onStat ========\ntook %d ms", ms);
-        log_info("[atomic] connected: %d", (int)m_numConnected);
+        BufferSet *bufferSet = BufferSet::getSingleton();
+        size_t s = bufferSet->getSize();
+        log_info("bufferSet->getSize: %d", (int)s);
         log_info("[count] connected: %d, disconnected: %d, disconnecting: %d, noConn: %d, sdw: %d, <%d,%d,%d>",
                  numConnected,
                  numDisconnected,
