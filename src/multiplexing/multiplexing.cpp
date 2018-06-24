@@ -2,7 +2,6 @@
 #include <sys/time.h>
 #include <poll.h>
 #include "multiplexing.h"
-#include "config.h"
 #include "logger/log.h"
 #include "socket_utils.h"
 
