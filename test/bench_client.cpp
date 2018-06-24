@@ -200,6 +200,8 @@ class TestClient
             auto it = m_tcpClients.find(tcpClient);
             assert(it != m_tcpClients.end());
             m_tcpClients.erase(it);
+            if (m_tcpClients.size() == 0)
+                m_net->stopAllLoop();
         }
     }
 
@@ -238,12 +240,6 @@ class TestClient
         assert(it != m_tcpClients.end());
         m_tcpClients.erase(it);
         // log_info("[disconnected] numConnected %d, sockfd: %d", num, conn->sockfd());
-        if (m_numConnected == 0)
-        {
-            logStat();
-            m_tcpClients.clear();
-            m_net->stopAllLoop();
-        }
     }
 
     void OnTcpRecvMessage(const PtrConn &conn, SockBuffer &sockBuf)
