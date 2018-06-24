@@ -18,20 +18,19 @@ int ForceStop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
     log_info("ForceStop");
     loop->stop();
-    return AE_NOMORE;
+    return MP_HALT;
 }
 
 int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data)
 {
     log_info("loop, taskqueue = %d listener = %d timer = %d",
              loop->queueSize(), loop->m_fd2listener.size(),
-             loop->m_aeTimerId2ref.size());
+             loop->m_timerId2ref.size());
     loop->m_mploop.debugInfo();
     return 10 * 1000;
 }
 
 void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, int mask)
-// void OnSockEvent(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
     assert(sockfd > 0);
     log_debug("file evt %d %s %s", sockfd,
@@ -77,19 +76,18 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     }
 }
 
-int OnTimerEventTimeout(struct MpEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
-// int OnTimerEventTimeout(struct aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData)
+int OnTimerEventTimeout(struct MpEventLoop *eventLoop, MpTimerId timerId, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
     int err = 0;
     do
     {
-        if (loop->m_aeTimerId2ref.find(aeTimerId) == loop->m_aeTimerId2ref.end())
+        if (loop->m_timerId2ref.find(timerId) == loop->m_timerId2ref.end())
         {
             err = 1;
             break;
         }
-        TimerRef tr = loop->m_aeTimerId2ref[aeTimerId];
+        TimerRef tr = loop->m_timerId2ref[timerId];
         if (!tr.validate())
         {
             err = 2;
@@ -113,7 +111,7 @@ int OnTimerEventTimeout(struct MpEventLoop *eventLoop, AeTimerId aeTimerId, void
             break;
         }
         int milliseconds = td.m_onTimerEvent(loop, tr, listener, td.m_data);
-        if (milliseconds == AE_NOMORE)
+        if (milliseconds == MP_HALT)
         {
             err = 6;
             break;
@@ -124,8 +122,8 @@ int OnTimerEventTimeout(struct MpEventLoop *eventLoop, AeTimerId aeTimerId, void
     {
         log_error("OnTimerEventTimeout err %d", err);
     }
-    loop->deleteTimerInLoop(aeTimerId);
-    return AE_NOMORE;
+    loop->deleteTimerInLoop(timerId);
+    return MP_HALT;
 }
 
 EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(CurrentThread::tid()),
@@ -146,7 +144,6 @@ EventLoop::EventLoop(int wakeupInterval, int defaultSetsize) : m_threadId(Curren
     {
         t_threadLoop = this;
     }
-    // m_aeloop = aeCreateEventLoop(defaultSetsize);
 }
 
 EventLoop::~EventLoop()
@@ -165,8 +162,6 @@ EventLoop::~EventLoop()
             log_error("name:%s mask:%d", l->getName().c_str(), l->getFileEventMask());
         }
     }
-    // aeDeleteEventLoop(m_aeloop);
-    // m_aeloop = nullptr;
     t_threadLoop = nullptr;
     assert(m_taskFuncQueue.size() == 0);
     assert(m_fd2listener.size() == 0);
@@ -175,25 +170,17 @@ EventLoop::~EventLoop()
 void EventLoop::loop()
 {
     assertInLoopThread("loop");
-    // m_aeloop->stop = 0;
-    AeTimerId aeTimerId = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
-    AeTimerId aeTimerIdStat = createTimerInLoop(m_ownEvtListener, 10 * 1000, StatEventLoop, nullptr);
+    MpTimerId timerIdWakeup = createTimerInLoop(m_ownEvtListener, m_wakeupInterval, OnlyForWakeup, (void *)&m_wakeupInterval);
+    MpTimerId timerIdStat = createTimerInLoop(m_ownEvtListener, 10 * 1000, StatEventLoop, nullptr);
     while (!m_mploop.isStopped())
-    // while (!m_aeloop->stop)
     {
-        // log_info("loop---1");
         log_timemeasure("loop");
-        // if (m_aeloop->beforesleep != NULL)
-        //     m_aeloop->beforesleep(m_aeloop);
         {
             log_timemeasure("processEvents");
-            // log_info("loop---2");
-            // aeProcessEvents(m_aeloop, AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
-            m_mploop.processEvents(AE_ALL_EVENTS | AE_CALL_AFTER_SLEEP);
+            m_mploop.processEvents(MP_ALL_EVENTS | MP_CALL_AFTER_SLEEP);
         }
         {
             log_timemeasure("processTaskQueue");
-            // log_info("loop---3");
             processTaskQueue();
         }
         if (m_stopping)
@@ -211,8 +198,8 @@ void EventLoop::loop()
     }
     log_info("loop exited");
     processTaskQueue();
-    deleteTimerInLoop(aeTimerId);
-    deleteTimerInLoop(aeTimerIdStat);
+    deleteTimerInLoop(timerIdWakeup);
+    deleteTimerInLoop(timerIdStat);
 }
 
 void EventLoop::stopSafely()
@@ -236,10 +223,8 @@ void EventLoop::stopInLoop()
 {
     log_info("EventLoop::stopInLoop");
     assertInLoopThread("stop");
-    // if (!m_aeloop->stop)
     if (!m_mploop.isStopped())
     {
-        // aeStop(m_aeloop);
         m_mploop.stop();
         log_info("EventLoop stop2");
     }
@@ -248,15 +233,13 @@ void EventLoop::stopInLoop()
 int EventLoop::getFileEvent(SockFd sockfd)
 {
     assertInLoopThread("hasFileEvent");
-    // return aeGetFileEvents(m_aeloop, sockfd);
     return m_mploop.getFileEvents(sockfd);
 }
 
 bool EventLoop::hasFileEvent(SockFd sockfd, int mask)
 {
     assertInLoopThread("hasFileEvent");
-    assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
-    // int oldMask = aeGetFileEvents(m_aeloop, sockfd);
+    assert((mask & MP_READABLE) || (mask & MP_WRITABLE));
     int oldMask = m_mploop.getFileEvents(sockfd);
     return (oldMask & mask);
 }
@@ -294,8 +277,7 @@ void EventLoop::deleteAllFileEvent(SockFd sockfd)
 void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
 {
     assertInLoopThread("createFileEventInLoop");
-    assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
-    // int setsize = aeGetSetSize(m_aeloop);
+    assert((mask & MP_READABLE) || (mask & MP_WRITABLE));
     int setsize = m_mploop.getSetSize();
     SockFd sockfd = listener->getSockFd();
     if (sockfd >= setsize)
@@ -304,23 +286,20 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
         {
             setsize = setsize << 1;
         }
-        // assert(AE_ERR != aeResizeSetSize(m_aeloop, setsize));
         log_info("setsize %d", setsize);
-        assert(AE_ERR != m_mploop.resizeSetSize(setsize));
+        assert(MP_ERR != m_mploop.resizeSetSize(setsize));
     }
     int oldMask = getFileEvent(sockfd);
-    if ((oldMask & AE_READABLE) && (mask & AE_READABLE))
+    if ((oldMask & MP_READABLE) && (mask & MP_READABLE))
     {
-        log_warn("already has AE_READABLE");
+        log_warn("already has MP_READABLE");
     }
-    else if ((oldMask & AE_WRITABLE) && (mask & AE_WRITABLE))
+    else if ((oldMask & MP_WRITABLE) && (mask & MP_WRITABLE))
     {
-        log_warn("already has AE_WRITABLE");
+        log_warn("already has MP_WRITABLE");
     }
-    // log_info("createFileEventInLoop %d %d", sockfd, mask);
-    // int ret = aeCreateFileEvent(m_aeloop, sockfd, mask, OnSockEvent, (void *)this);
     int ret = m_mploop.createFileEvent(sockfd, mask, OnSockEvent, (void *)this);
-    assert(AE_ERR != ret);
+    assert(MP_ERR != ret);
     auto it = m_fd2listener.find(sockfd);
     if (it != m_fd2listener.end())
     {
@@ -335,15 +314,14 @@ void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
     // log_info("deleteFileEventInLoop %d %d", sockfd, mask);
     assert(sockfd > 0);
     assertInLoopThread("deleteFileEventInLoop");
-    assert((mask & AE_READABLE) || (mask & AE_WRITABLE));
+    assert((mask & MP_READABLE) || (mask & MP_WRITABLE));
     int setsize = m_mploop.getSetSize();
     if (sockfd >= setsize)
     {
         log_warn("deleteFileEventInLoop sockfd >= setsize  %d %d\n", sockfd, setsize);
     }
-    // aeDeleteFileEvent(m_aeloop, sockfd, mask);
     int ret = m_mploop.deleteFileEvent(sockfd, mask);
-    assert(AE_ERR != ret);
+    assert(MP_ERR != ret);
     if (!getFileEvent(sockfd) && m_fd2listener.find(sockfd) != m_fd2listener.end())
     {
         m_fd2listener.erase(sockfd);
@@ -353,7 +331,7 @@ void EventLoop ::deleteFileEventInLoop(SockFd sockfd, int mask)
 void EventLoop ::deleteAllFileEventInLoop(SockFd sockfd)
 {
     assert(sockfd > 0);
-    deleteFileEventInLoop(sockfd, AE_READABLE | AE_WRITABLE);
+    deleteFileEventInLoop(sockfd, MP_READABLE | MP_WRITABLE);
 }
 
 TimerRef EventLoop ::createTimer(PtrEvtListener listener, int ms, OnTimerEvent onTimerEvent, void *data)
@@ -373,11 +351,11 @@ void EventLoop ::deleteTimer(TimerRef tr)
     });
 }
 
-void EventLoop ::deleteTimerInLoop(AeTimerId aeTimerId)
+void EventLoop ::deleteTimerInLoop(MpTimerId timerId)
 {
     assertInLoopThread("deleteTimerInLoop");
-    auto it = m_aeTimerId2ref.find(aeTimerId);
-    if (it == m_aeTimerId2ref.end())
+    auto it = m_timerId2ref.find(timerId);
+    if (it == m_timerId2ref.end())
     {
         return;
     }
@@ -391,31 +369,29 @@ void EventLoop ::deleteTimerInLoop(TimerRef tr)
     if (m_timerData.find(tr) != m_timerData.end())
     {
         TimerData &data = m_timerData[tr];
-        WyTimerId aeTimerId = data.m_aeTimerId;
+        WyTimerId timerId = data.m_timerId;
         m_timerData.erase(tr);
-        m_aeTimerId2ref.erase(aeTimerId);
-        // aeDeleteTimeEvent(m_aeloop, aeTimerId);
-        m_mploop.deleteTimeEvent(aeTimerId);
+        m_timerId2ref.erase(timerId);
+        m_mploop.deleteTimeEvent(timerId);
     }
 }
 
-AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, int ms, OnTimerEvent onTimerEvent, void *data)
+MpTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, int ms, OnTimerEvent onTimerEvent, void *data)
 {
     TimerRef tr = TimerRef::newTimerRef();
     return createTimerInLoop(listener, tr, ms, onTimerEvent, data);
 }
 
-AeTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, TimerRef tr, int ms, OnTimerEvent onTimerEvent, void *data)
+MpTimerId EventLoop ::createTimerInLoop(PtrEvtListener listener, TimerRef tr, int ms, OnTimerEvent onTimerEvent, void *data)
 {
     assertInLoopThread("createTimerInLoop");
     // log_debug("createTimerInLoop ms %d", ms);
-    // AeTimerId aeTimerId = aeCreateTimeEvent(m_aeloop, ms, OnTimerEventTimeout, (void *)this, NULL);
-    AeTimerId aeTimerId = m_mploop.createTimeEvent(ms, OnTimerEventTimeout, (void *)this, NULL);
-    assert(AE_ERR != aeTimerId);
+    MpTimerId timerId = m_mploop.createTimeEvent(ms, OnTimerEventTimeout, (void *)this, NULL);
+    assert(MP_ERR != timerId);
     assert(m_timerData.find(tr) == m_timerData.end());
-    m_timerData[tr] = {onTimerEvent, listener, data, aeTimerId};
-    m_aeTimerId2ref.insert({aeTimerId, tr});
-    return aeTimerId;
+    m_timerData[tr] = {onTimerEvent, listener, data, timerId};
+    m_timerId2ref.insert({timerId, tr});
+    return timerId;
 }
 
 void EventLoop::runInLoop(const TaskFunction &cb)

@@ -12,7 +12,7 @@
 namespace wynet
 {
 
-using AeTimerId = long long;
+using MpTimerId = long long;
 
 class EventLoop : Noncopyable
 {
@@ -72,22 +72,22 @@ class EventLoop : Noncopyable
     {
         TimerData() : m_onTimerEvent(nullptr),
                       m_data(nullptr),
-                      m_aeTimerId(0)
+                      m_timerId(0)
         {
         }
         TimerData(OnTimerEvent _evt,
                   PtrEvtListener listener,
                   void *_data,
-                  AeTimerId _aeTimerId) : m_onTimerEvent(_evt),
-                                          m_listener(listener),
-                                          m_data(_data),
-                                          m_aeTimerId(_aeTimerId)
+                  MpTimerId timerId) : m_onTimerEvent(_evt),
+                                       m_listener(listener),
+                                       m_data(_data),
+                                       m_timerId(timerId)
         {
         }
         OnTimerEvent m_onTimerEvent;
         WeakPtrEvtListener m_listener;
         void *m_data;
-        AeTimerId m_aeTimerId;
+        MpTimerId m_timerId;
     };
 
   private:
@@ -105,21 +105,17 @@ class EventLoop : Noncopyable
 
     void deleteAllFileEventInLoop(SockFd fd);
 
-    AeTimerId createTimerInLoop(PtrEvtListener listener, int delay, OnTimerEvent onTimerEvent, void *data);
+    MpTimerId createTimerInLoop(PtrEvtListener listener, int delay, OnTimerEvent onTimerEvent, void *data);
 
-    AeTimerId createTimerInLoop(PtrEvtListener listener, TimerRef tr, int delay, OnTimerEvent onTimerEvent, void *data);
+    MpTimerId createTimerInLoop(PtrEvtListener listener, TimerRef tr, int delay, OnTimerEvent onTimerEvent, void *data);
 
     void deleteTimerInLoop(TimerRef tr);
 
-    void deleteTimerInLoop(AeTimerId aeTimerId);
-
-    // friend void OnSockEvent(aeEventLoop *eventLoop, int fd, void *clientData, int mask);
+    void deleteTimerInLoop(MpTimerId timerId);
 
     friend void OnSockEvent(MpEventLoop *eventLoop, int fd, void *clientData, int mask);
 
-    //friend int OnTimerEventTimeout(aeEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
-
-    friend int OnTimerEventTimeout(MpEventLoop *eventLoop, AeTimerId aeTimerId, void *clientData);
+    friend int OnTimerEventTimeout(MpEventLoop *eventLoop, MpTimerId timerId, void *clientData);
 
     friend int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *data);
 
@@ -127,12 +123,11 @@ class EventLoop : Noncopyable
 
   private:
     const pid_t m_threadId;
-    aeEventLoop *m_aeloop;
     MpEventLoop m_mploop;
     PtrEvtListener m_ownEvtListener;
     std::map<SockFd, WeakPtrEvtListener> m_fd2listener;
     std::map<TimerRef, TimerData> m_timerData;
-    std::map<AeTimerId, TimerRef> m_aeTimerId2ref;
+    std::map<MpTimerId, TimerRef> m_timerId2ref;
     const int m_wakeupInterval;
     const int m_forceStopTime;
     bool m_doingTask;

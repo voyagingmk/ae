@@ -102,7 +102,6 @@ extern "C"
 {
 #include "ikcp.h"
 }
-#include "ae.h"
 
 using ConvID = IUINT32;
 

@@ -71,8 +71,6 @@ FILE(GLOB MY_SOURCERS
     src/logger/append_file.cpp
     src/logger/log_file.cpp
     src/logger/log.cpp
-    external/ae.cpp
-    external/zmalloc.c
     external/ikcp.c)
 
 FILE(GLOB MY_HEADERS
@@ -111,8 +109,6 @@ FILE(GLOB MY_HEADERS
     include/logger/log_file.h
     include/logger/log.h
     external/ikcp.h
-    external/ae.h
-    external/zmalloc.h
   )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
