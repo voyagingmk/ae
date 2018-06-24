@@ -286,7 +286,6 @@ void EventLoop::createFileEventInLoop(const PtrEvtListener &listener, int mask)
         {
             setsize = setsize << 1;
         }
-        log_info("setsize %d", setsize);
         assert(MP_ERR != m_mploop.resizeSetSize(setsize));
     }
     int oldMask = getFileEvent(sockfd);
