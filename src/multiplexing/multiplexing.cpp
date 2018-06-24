@@ -174,7 +174,7 @@ int MpEventLoop::deleteTimeEvent(long long id)
     return MP_ERR;
 }
 
-const MpTimeEventPtr &MpEventLoop::searchNearestTimer()
+MpTimeEventPtr MpEventLoop::searchNearestTimer()
 {
     if (m_teSet.size() > 0)
     {

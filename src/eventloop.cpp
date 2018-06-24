@@ -30,7 +30,7 @@ int StatEventLoop(EventLoop *loop, TimerRef tr, PtrEvtListener listener, void *d
     return 10 * 1000;
 }
 
-void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, int mask)
+void OnSockEvent(MpEventLoop *eventLoop, int sockfd, void *clientData, int mask)
 {
     assert(sockfd > 0);
     log_debug("file evt %d %s %s", sockfd,
@@ -76,7 +76,7 @@ void OnSockEvent(struct MpEventLoop *eventLoop, int sockfd, void *clientData, in
     }
 }
 
-int OnTimerEventTimeout(struct MpEventLoop *eventLoop, MpTimerId timerId, void *clientData)
+int OnTimerEventTimeout(MpEventLoop *eventLoop, MpTimerId timerId, void *clientData)
 {
     EventLoop *loop = (EventLoop *)(clientData);
     int err = 0;
