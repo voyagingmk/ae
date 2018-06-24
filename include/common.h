@@ -93,10 +93,7 @@
 #endif
 
 // #define DEBUG_MODE 1
-
 #define LOG_USE_COLOR 1
-
-// #include "concurrentqueue.h"
 
 extern "C"
 {
