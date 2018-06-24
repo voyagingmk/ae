@@ -121,7 +121,7 @@ class BufferSet;
 class BufferSet : public Singleton<BufferSet>
 {
     MutexLock m_mutex;
-    std::vector<std::shared_ptr<DynamicBuffer>> m_buffers;
+    std::map<UniqID, std::shared_ptr<DynamicBuffer>> m_buffers;
     UniqIDGenerator m_uniqIDGen;
 
   public:

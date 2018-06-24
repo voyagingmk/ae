@@ -45,4 +45,21 @@ void UniqIDGenerator::recycleID(UniqID id)
 	}
 	recycled.insert(id);
 }
+
+void UniqIDGenerator::popRecycleIDs(std::vector<UniqID> &vec, int num)
+{
+	if (!recycleEnabled)
+	{
+		return;
+	}
+	while (recycled.size() > 0 && num > 0)
+	{
+		num--;
+		std::set<UniqID>::iterator it = recycled.begin();
+		UniqID id = *it;
+		vec.push_back(id);
+		recycled.erase(it);
+	}
+}
+
 }; // namespace wynet

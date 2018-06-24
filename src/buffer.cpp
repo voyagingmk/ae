@@ -15,9 +15,9 @@ UniqID BufferSet::newBuffer()
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     UniqID uid = m_uniqIDGen.getNewID();
-    if (static_cast<size_t>(uid) > m_buffers.size())
+    if (m_buffers.find(uid) == m_buffers.end())
     {
-        m_buffers.push_back(std::make_shared<DynamicBuffer>());
+        m_buffers.insert({uid, std::make_shared<DynamicBuffer>()});
     }
     return uid;
 }
@@ -32,17 +32,28 @@ void BufferSet::recycleBuffer(UniqID uid)
 {
     MutexLockGuard<MutexLock> lock(m_mutex);
     m_uniqIDGen.recycleID(uid);
+    if (m_uniqIDGen.getRecycledLength() > 10)
+    {
+        std::vector<UniqID> vec;
+        m_uniqIDGen.popRecycleIDs(vec, 5);
+        for (auto it = vec.begin(); it != vec.end(); it++)
+        {
+            UniqID uid = *it;
+            auto it2 = m_buffers.find(uid);
+            assert(it2 != m_buffers.end());
+            m_buffers.erase(it2);
+        }
+    }
 }
 
 std::shared_ptr<DynamicBuffer> BufferSet::getBuffer(UniqID uid)
 {
-    int32_t idx = uid - 1;
     MutexLockGuard<MutexLock> lock(m_mutex);
-    if (idx < 0 || idx >= static_cast<int32_t>(m_buffers.size()))
+    if (m_buffers.find(uid) == m_buffers.end())
     {
         return std::shared_ptr<DynamicBuffer>();
     }
-    return m_buffers[idx];
+    return m_buffers[uid];
 }
 
 std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
@@ -52,11 +63,12 @@ std::shared_ptr<DynamicBuffer> BufferSet::getBufferByIdx(int32_t idx)
         return std::shared_ptr<DynamicBuffer>();
     }
     MutexLockGuard<MutexLock> lock(m_mutex);
-    while ((idx + 1) > static_cast<int32_t>(m_buffers.size()))
+    UniqID uid = idx + 1;
+    if (m_buffers.find(uid) == m_buffers.end())
     {
-        m_buffers.push_back(std::make_shared<DynamicBuffer>());
+        m_buffers.insert({uid, std::make_shared<DynamicBuffer>()});
     }
-    return m_buffers[idx];
+    return m_buffers[uid];
 }
 
 //////////////////////////////
