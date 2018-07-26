@@ -7,6 +7,10 @@
 namespace wynet
 {
 
+int little_endian();
+
+int big_endian();
+
 void ignoreSignalPipe();
 
 std::string hostname();

@@ -3,6 +3,17 @@
 namespace wynet
 {
 
+int little_endian()
+{
+    int x = 0x1234;
+    return *(char *)&x == 0x34;
+}
+
+int big_endian()
+{
+    return !little_endian();
+}
+
 void ignoreSignalPipe()
 {
     ::signal(SIGPIPE, SIG_IGN);
